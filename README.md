@@ -2,8 +2,10 @@
 ## It's like Git for your development database's Docker volumes.
 
 Key observation: doing interesting things with data volumes involves traversing
-a tree structure. What tree structure are developers everywhere really good at
+a tree structure. What tree structure are developers everywhere familiar with
 traversing? Answer: Git.
+
+Therefore: model an interesting local developer data volume tool on git.
 
 Model:
  * volume: a base version of some data... like a git repo... defaults to a
