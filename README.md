@@ -1,4 +1,4 @@
-# dvol: voluminous for Docker; Voluminuous (from ClusterHQ) client.
+# dvol: voluminous for Docker
 ## It's like Git for your development database's Docker volumes.
 
 Key observation: doing interesting things with data volumes involves traversing
