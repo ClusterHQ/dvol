@@ -7,26 +7,26 @@ traversing? Answer: Git.
 
 Therefore: model an interesting local developer data volume tool on git.
 
-Model:
- * volume: a base version of some data... like a git repo... defaults to a
+## Model
+ * **volume**: a base version of some data... like a git repo... defaults to a
    master branch
- * branch: a "zfs clone" of a snapshot of a filesystem (branching
+ * **branch**: a "zfs clone" of a snapshot of a filesystem (branching
    require a commit, uses the most recent commit)
- * commit: a "zfs snapshot" - with a uuid and a commit message stored in
+ * **commit**: a "zfs snapshot" - with a uuid and a commit message stored in
    metadata
      - unlike with git, commits can be deleted (cleaned up) to clear space
- * diff: compare the difference between two commits (in the same tree)
+ * **diff**: compare the difference between two commits (in the same tree)
 
 Could be extended to support btrfs as well.
 
 In the future, push/pull will work to volume hub, and/or Flocker cluster in
 production.
 
-UI metaphors to copy:
+## UI metaphors to copy
  * docker-style listings of e.g. top-level volumes
  * git-style branch and commit semantics (where it makes sense)
 
-Design decisions:
+## Design decisions
  * Volumes don't manifest on the host, if you want to get "at" one, you run a
    container with it mounted. (This eases boot2docker integration).
  * Therefore, which directory you're in doesn't affect which volume you're
@@ -37,7 +37,9 @@ cloned.
 
 Should be doable entirely in terms of ZFS commands.
 
-``
+# Sample shell transcript
+
+```
 $ cd /Projects
 $ ls
 HybridCP TweetDeckMonitor MediaGenius
