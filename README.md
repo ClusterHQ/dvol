@@ -40,7 +40,7 @@ Should be doable entirely in terms of ZFS commands.
 # Sample shell transcript
 
 ```
-$ cd /Projects
+$ cd ~/Projects
 $ ls
 HybridCP TweetDeckMonitor MediaGenius
 
