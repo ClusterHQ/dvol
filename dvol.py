@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Flocker volume manager prototype.
 

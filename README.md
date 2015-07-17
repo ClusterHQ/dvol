@@ -72,7 +72,7 @@ db:
   image: postgresql
   volumes:
     - HybridCP/mysql:/var/lib/mysql
-  volume_driver: flocker
+  volume_driver: voluminous
 
 $ docker-compose up -d
 $ docker-compose ps
