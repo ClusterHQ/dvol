@@ -1,9 +1,15 @@
+* listing volumes (dvol list)
 * listing commits (dvol log)
 * rolling back to commits (dvol reset --hard {HEAD,commit})
 
 ---
 
 * docker integration via volume plugin
+* show which containers are using a volume right now
+
+---
+
+* demo with inserting data into database
 
 ---
 
@@ -14,15 +20,23 @@
 
 ---
 
-* push and pull between hosts/users
+* demo with kai's moby counter app
 
 ---
 
-* auto-commit
-* auto-push
+* push and pull between hosts/users (scp to begin with)
 
 ---
 
 * zfs backend
 * make slow backend operations recommend trying the zfs backend
 
+---
+
+* give commit an option to do a snapshot without stopping the container first
+* auto-commit (supporting above action)
+* auto-push
+
+---
+
+* container quiesce hooks
