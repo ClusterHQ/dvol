@@ -1,4 +1,8 @@
 * listing volumes (dvol list)
+
+* should commits be an attribute of volumes or of branches?
+    * maybe they should float as top-level things but our branches should record a list of them?
+
 * listing commits (dvol log)
 * rolling back to commits (dvol reset --hard {HEAD,commit})
 
@@ -34,6 +38,9 @@
 ---
 
 * give commit an option to do a snapshot without stopping the container first
+
+(the following should be features of flocker, really.)
+
 * auto-commit (supporting above action)
 * auto-push
 
