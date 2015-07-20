@@ -1,7 +1,4 @@
-* listing volumes (dvol list)
-
-* should commits be an attribute of volumes or of branches?
-    * maybe they should float as top-level things but our branches should record a list of them?
+# todo
 
 * listing commits (dvol log)
 * rolling back to commits (dvol reset --hard {HEAD,commit})
@@ -47,3 +44,12 @@
 ---
 
 * container quiesce hooks
+
+# done
+
+* listing volumes (dvol list)
+
+* should commits be an attribute of volumes or of branches?
+    * maybe they should float as top-level things but our branches should record a list of them?
+    * let's see how this goes with the file-based and zfs-based backends
+

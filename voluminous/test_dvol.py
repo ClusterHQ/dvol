@@ -51,7 +51,7 @@ class VoluminousTests(TestCase):
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES \n"])
+        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES "])
 
     def test_list_multi_volumes(self):
         dvol = VoluminousOptions()
@@ -60,7 +60,35 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES \n"
                                                        "foo      1        \n"
-                                                       "foo2     1        \n"])
+                                                       "foo2     1        "])
+
+    def test_log(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "oi", "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "you",  "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path, "log", "foo", "master"])
+        actual = dvol.voluminous.getOutput()[-1]
+        print "==="
+        print actual
+        print "==="
+        expected = (
+            "commit\n"
+            "Author:\n"
+            "Date:\n"
+            "\n"
+            "    you\n"
+            "\n"
+            "commit\n"
+            "Author:\n"
+            "Date:\n"
+            "\n"
+            "    oi")
+        for expected, actual in zip(expected.split("\n"), actual.split("\n")):
+            print "expected:", expected
+            print "actual:", actual
+            self.assertTrue(actual.startswith(expected))
+
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages

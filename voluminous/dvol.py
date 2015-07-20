@@ -14,6 +14,7 @@ import os
 import sys
 import uuid
 import texttable
+import json
 
 DEFAULT_BRANCH = "master"
 
@@ -27,17 +28,49 @@ def get_table():
     return table
 
 
+class NullLock(object):
+    def acquire(self, volume):
+        pass
+    
+    def release(self, volume):
+        pass
+
+
+class JsonCommitDatabase(object):
+    def __init__(self, directory):
+        self._directory = directory
+
+    def _getCommitDB(self, volume, branch):
+        volume = self._directory.child(volume).child("branches")
+        commits = volume.child("%s.json" % (branch,))
+        return commits
+
+    def read(self, volume, branch):
+        commits = self._getCommitDB(volume, branch)
+        if not commits.exists():
+            return []
+        commitData = json.loads(commits.getContent())
+        return commitData
+    
+    def write(self, volume, branch, commitData):
+        serialized = json.dumps(commitData)
+        commits = self._getCommitDB(volume, branch)
+        commits.setContent(serialized)
+
+
 class Voluminous(object):
+    def __init__(self, directory):
+        self._directory = FilePath(directory)
+        self._output = []
+        self.lock = NullLock()
+        self.commitDatabase = JsonCommitDatabase(self._directory)
+
     def output(self, s):
         self._output.append(s)
         print s
 
     def getOutput(self):
         return self._output
-
-    def __init__(self, directory):
-        self._directory = FilePath(directory)
-        self._output = []
 
     def createBranch(self, name, branch):
         branchDir = self._directory.child(name).child("branches").child(branch)
@@ -55,17 +88,28 @@ class Voluminous(object):
     def commitVolume(self, volume, message):
         commitId = (str(uuid.uuid4()) + str(uuid.uuid4())).replace("-", "")[:40]
         self.output(commitId)
-        volume = self._directory.child(volume)
+        volumePath = self._directory.child(volume)
         # TODO make "master" not hard-coded, fetch it from some metadata
         branchName = DEFAULT_BRANCH
-        branch = volume.child("branches").child(branchName)
-        commit = volume.child("commits").child(commitId)
-        if commit.exists():
-            # TODO test coverage
+        branchPath = volumePath.child("branches").child(branchName)
+        commitPath = volumePath.child("commits").child(commitId)
+        if commitPath.exists():
             raise Exception("woah, random uuid collision. try again!")
-        commit.makedirs()
-        branch.copyTo(commit)
+        commitPath.makedirs()
+        # acquire lock to ensure consistent snapshot with file-copy based
+        # backend
+        self.lock.acquire(volume)
+        try:
+            branchPath.copyTo(commitPath)
+        finally:
+            self.lock.release(volume)
         # TODO record the commit in the "branch history" somehow
+        self._recordCommit(volume, branchName, commitId, message)
+
+    def _recordCommit(self, volume, branch, commitId, message):
+        commitData = self.commitDatabase.read(volume, branch)
+        commitData.append(dict(id=commitId, message=message))
+        self.commitDatabase.write(volume, branch, commitData)
 
     def listVolumes(self):
         table = get_table()
@@ -76,7 +120,35 @@ class Voluminous(object):
                     str(len(c.child("branches").children()))]
                     for c in self._directory.children()]
         table.add_rows(rows)
-        self.output(table.draw() + "\n")
+        self.output(table.draw())
+
+    def listCommits(self, volume, branch):
+        aggregate = []
+        print volume, branch
+        print "commitData is now", self.commitDatabase.read(volume, branch)
+        for commit in reversed(self.commitDatabase.read(volume, branch)):
+            aggregate.append(
+                "commit %(id)s\n"
+                "Author: Who knows <mystery@person>\n"
+                "Date: Whenever\n"
+                "\n"
+                "    %(message)s\n" % commit)
+        self.output("\n".join(aggregate))
+
+
+class LogOptions(Options):
+    """
+    List commits.
+    """
+
+    synopsis = "<volume-name> <branch-name>"
+
+    def parseArgs(self, name, branch):
+        self.name = name
+        self.branch = branch
+
+    def run(self, voluminous):
+        voluminous.listCommits(self.name, self.branch)
 
 
 class InitOptions(Options):
@@ -89,32 +161,29 @@ class InitOptions(Options):
     def parseArgs(self, name):
         self.name = name
 
-
     def run(self, voluminous):
         voluminous.createVolume(self.name)
 
 
-
 class CommitOptions(Options):
     """
-    Create a volume.
+    Create a commit.
     """
     optParameters = [
         ["message", "m", None, "Commit message"],
         ]
 
+    synopsis = "<volume-name>"
+
     def postOptions(self):
         if not self["message"]:
             raise UsageError("You must provide a commit message")
 
-
     def parseArgs(self, name):
         self.name = name
 
-
     def run(self, voluminous):
         voluminous.commitVolume(self.name, message=self["message"])
-
 
 
 class ListVolumesOptions(Options):
@@ -123,7 +192,6 @@ class ListVolumesOptions(Options):
     """
     def run(self, voluminous):
         voluminous.listVolumes()
-
 
 
 class VoluminousOptions(Options):
@@ -135,13 +203,13 @@ class VoluminousOptions(Options):
         ]
 
     subCommands = [
+        ["list", None, ListVolumesOptions, "List all volumes"],
         ["init", None, InitOptions, "Create a volume and its default master branch"],
         ["commit", None, CommitOptions, "Create a commit"],
-        ["list", None, ListVolumesOptions, "List all volumes"],
+        ["log", None, LogOptions, "List commits on a branch"],
         #["list-branches", None, ListBranchesOptions, "List branches for specific volume"],
         #["delete-branch", None, DeleteBranchOptions, "Delete a branch"],
         #["tag", None, TagOptions, "Create a tag"],
-        #["list-tags", None, ListTagsOptions, "List tags"],
         #["push-branch", None, PushBranchOptions, "Push a branch to another pool"],
         ]
 
