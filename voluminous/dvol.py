@@ -18,7 +18,8 @@ class Voluminous(object):
         self._directory = FilePath(directory)
 
     def createVolume(self, name):
-        # TODO raise if already exists
+        if self._directory.child(name).exists():
+            raise VolumeAlreadyExists()
         self._directory.child(name).makedirs()
 
 
