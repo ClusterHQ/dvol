@@ -41,14 +41,12 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
         volume.child("branches").child("master").child("file.txt").setContent("hello!")
-        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "hello from 30,000 ft"])
+        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "hello from 30,000 ft", "foo"])
         commitId = dvol.voluminous.getOutput()[-1] # TODO make more user friendly
-        commit = volume.child("branches").child("commits").child(commitId)
+        commit = volume.child("commits").child(commitId)
         self.assertTrue(commit.exists())
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
-
-

@@ -8,10 +8,10 @@ directly.
 from twisted.python.usage import Options, UsageError
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
-from twisted.python import log
 from twisted.internet.task import react
 import os
 import sys
+import uuid
 
 DEFAULT_BRANCH = "master"
 
@@ -43,6 +43,21 @@ class Voluminous(object):
         self._directory.child(name).makedirs()
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
+
+    def commitVolume(self, volume, message):
+        commitId = (str(uuid.uuid4()) + str(uuid.uuid4())).replace("-", "")[:40]
+        self.output(commitId)
+        volume = self._directory.child(volume)
+        # TODO make "master" not hard-coded, fetch it from some metadata
+        branchName = DEFAULT_BRANCH
+        branch = volume.child("branches").child(branchName)
+        commit = volume.child("commits").child(commitId)
+        if commit.exists():
+            # TODO test coverage
+            raise Exception("woah, random uuid collision. try again!")
+        commit.makedirs()
+        branch.copyTo(commit)
+        # TODO record the commit in the "branch history" somehow
 
 
 class InitOptions(Options):
@@ -76,7 +91,7 @@ class CommitOptions(Options):
 
 
     def run(self, voluminous):
-        voluminous.createVolume(self.name)
+        voluminous.commitVolume(self.name, message=self["message"])
 
 
 
