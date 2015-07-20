@@ -9,6 +9,10 @@ from twisted.python.usage import Options, UsageError
 from twisted.python.filepath import FilePath
 
 
+class VolumeAlreadyExists(Exception):
+    pass
+
+
 class Voluminous(object):
     def __init__(self, directory):
         self._directory = FilePath(directory)
