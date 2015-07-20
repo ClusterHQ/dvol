@@ -22,7 +22,7 @@ class VolumeAlreadyExists(Exception):
 class Voluminous(object):
     def output(self, s):
         self._output.append(s)
-        log.msg(s)
+        print s
 
     def getOutput(self):
         return self._output
@@ -114,8 +114,6 @@ class VoluminousOptions(Options):
 
 
 def main(reactor, *argv):
-    # TODO make this not print "Log opened" and "Main loop terminated" messages
-    log.startLogging(sys.stdout)
     try:
         base = VoluminousOptions()
         d = defer.maybeDeferred(base.parseOptions, argv)
