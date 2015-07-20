@@ -69,9 +69,6 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "you",  "foo"])
         dvol.parseOptions(["-p", self.tmpdir.path, "log", "foo", "master"])
         actual = dvol.voluminous.getOutput()[-1]
-        print "==="
-        print actual
-        print "==="
         expected = (
             "commit\n"
             "Author:\n"
@@ -85,8 +82,6 @@ class VoluminousTests(TestCase):
             "\n"
             "    oi")
         for expected, actual in zip(expected.split("\n"), actual.split("\n")):
-            print "expected:", expected
-            print "actual:", actual
             self.assertTrue(actual.startswith(expected))
 
 

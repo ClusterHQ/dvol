@@ -124,8 +124,6 @@ class Voluminous(object):
 
     def listCommits(self, volume, branch):
         aggregate = []
-        print volume, branch
-        print "commitData is now", self.commitDatabase.read(volume, branch)
         for commit in reversed(self.commitDatabase.read(volume, branch)):
             aggregate.append(
                 "commit %(id)s\n"

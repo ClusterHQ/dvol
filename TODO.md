@@ -1,6 +1,5 @@
 # todo
 
-* listing commits (dvol log)
 * rolling back to commits (dvol reset --hard {HEAD,commit})
 
 ---
@@ -53,3 +52,4 @@
     * maybe they should float as top-level things but our branches should record a list of them?
     * let's see how this goes with the file-based and zfs-based backends
 
+* listing commits (dvol log)
