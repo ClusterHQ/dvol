@@ -48,7 +48,6 @@ class VoluminousTests(TestCase):
             "file.txt").setContent("hello!")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "hello from 30,000 ft", "foo"])
-        # TODO make output more user friendly
         commitId = dvol.voluminous.getOutput()[-1]
         commit = volume.child("commits").child(commitId)
         self.assertTrue(commit.exists())
@@ -97,7 +96,24 @@ class VoluminousTests(TestCase):
             self.assertTrue(actual.startswith(expected))
 
     def test_reset(self):
-        pass
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        volume = self.tmpdir.child("foo")
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("alpha")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1", "foo"])
+        commitId = dvol.voluminous.getOutput()[-1]
+        commit = volume.child("commits").child(commitId)
+        self.assertTrue(commit.exists())
+        self.assertTrue(commit.child("file.txt").exists())
+        self.assertEqual(commit.child("file.txt").getContent(), "alpha")
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("beta")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "reset", "--hard", commitId])
+        self.assertEqual(volume.child("master")
+                .child("file.txt").getContent(), "alpha")
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
