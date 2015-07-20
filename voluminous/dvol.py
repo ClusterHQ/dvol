@@ -8,6 +8,7 @@ directly.
 from twisted.python.usage import Options, UsageError
 from twisted.internet import defer
 from twisted.python.filepath import FilePath
+from twisted.python import log
 from twisted.internet.task import react
 import os
 import sys
@@ -67,11 +68,13 @@ class Voluminous(object):
         # TODO record the commit in the "branch history" somehow
 
     def listVolumes(self):
-        # TODO self._directory.children()
         table = get_table()
         table.set_cols_align(["l", "l"])
         rows = [["", ""]] + [
-                ["VOLUME", "BRANCHES"]]
+                ["VOLUME", "BRANCHES"]] + [
+                [c.basename(),
+                    str(len(c.child("branches").children()))]
+                    for c in self._directory.children()]
         table.add_rows(rows)
         self.output(table.draw() + "\n")
 
@@ -167,6 +170,7 @@ def _main(reactor, *argv):
             return # skips verbose exception printing
         d.addErrback(usageError)
         def err(failure):
+            log.err(failure)
             if reactor.running:
                 reactor.stop()
         d.addErrback(err)

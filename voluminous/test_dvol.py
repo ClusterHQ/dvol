@@ -59,8 +59,8 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES \n"
-                                                       "foo      1 \n"
-                                                       "foo2     1 \n"])
+                                                       "foo      1        \n"
+                                                       "foo2     1        \n"])
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
