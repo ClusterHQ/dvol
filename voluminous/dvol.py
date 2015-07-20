@@ -139,9 +139,9 @@ class LogOptions(Options):
     List commits.
     """
 
-    synopsis = "<volume-name> <branch-name>"
+    synopsis = "<volume-name> [<branch-name>]"
 
-    def parseArgs(self, name, branch):
+    def parseArgs(self, name, branch=DEFAULT_BRANCH):
         self.name = name
         self.branch = branch
 
@@ -217,7 +217,8 @@ class VoluminousOptions(Options):
             return self.opt_help()
         if self["pool"] is None:
             # TODO untested
-            homePath = FilePath(os.path.expanduser("~")).child(".dvol").child("volumes")
+            homePath = FilePath(
+                os.path.expanduser("~")).child(".dvol").child("volumes")
             if not homePath.exists():
                 homePath.makedirs()
             self["pool"] = homePath.path

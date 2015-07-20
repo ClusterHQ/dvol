@@ -13,19 +13,23 @@ class VoluminousTests(TestCase):
         self.tmpdir.makedirs()
 
     def test_create_volume(self):
-        # TODO test volume names with '/' in them - they should not end up making nested heirarchy
+        # TODO test volume names with '/' in them - they should not end up
+        # making nested heirarchy
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         self.assertTrue(self.tmpdir.child("foo").exists())
-        self.assertTrue(self.tmpdir.child("foo").child("branches").child("master").exists())
-        self.assertEqual(dvol.voluminous.getOutput(), ["Created volume foo", "Created branch foo/master"])
+        self.assertTrue(self.tmpdir.child("foo").child("branches")
+                .child("master").exists())
+        self.assertEqual(dvol.voluminous.getOutput(),
+                ["Created volume foo", "Created branch foo/master"])
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         self.assertRaises(VolumeAlreadyExists,
                 dvol.parseOptions, ["-p", self.tmpdir.path, "init", "foo"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["Error: volume foo already exists"])
+        self.assertEqual(dvol.voluminous.getOutput(),
+                ["Error: volume foo already exists"])
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
@@ -34,15 +38,18 @@ class VoluminousTests(TestCase):
                 dvol.parseOptions, ["-p", self.tmpdir.path, "commit"])
 
     def test_commit_volume(self):
-        # TODO need to assert that containers using this volume get stopped and
-        # started around commits
+        # TODO need to assert that containers using this volume get stopped
+        # and started around commits
         # TODO test snapshotting nonexistent volume
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
-        volume.child("branches").child("master").child("file.txt").setContent("hello!")
-        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "hello from 30,000 ft", "foo"])
-        commitId = dvol.voluminous.getOutput()[-1] # TODO make more user friendly
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("hello!")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "hello from 30,000 ft", "foo"])
+        # TODO make output more user friendly
+        commitId = dvol.voluminous.getOutput()[-1]
         commit = volume.child("commits").child(commitId)
         self.assertTrue(commit.exists())
         self.assertTrue(commit.child("file.txt").exists())
@@ -64,10 +71,14 @@ class VoluminousTests(TestCase):
 
     def test_log(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "oi", "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "commit", "-m", "you",  "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "log", "foo", "master"])
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "init", "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "oi", "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "you",  "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "log", "foo", "master"])
         actual = dvol.voluminous.getOutput()[-1]
         expected = (
             "commit\n"
@@ -81,9 +92,12 @@ class VoluminousTests(TestCase):
             "Date:\n"
             "\n"
             "    oi")
-        for expected, actual in zip(expected.split("\n"), actual.split("\n")):
+        for expected, actual in zip(
+                expected.split("\n"), actual.split("\n")):
             self.assertTrue(actual.startswith(expected))
 
+    def test_reset(self):
+        pass
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
