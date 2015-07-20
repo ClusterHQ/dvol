@@ -8,19 +8,35 @@ directly.
 from twisted.python.usage import Options, UsageError
 from twisted.python.filepath import FilePath
 
+DEFAULT_BRANCH = "master"
 
 class VolumeAlreadyExists(Exception):
     pass
 
 
 class Voluminous(object):
+    def output(self, s):
+        self._output.append(s)
+        print s
+
+    def getOutput(self):
+        return self._output
+
     def __init__(self, directory):
         self._directory = FilePath(directory)
+        self._output = []
+
+    def createBranch(self, name, branch):
+        self._directory.child(name).child("branches").child(branch).makedirs()
+        self.output("Created branch %s/%s" % (name, branch))
 
     def createVolume(self, name):
         if self._directory.child(name).exists():
+            self.output("Error: volume %s already exists" % (name,))
             raise VolumeAlreadyExists()
         self._directory.child(name).makedirs()
+        self.output("Created volume %s" % (name,))
+        self.createBranch(name, DEFAULT_BRANCH)
 
 
 class CreateOptions(Options):
@@ -61,4 +77,5 @@ class VoluminousOptions(Options):
             return self.opt_help()
         if self["pool"] is None:
             raise UsageError("pool is required")
-        self.subOptions.run(Voluminous(self["pool"]))
+        self.voluminous = Voluminous(self["pool"])
+        self.subOptions.run(self.voluminous)
