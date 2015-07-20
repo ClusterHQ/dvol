@@ -48,5 +48,10 @@ class VoluminousTests(TestCase):
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
 
+    def test_list_empty_volumes(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "list"])
+        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES \n"])
+
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages

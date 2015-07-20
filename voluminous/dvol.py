@@ -12,11 +12,18 @@ from twisted.internet.task import react
 import os
 import sys
 import uuid
+import texttable
 
 DEFAULT_BRANCH = "master"
 
 class VolumeAlreadyExists(Exception):
     pass
+
+
+def get_table():
+    table = texttable.Texttable(max_width=140)
+    table.set_deco(0)
+    return table
 
 
 class Voluminous(object):
@@ -59,11 +66,23 @@ class Voluminous(object):
         branch.copyTo(commit)
         # TODO record the commit in the "branch history" somehow
 
+    def listVolumes(self):
+        # TODO self._directory.children()
+        table = get_table()
+        table.set_cols_align(["l", "l"])
+        rows = [["", ""]] + [
+                ["VOLUME", "BRANCHES"]]
+        table.add_rows(rows)
+        self.output(table.draw() + "\n")
+
 
 class InitOptions(Options):
     """
     Create a volume.
     """
+
+    synopsis = "<volume-name>"
+
     def parseArgs(self, name):
         self.name = name
 
@@ -95,6 +114,15 @@ class CommitOptions(Options):
 
 
 
+class ListVolumesOptions(Options):
+    """
+    List volumes.
+    """
+    def run(self, voluminous):
+        voluminous.listVolumes()
+
+
+
 class VoluminousOptions(Options):
     """
     Voluminous volume manager.
@@ -105,8 +133,8 @@ class VoluminousOptions(Options):
 
     subCommands = [
         ["init", None, InitOptions, "Create a volume and its default master branch"],
-        ["commit", None, CommitOptions, "Create a branch"],
-        #["list-all-branches", None, ListVolumesOptions, "List all branches"],
+        ["commit", None, CommitOptions, "Create a commit"],
+        ["list", None, ListVolumesOptions, "List all volumes"],
         #["list-branches", None, ListBranchesOptions, "List branches for specific volume"],
         #["delete-branch", None, DeleteBranchOptions, "Delete a branch"],
         #["tag", None, TagOptions, "Create a tag"],
@@ -128,7 +156,8 @@ class VoluminousOptions(Options):
         self.subOptions.run(self.voluminous)
 
 
-def main(reactor, *argv):
+# TODO untested below
+def _main(reactor, *argv):
     try:
         base = VoluminousOptions()
         d = defer.maybeDeferred(base.parseOptions, argv)
@@ -148,9 +177,9 @@ def main(reactor, *argv):
         sys.exit(1)
 
 
-def _main():
-    react(main, sys.argv[1:])
+def main():
+    react(_main, sys.argv[1:])
 
 
 if __name__ == "__main__":
-    _main()
+    main()

@@ -5,7 +5,7 @@
 ---
 
 * docker integration via volume plugin
-* show which containers are using a volume right now
+* show which containers are using a volume right now (augment list output)
 
 ---
 
@@ -20,7 +20,7 @@
 
 ---
 
-* demo with kai's moby counter app
+* demo with kai's moby counter app (switching branches)
 
 ---
 
