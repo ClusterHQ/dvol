@@ -6,7 +6,12 @@ directly.
 """
 
 from twisted.python.usage import Options, UsageError
+from twisted.internet import defer
 from twisted.python.filepath import FilePath
+from twisted.python import log
+from twisted.internet.task import react
+import os
+import sys
 
 DEFAULT_BRANCH = "master"
 
@@ -17,7 +22,7 @@ class VolumeAlreadyExists(Exception):
 class Voluminous(object):
     def output(self, s):
         self._output.append(s)
-        print s
+        log.msg(s)
 
     def getOutput(self):
         return self._output
@@ -27,7 +32,8 @@ class Voluminous(object):
         self._output = []
 
     def createBranch(self, name, branch):
-        self._directory.child(name).child("branches").child(branch).makedirs()
+        branchDir = self._directory.child(name).child("branches").child(branch)
+        branchDir.makedirs()
         self.output("Created branch %s/%s" % (name, branch))
 
     def createVolume(self, name):
@@ -39,10 +45,32 @@ class Voluminous(object):
         self.createBranch(name, DEFAULT_BRANCH)
 
 
-class CreateOptions(Options):
+class InitOptions(Options):
     """
     Create a volume.
     """
+    def parseArgs(self, name):
+        self.name = name
+
+
+    def run(self, voluminous):
+        voluminous.createVolume(self.name)
+
+
+
+class CommitOptions(Options):
+    """
+    Create a volume.
+    """
+    optParameters = [
+        ["message", "m", None, "Commit message"],
+        ]
+
+    def postOptions(self):
+        if not self["message"]:
+            raise UsageError("You must provide a commit message")
+
+
     def parseArgs(self, name):
         self.name = name
 
@@ -61,9 +89,9 @@ class VoluminousOptions(Options):
         ]
 
     subCommands = [
-        ["init", None, CreateOptions, "Create a volume and its default master branch"],
+        ["init", None, InitOptions, "Create a volume and its default master branch"],
+        ["commit", None, CommitOptions, "Create a branch"],
         #["list-all-branches", None, ListVolumesOptions, "List all branches"],
-        #["branch", None, BranchOptions, "Create a branch"],
         #["list-branches", None, ListBranchesOptions, "List branches for specific volume"],
         #["delete-branch", None, DeleteBranchOptions, "Delete a branch"],
         #["tag", None, TagOptions, "Create a tag"],
@@ -76,6 +104,40 @@ class VoluminousOptions(Options):
         if self.subCommand is None:
             return self.opt_help()
         if self["pool"] is None:
-            raise UsageError("pool is required")
+            # TODO untested
+            homePath = FilePath(os.path.expanduser("~")).child(".dvol").child("volumes")
+            if not homePath.exists():
+                homePath.makedirs()
+            self["pool"] = homePath.path
         self.voluminous = Voluminous(self["pool"])
         self.subOptions.run(self.voluminous)
+
+
+def main(reactor, *argv):
+    # TODO make this not print "Log opened" and "Main loop terminated" messages
+    log.startLogging(sys.stdout)
+    try:
+        base = VoluminousOptions()
+        d = defer.maybeDeferred(base.parseOptions, argv)
+        def usageError(failure):
+            failure.trap(UsageError)
+            print str(failure.value)
+            return # skips verbose exception printing
+        d.addErrback(usageError)
+        def err(failure):
+            if reactor.running:
+                reactor.stop()
+        d.addErrback(err)
+        return d
+    except UsageError, errortext:
+        print errortext
+        print 'Try --help for usage details.'
+        sys.exit(1)
+
+
+def _main():
+    react(main, sys.argv[1:])
+
+
+if __name__ == "__main__":
+    _main()
