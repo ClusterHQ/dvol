@@ -135,6 +135,13 @@ class Voluminous(object):
                 "    %(message)s\n" % commit)
         self.output("\n".join(aggregate))
 
+    def _resolveNamedCommit(self, commit, volume):
+        # TODO make "master" not hard-coded, fetch it from some metadata
+        branch = DEFAULT_BRANCH
+        commits = self.commitDatabase.read(volume, branch)
+        # commits are appended to, so the last one is the latest
+        return commits[-1]["id"]
+
     def resetVolume(self, commit, volume):
         """
         Forcefully roll back the current working copy to this commit.
@@ -144,6 +151,8 @@ class Voluminous(object):
         # TODO make "master" not hard-coded, fetch it from some metadata
         branchName = DEFAULT_BRANCH
         branchPath = volumePath.child("branches").child(branchName)
+        if commit.startswith("HEAD"):
+            commit = self._resolveNamedCommit(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
         self.lock.acquire(volume)
         try:

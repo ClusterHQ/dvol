@@ -139,5 +139,34 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
+    def test_reset_HEAD_multiple_commits(self):
+        # assert that the correct (latest) commit is rolled back to
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        volume = self.tmpdir.child("foo")
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("alpha")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1", "foo"])
+
+        commitId = dvol.voluminous.getOutput()[-1]
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("BAD")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 2", "foo"])
+
+        commit = volume.child("commits").child(commitId)
+        self.assertTrue(commit.exists())
+        self.assertTrue(commit.child("file.txt").exists())
+        self.assertEqual(commit.child("file.txt").getContent(), "alpha")
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("beta")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "reset", "--hard", "HEAD", "foo"])
+        self.assertEqual(volume.child("branches").child("master")
+                .child("file.txt").getContent(), "alpha")
+
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
