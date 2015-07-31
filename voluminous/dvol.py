@@ -31,7 +31,7 @@ def get_table():
 class NullLock(object):
     def acquire(self, volume):
         pass
-    
+
     def release(self, volume):
         pass
 
@@ -51,7 +51,7 @@ class JsonCommitDatabase(object):
             return []
         commitData = json.loads(commits.getContent())
         return commitData
-    
+
     def write(self, volume, branch, commitData):
         serialized = json.dumps(commitData)
         commits = self._getCommitDB(volume, branch)
@@ -96,14 +96,14 @@ class Voluminous(object):
         if commitPath.exists():
             raise Exception("woah, random uuid collision. try again!")
         commitPath.makedirs()
-        # acquire lock to ensure consistent snapshot with file-copy based
-        # backend
+        # acquire lock (read: stop containers) to ensure consistent snapshot
+        # with file-copy based backend
+        # XXX tests for acquire/release
         self.lock.acquire(volume)
         try:
             branchPath.copyTo(commitPath)
         finally:
             self.lock.release(volume)
-        # TODO record the commit in the "branch history" somehow
         self._recordCommit(volume, branchName, commitId, message)
 
     def _recordCommit(self, volume, branch, commitId, message):
@@ -114,6 +114,7 @@ class Voluminous(object):
     def listVolumes(self):
         table = get_table()
         table.set_cols_align(["l", "l"])
+        # TODO add list of which containers are/were using the volume
         rows = [["", ""]] + [
                 ["VOLUME", "BRANCHES"]] + [
                 [c.basename(),
@@ -125,6 +126,7 @@ class Voluminous(object):
     def listCommits(self, volume, branch):
         aggregate = []
         for commit in reversed(self.commitDatabase.read(volume, branch)):
+            # TODO fill in author/date
             aggregate.append(
                 "commit %(id)s\n"
                 "Author: Who knows <mystery@person>\n"
@@ -132,6 +134,23 @@ class Voluminous(object):
                 "\n"
                 "    %(message)s\n" % commit)
         self.output("\n".join(aggregate))
+
+    def resetVolume(self, commit, volume):
+        """
+        Forcefully roll back the current working copy to this commit.
+        """
+        # XXX tests for acquire/release
+        volumePath = self._directory.child(volume)
+        # TODO make "master" not hard-coded, fetch it from some metadata
+        branchName = DEFAULT_BRANCH
+        branchPath = volumePath.child("branches").child(branchName)
+        commitPath = volumePath.child("commits").child(commit)
+        self.lock.acquire(volume)
+        try:
+            branchPath.remove()
+            commitPath.copyTo(branchPath)
+        finally:
+            self.lock.release(volume)
 
 
 class LogOptions(Options):
@@ -184,6 +203,30 @@ class CommitOptions(Options):
         voluminous.commitVolume(self.name, message=self["message"])
 
 
+class ResetOptions(Options):
+    """
+    Reset a branch to a commit.
+    """
+    optFlags = [
+        ["hard", None, "Force removal of newer data (must be set)"],
+        ]
+
+    synopsis = "<commit-id-or-HEAD>"
+
+    def postOptions(self):
+        if not self["hard"]:
+            raise UsageError("Please specify --hard to confirm you intend to "
+                    "lose data (to save your state, commit and branch, then "
+                    "come back to reset)")
+
+    def parseArgs(self, commit, volume):
+        self.commit = commit
+        self.volume = volume
+
+    def run(self, voluminous):
+        voluminous.resetVolume(self.commit, self.volume)
+
+
 class ListVolumesOptions(Options):
     """
     List volumes.
@@ -201,10 +244,16 @@ class VoluminousOptions(Options):
         ]
 
     subCommands = [
-        ["list", None, ListVolumesOptions, "List all volumes"],
-        ["init", None, InitOptions, "Create a volume and its default master branch"],
-        ["commit", None, CommitOptions, "Create a commit"],
-        ["log", None, LogOptions, "List commits on a branch"],
+        ["list", None, ListVolumesOptions,
+            "List all volumes"],
+        ["init", None, InitOptions,
+            "Create a volume and its default master branch"],
+        ["commit", None, CommitOptions,
+            "Create a commit"],
+        ["log", None, LogOptions,
+            "List commits on a branch"],
+        ["reset", None, ResetOptions,
+            "Reset a branch to a given commit, throwing away more recent data"],
         #["list-branches", None, ListBranchesOptions, "List branches for specific volume"],
         #["delete-branch", None, DeleteBranchOptions, "Delete a branch"],
         #["tag", None, TagOptions, "Create a tag"],

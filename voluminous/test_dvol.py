@@ -90,12 +90,36 @@ class VoluminousTests(TestCase):
             "Author:\n"
             "Date:\n"
             "\n"
-            "    oi")
+            "    oi\n")
+        expectedLines = expected.split("\n")
+        actualLines = actual.split("\n")
+        self.assertEqual(len(expectedLines), len(actualLines))
         for expected, actual in zip(
-                expected.split("\n"), actual.split("\n")):
+                expectedLines, actualLines):
             self.assertTrue(actual.startswith(expected))
 
     def test_reset(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        volume = self.tmpdir.child("foo")
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("alpha")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1", "foo"])
+        commitId = dvol.voluminous.getOutput()[-1]
+        print "commitId", commitId
+        commit = volume.child("commits").child(commitId)
+        self.assertTrue(commit.exists())
+        self.assertTrue(commit.child("file.txt").exists())
+        self.assertEqual(commit.child("file.txt").getContent(), "alpha")
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("beta")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "reset", "--hard", commitId, "foo"])
+        self.assertEqual(volume.child("branches").child("master")
+                .child("file.txt").getContent(), "alpha")
+
+    def test_reset_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
@@ -111,8 +135,8 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "reset", "--hard", commitId])
-        self.assertEqual(volume.child("master")
+            "reset", "--hard", "HEAD", "foo"])
+        self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
     # TODO test branching uncommitted branch (it should fail)
