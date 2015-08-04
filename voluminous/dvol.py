@@ -115,6 +115,7 @@ class Voluminous(object):
         table = get_table()
         table.set_cols_align(["l", "l"])
         # TODO add list of which containers are/were using the volume
+        # TODO list the branches, rather than just the number of them
         rows = [["", ""]] + [
                 ["VOLUME", "BRANCHES"]] + [
                 [c.basename(),
@@ -151,7 +152,7 @@ class Voluminous(object):
         # TODO make "master" not hard-coded, fetch it from some metadata
         branchName = DEFAULT_BRANCH
         branchPath = volumePath.child("branches").child(branchName)
-        if commit.startswith("HEAD"):
+        if commit == "HEAD":
             commit = self._resolveNamedCommit(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
         self.lock.acquire(volume)
@@ -295,6 +296,7 @@ def _main(reactor, *argv):
             return # skips verbose exception printing
         d.addErrback(usageError)
         def err(failure):
+            # following line is debug only
             log.err(failure)
             if reactor.running:
                 reactor.stop()

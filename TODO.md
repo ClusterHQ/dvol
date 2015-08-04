@@ -9,6 +9,10 @@
 
 ---
 
+* demo making test runs faster
+
+---
+
 * demo with inserting data into database
 
 ---
@@ -24,7 +28,7 @@
 
 ---
 
-* push and pull between hosts/users (scp to begin with)
+* push and pull between hosts/users (rsync/scp to begin with)
 
 ---
 

@@ -136,6 +136,7 @@ class VoluminousTests(TestCase):
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD", "foo"])
+        # working copy is changed
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
@@ -146,25 +147,20 @@ class VoluminousTests(TestCase):
         volume = self.tmpdir.child("foo")
 
         volume.child("branches").child("master").child(
-            "file.txt").setContent("alpha")
+            "file.txt").setContent("BAD")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "commit 1", "foo"])
 
-        commitId = dvol.voluminous.getOutput()[-1]
-
         volume.child("branches").child("master").child(
-            "file.txt").setContent("BAD")
+            "file.txt").setContent("alpha")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "commit 2", "foo"])
 
-        commit = volume.child("commits").child(commitId)
-        self.assertTrue(commit.exists())
-        self.assertTrue(commit.child("file.txt").exists())
-        self.assertEqual(commit.child("file.txt").getContent(), "alpha")
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD", "foo"])
+        # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
