@@ -127,11 +127,6 @@ class VoluminousTests(TestCase):
             "file.txt").setContent("alpha")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "commit 1", "foo"])
-        commitId = dvol.voluminous.getOutput()[-1]
-        commit = volume.child("commits").child(commitId)
-        self.assertTrue(commit.exists())
-        self.assertTrue(commit.child("file.txt").exists())
-        self.assertEqual(commit.child("file.txt").getContent(), "alpha")
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
