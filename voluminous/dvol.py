@@ -10,7 +10,6 @@ from twisted.internet import defer
 from twisted.python.filepath import FilePath
 from twisted.python import log
 from twisted.internet.task import react
-import os
 import sys
 import uuid
 import texttable
@@ -29,6 +28,9 @@ def get_table():
 
 
 class NullLock(object):
+    # consider using docker pause/unpause to avoid potential issues around
+    # stop/start ordering of linked containers (this could also help us
+    # snapshot distributed databases...)
     def acquire(self, volume):
         pass
 
@@ -85,12 +87,22 @@ class Voluminous(object):
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
 
+    def getVolumeCurrentBranch(self, volume):
+        # TODO make "master" not hard-coded, fetch it from some metadata
+        branchName = DEFAULT_BRANCH
+        return branchName
+
+    def getVolumeCurrentBranchPath(self, volume):
+        volumePath = self._directory.child(volume)
+        branchName = self.getVolumeCurrentBranch(volume)
+        branchPath = volumePath.child("branches").child(branchName)
+        return branchPath.path
+
     def commitVolume(self, volume, message):
         commitId = (str(uuid.uuid4()) + str(uuid.uuid4())).replace("-", "")[:40]
         self.output(commitId)
         volumePath = self._directory.child(volume)
-        # TODO make "master" not hard-coded, fetch it from some metadata
-        branchName = DEFAULT_BRANCH
+        branchName = self.getVolumeCurrentBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         commitPath = volumePath.child("commits").child(commitId)
         if commitPath.exists():
@@ -110,6 +122,10 @@ class Voluminous(object):
         commitData = self.commitDatabase.read(volume, branch)
         commitData.append(dict(id=commitId, message=message))
         self.commitDatabase.write(volume, branch, commitData)
+
+    def exists(self, volume):
+        volumePath = self._directory.child(volume)
+        return volumePath.exists()
 
     def listVolumes(self):
         table = get_table()
@@ -149,14 +165,16 @@ class Voluminous(object):
         """
         # XXX tests for acquire/release
         volumePath = self._directory.child(volume)
-        # TODO make "master" not hard-coded, fetch it from some metadata
-        branchName = DEFAULT_BRANCH
+        branchName = self.getVolumeCurrentBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         if commit == "HEAD":
             commit = self._resolveNamedCommit(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
         self.lock.acquire(volume)
         try:
+            # TODO test the behaviour of the following commands when bind-mount
+            # is in place (only matters if we pause/unpause, rather than
+            # stop/start containers probably)
             branchPath.remove()
             commitPath.copyTo(branchPath)
         finally:
@@ -276,8 +294,7 @@ class VoluminousOptions(Options):
             return self.opt_help()
         if self["pool"] is None:
             # TODO untested
-            homePath = FilePath(
-                os.path.expanduser("~")).child(".dvol").child("volumes")
+            homePath = FilePath("/var/lib/dvol/volumes")
             if not homePath.exists():
                 homePath.makedirs()
             self["pool"] = homePath.path

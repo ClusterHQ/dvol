@@ -14,3 +14,184 @@ environments)
 a volume...
 
 """
+
+from twisted.application import internet
+from twisted.internet import reactor
+from twisted.web import server, resource
+from twisted.python.filepath import FilePath
+import json
+from dvol import Voluminous
+
+class HandshakeResource(resource.Resource):
+    """
+    A hook for initial handshake.  Say that we're a volume plugin.
+    """
+    isLeaf = True
+
+    def __init__(self, voluminous):
+        self.voluminous = voluminous
+        resource.Resource.__init__(self)
+
+    def render_POST(self, request):
+        return json.dumps(dict(
+             Implements=["VolumeDriver"],
+        ))
+
+class CreateResource(resource.Resource):
+    """
+    Docker has asked us to create a named volume.
+
+    In effect this is confirming that the volume has already been created with
+    "dvol init".
+
+    Alternative UX is that it could create the volume on-demand, but that might
+    be confusing? (It is how the flocker-docker plugin works though)
+    """
+    isLeaf = True
+
+    def __init__(self, voluminous):
+        self.voluminous = voluminous
+        resource.Resource.__init__(self)
+
+    def render_POST(self, request):
+        payload = json.loads(request.content.read())
+        print "create:", payload
+        if self.voluminous.exists(payload["Name"]):
+            return json.dumps(dict(
+                 Err=None,
+            ))
+        else:
+            return json.dumps(dict(
+                Err=("Voluminous '%(name)s' does not exist, "
+                     "create it with: dvol init %(name)s" % (dict(name=payload["Name"]))),
+            ))
+
+class RemoveResource(resource.Resource):
+    """
+    Docker has asked us to remove a named volume.  In our case, we disregard
+    this request, because flocker volumes are supposed to be able to outlive
+    docker volumes.
+    """
+    isLeaf = True
+
+    def __init__(self, voluminous):
+        self.voluminous = voluminous
+        resource.Resource.__init__(self)
+
+    def render_POST(self, request):
+        # expect Name
+        payload = json.loads(request.content.read())
+        print "remove:", payload
+        return json.dumps(dict(
+             Err=None,
+        ))
+
+class PathResource(resource.Resource):
+    """
+    Docker has asked us for the concrete on-disk location of an extant volume.
+    If it hasn't already asked for it to be mounted, or is currently on another
+    machine, this is an error.
+    """
+    isLeaf = True
+
+    def __init__(self, voluminous):
+        self.voluminous = voluminous
+        resource.Resource.__init__(self)
+
+    def render_POST(self, request):
+        payload = json.loads(request.content.read())
+        print "path:", payload
+        path = None
+        return json.dumps(dict(
+             Mountpoint=path,
+             Err=None,
+        ))
+
+class UnmountResource(resource.Resource):
+    """
+    Docker has asked us to unmount a volume.  Rather, it has notified us that
+    it is no longer actively using a container with this volume.
+    """
+    isLeaf = True
+
+    def __init__(self, voluminous):
+        self.voluminous = voluminous
+        resource.Resource.__init__(self)
+
+    def render_POST(self, request):
+        # expect Name
+        payload = json.loads(request.content.read())
+        print "unmount:", payload
+        # XXX actually 'release' the volume in some sense
+        return json.dumps(dict(
+             Err=None,
+        ))
+
+class MountResource(resource.Resource):
+    """
+    A hook for container start.
+    """
+    isLeaf = True
+
+    def __init__(self, voluminous):
+        self.voluminous = voluminous
+        resource.Resource.__init__(self)
+
+    def render_POST(self, request):
+        payload = json.loads(request.content.read())
+        print "mount:", payload
+        if self.voluminous.exists(payload["Name"]):
+            # TODO - (asynchronously?) add this container id to the set of
+            # active containers to show up in the dvol list output
+            return json.dumps(dict(
+                Mountpoint=self.voluminous.getVolumeCurrentBranchPath(payload["Name"]),
+                Err=None,
+            ))
+        else:
+            return json.dumps(dict(
+                Mountpoint="",
+                Err=("Voluminous '%(name)s' does not exist, "
+                     "create it with: dvol init %(name)s" % (dict(name=payload["Name"]))),
+            ))
+
+        new_json = {}
+        path = None
+        if path:
+            new_json["Mountpoint"] = path
+            new_json["Err"] = None
+        else:
+            # This is how you indicate not handling this request
+            new_json["Mountpoint"] = ""
+            new_json["Err"] = "unable to handle"
+        return json.dumps(new_json)
+
+
+def getAdapter(voluminous):
+    root = resource.Resource()
+    root.putChild("Plugin.Activate", HandshakeResource(voluminous))
+    root.putChild("VolumeDriver.Create", CreateResource(voluminous))
+    root.putChild("VolumeDriver.Remove", RemoveResource(voluminous))
+    root.putChild("VolumeDriver.Path", PathResource(voluminous))
+    root.putChild("VolumeDriver.Mount", MountResource(voluminous))
+    root.putChild("VolumeDriver.Unmount", UnmountResource(voluminous))
+
+    site = server.Site(root)
+    return site
+
+
+def main():
+    # TODO update this when we get a newer docker...
+    plugins_dir = FilePath("/usr/share/docker/plugins/")
+    #plugins_dir = FilePath("/run/docker/plugins/")
+    if not plugins_dir.exists():
+        plugins_dir.makedirs()
+
+    dvol_path = FilePath("/var/lib/dvol/volumes")
+    if not dvol_path.exists():
+        dvol_path.makedirs()
+    voluminous = Voluminous(dvol_path.path)
+
+    adapterServer = internet.UNIXServer(
+            plugins_dir.child("dvol.sock").path, getAdapter(voluminous))
+    reactor.callWhenRunning(adapterServer.startService)
+    reactor.run()

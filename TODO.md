@@ -1,9 +1,5 @@
 # todo
 
-* rolling back to commits (dvol reset --hard {HEAD,commit})
-
----
-
 * docker integration via volume plugin
 * show which containers are using a volume right now (augment list output)
 
@@ -13,7 +9,7 @@
 
 ---
 
-* demo with inserting data into database
+* demo with (visually) inserting data into database and rolling back
 
 ---
 
@@ -46,7 +42,14 @@
 
 ---
 
-* container quiesce hooks
+* container quiesce hooks (ftwrl etc)
+* support HEAD^ syntax?
+
+---
+
+* auto-commit on container stop/start?
+
+* show stopped/running containers with cute unicode [] and |> symbols.
 
 # done
 
@@ -54,6 +57,8 @@
 
 * should commits be an attribute of volumes or of branches?
     * maybe they should float as top-level things but our branches should record a list of them?
-    * let's see how this goes with the file-based and zfs-based backends
+    * let's see how this goes with the file-based and zfs-based backends; notably zfs *won't* be this shape
 
 * listing commits (dvol log)
+
+* rolling back to commits (dvol reset --hard {HEAD,commit})
