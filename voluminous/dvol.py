@@ -174,7 +174,21 @@ class Voluminous(object):
         try:
             # TODO test the behaviour of the following commands when bind-mount
             # is in place (only matters if we pause/unpause, rather than
-            # stop/start containers probably)
+            # stop/start containers probably) - indeed, this breaks:
+            """
+            luke@slim:/var/lib/dvol$ docker run -v frob_mysql:/data --volume-driver=dvol -ti busybox sh
+            / # cd /data
+            /data # ls
+            file
+            /data # cat file
+            hello
+            [...]
+            luke@slim:~/Projects/voluminous$ sudo dvol reset --hard HEAD frob_mysq
+            [...]
+            /data # ls
+            sh: getcwd: No such file or directory
+            (unknown) #
+            """
             branchPath.remove()
             commitPath.copyTo(branchPath)
         finally:

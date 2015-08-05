@@ -57,7 +57,7 @@ $ docker run -v frob_mysql:/data --volume-driver=dvol busybox sh -c "echo hello 
 Now make a commit:
 
 ```
-$ dvol commit -m "Hello" frob_mysql
+$ sudo dvol commit -m "Hello" frob_mysql
 ```
 
 Now overwrite the file:
@@ -71,7 +71,7 @@ world
 If you need your volume state back, reset it:
 
 ```
-$ dvol reset --hard HEAD frob_mysql
+$ sudo dvol reset --hard HEAD frob_mysql
 $ docker run -v frob_mysql:/data --volume-driver=dvol busybox cat /data/file
 hello
 ```

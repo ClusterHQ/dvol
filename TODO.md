@@ -1,7 +1,7 @@
 # todo
 
-* docker integration via volume plugin
-* show which containers are using a volume right now (augment list output)
+* fix reset-while-running-container bug? test with pause/unpause?
+* know and show which containers are using a volume right now (augment list output)
 
 ---
 
@@ -62,3 +62,5 @@
 * listing commits (dvol log)
 
 * rolling back to commits (dvol reset --hard {HEAD,commit})
+
+* docker integration via volume plugin
