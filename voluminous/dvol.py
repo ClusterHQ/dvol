@@ -14,6 +14,7 @@ import sys
 import uuid
 import texttable
 import json
+from dockercontainers import Containers
 
 DEFAULT_BRANCH = "master"
 
@@ -27,15 +28,18 @@ def get_table():
     return table
 
 
-class NullLock(object):
+class DockerLock(object):
     # consider using docker pause/unpause to avoid potential issues around
     # stop/start ordering of linked containers (this could also help us
     # snapshot distributed databases...)
+    def __init__(self):
+        self.containers = Containers()
+
     def acquire(self, volume):
-        pass
+        self.containers.stop()
 
     def release(self, volume):
-        pass
+        self.containers.start()
 
 
 class JsonCommitDatabase(object):
@@ -64,7 +68,7 @@ class Voluminous(object):
     def __init__(self, directory):
         self._directory = FilePath(directory)
         self._output = []
-        self.lock = NullLock()
+        self.lock = DockerLock()
         self.commitDatabase = JsonCommitDatabase(self._directory)
 
     def output(self, s):

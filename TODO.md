@@ -1,6 +1,12 @@
 # todo
 
 * fix reset-while-running-container bug? test with pause/unpause?
+    * two possible fixes:
+        1. stop container and then start it again (we need to be able to do this anyway for snapshots, I think).
+           disadvantage: interactive sessions will get killed. it won't be possible to save interactive sessions anyway, if the mount-point needs to change directory inode (I think).
+        2. scrape out the contents of the volume but don't delete the directory.
+           not sure if this will work with zfs backend (I suspect it would work for rollbacks, but maybe not switching branches, which won't work with file based backend either).
+      going with #1...
 * know and show which containers are using a volume right now (augment list output)
 
 ---
