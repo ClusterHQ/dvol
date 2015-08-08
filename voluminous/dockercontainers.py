@@ -64,7 +64,7 @@ class Containers(object):
         self.stopped[volume] = set()
         for container in containers:
             try:
-                self.client.pause(container['Id'])
+                self.client.stop(container['Id'])
             except:
                 log.err(None, "while trying to stop container %s" % (container,))
         self.stopped[volume] = set(c['Id'] for c in containers)
@@ -74,7 +74,7 @@ class Containers(object):
             raise NeverLocked("never locked %s, can't unlock it" % (volume,))
         for cid in self.stopped[volume]:
             try:
-                self.client.unpause(cid)
+                self.client.start(cid)
             except:
                 log.err(None, "while trying to start container %s" % (cid,))
         del self.stopped[volume]
