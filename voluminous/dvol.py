@@ -23,6 +23,10 @@ class VolumeAlreadyExists(Exception):
     pass
 
 
+class NoSuchBranch(Exception):
+    pass
+
+
 def get_table():
     table = texttable.Texttable(max_width=140)
     table.set_deco(0)
@@ -37,10 +41,10 @@ class DockerLock(object):
         self.containers = Containers(VOLUME_DRIVER_NAME)
 
     def acquire(self, volume):
-        self.containers.stop()
+        self.containers.stop(volume)
 
     def release(self, volume):
-        self.containers.start()
+        self.containers.start(volume)
 
 
 class JsonCommitDatabase(object):
@@ -139,10 +143,11 @@ class Voluminous(object):
         # TODO add list of which containers are/were using the volume
         # TODO list the branches, rather than just the number of them
         rows = [["", "", ""]] + [
-                ["VOLUME", "BRANCHES", "CONTAINERS"]] + [
+                ["VOLUME", "BRANCH", "CONTAINERS"]] + [
                 [c.basename(),
-                    str(len(c.child("branches").children())),
-                    str(dc.get_related_containers(c.basename()))]
+                    # XXX support multiple branches
+                    DEFAULT_BRANCH,
+                    ",".join(c['Name'] for c in dc.get_related_containers(c.basename()))]
                     for c in self._directory.children()]
         table.add_rows(rows)
         self.output(table.draw())
@@ -177,6 +182,8 @@ class Voluminous(object):
         if commit == "HEAD":
             commit = self._resolveNamedCommit(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
+        if not commitPath.exists():
+            raise NoSuchBranch("branch '%s' does not exist" % (commit,))
         self.lock.acquire(volume)
         try:
             # TODO test the behaviour of the following commands when bind-mount

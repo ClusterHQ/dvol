@@ -88,8 +88,13 @@ hello
 * You can create a new branch from the tip commit of a the current branch with `dvol checkout -b <branchname>`.
 
     * Unlike `git`, creating a new branch in this way will not carry across uncommitted changes.
+* You can reset to a commit on a current branch, which throws away newer commits and uncommitted changes.
+    * This restarts any containers using the volume so that they reload the state on disk.
+* You can switch branches so long as you have no uncommitted changes.
+    * This restarts any containers using the volume so that they reload the state on disk.
 
 ## Reference: implementation
 
 Voluminous volumes, with the default plain filesystem driver, consist of a branches, which is a directory of files in `/var/lib/dvol/volumes/<volumename>/branches/<branchname>`, and a set of commits in `/var/lib/dvol/volumes/<volumename>/commits/<id>`, which are simply copies of those directories.
 
+Commit metadata is stored in json files in the branches directory.

@@ -16,9 +16,9 @@ class Containers(object):
         set of container ids, so that we can attempt to start them again.
     """
     def __init__(self, volume_driver_name):
+        self.volume_driver_name = volume_driver_name
         self.stopped = dict()
         self.client = docker.client.Client()
-        self.volume_driver_name = volume_driver_name
 
     def get_related_containers(self, volume):
         """
@@ -26,7 +26,7 @@ class Containers(object):
         volume.
         """
         all_containers = self.client.containers()
-        containers = set()
+        containers = []
         for container in all_containers:
             # race condition: a container is deleted during the following
             # iteration; catch and log exceptions but otherwise ignore; this is
@@ -46,7 +46,7 @@ class Containers(object):
                     if volume_name == volume:
                         using_volume = True
                 if volume_driver_matches and running and using_volume:
-                    containers.add(container['Id'])
+                    containers.append(container)
             except:
                 log.err(None, "while fetching container state %s, "
                               "maybe it was deleted" % (container['Id'],))
@@ -59,20 +59,21 @@ class Containers(object):
         """
         if volume in self.stopped:
             raise AlreadyLocked("already locked %s, can't lock it" % (volume,))
-        containers = self.get_related_containers()
+        containers = self.get_related_containers(volume)
+        self.stopped[volume] = set()
         for container in containers:
             try:
-                self.client.stop(container)
+                self.client.pause(container['Id'])
             except:
                 log.err(None, "while trying to stop container %s" % (container,))
-        self.stopped[volume] = containers
+        self.stopped[volume] = set(c['Id'] for c in containers)
 
     def start(self, volume):
         if volume not in self.stopped:
             raise NeverLocked("never locked %s, can't unlock it" % (volume,))
         for cid in self.stopped[volume]:
             try:
-                self.client.start(cid)
+                self.client.unpause(cid)
             except:
-                log.err(None, "while trying to start %s" % (cid,))
+                log.err(None, "while trying to start container %s" % (cid,))
         del self.stopped[volume]
