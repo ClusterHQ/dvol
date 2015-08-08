@@ -41,10 +41,11 @@ class Containers(object):
                 for volume_path in container['Volumes'].itervalues():
                     # XXX implementation detail-y, will need refactoring when
                     # we support multiple backends
-                    parts = volume_path.split("/")
-                    volume_name = parts[-3]
-                    if volume_name == volume:
-                        using_volume = True
+                    if volume_path.startswith("/var/lib/dvol/volumes"):
+                        parts = volume_path.split("/")
+                        volume_name = parts[-3]
+                        if volume_name == volume:
+                            using_volume = True
                 if volume_driver_matches and running and using_volume:
                     containers.append(container)
             except:
