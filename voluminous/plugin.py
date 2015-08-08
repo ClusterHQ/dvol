@@ -21,6 +21,7 @@ from twisted.web import server, resource
 from twisted.python.filepath import FilePath
 import json
 from dvol import Voluminous
+VOLUME_DRIVER_NAME = "dvol"
 
 class HandshakeResource(resource.Resource):
     """
@@ -142,7 +143,7 @@ class MountResource(resource.Resource):
         print "mount:", payload
         if self.voluminous.exists(payload["Name"]):
             # TODO - (asynchronously?) add this container id to the set of
-            # active containers to show up in the dvol list output
+            # active containers to show up in the dvol list output?
             return json.dumps(dict(
                 Mountpoint=self.voluminous.getVolumeCurrentBranchPath(payload["Name"]),
                 Err=None,
@@ -192,6 +193,6 @@ def main():
     voluminous = Voluminous(dvol_path.path)
 
     adapterServer = internet.UNIXServer(
-            plugins_dir.child("dvol.sock").path, getAdapter(voluminous))
+            plugins_dir.child("%s.sock" % (VOLUME_DRIVER_NAME,)).path, getAdapter(voluminous))
     reactor.callWhenRunning(adapterServer.startService)
     reactor.run()
