@@ -1,6 +1,5 @@
 import docker
 from twisted.python import log
-from plugin import VOLUME_DRIVER_NAME
 
 class NeverLocked(Exception):
     pass
@@ -16,9 +15,10 @@ class Containers(object):
     @ivar stopped: mapping from volume name for which we stopped containers to
         set of container ids, so that we can attempt to start them again.
     """
-    def __init__(self):
+    def __init__(self, volume_driver_name):
         self.stopped = dict()
         self.client = docker.client.Client()
+        self.volume_driver_name = volume_driver_name
 
     def get_related_containers(self, volume):
         """
@@ -34,7 +34,7 @@ class Containers(object):
             try:
                 container = self.client.inspect_container(container['Id'])
                 volume_driver_matches = (
-                        container['Config']['VolumeDriver'] == VOLUME_DRIVER_NAME)
+                        container['Config']['VolumeDriver'] == self.volume_driver_name)
                 running = container['State']['Running']
                 using_volume = False
                 # e.g. {u'/data': u'/var/lib/dvol/volumes/frob_mysql/branches/master'}

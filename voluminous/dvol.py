@@ -17,6 +17,7 @@ import json
 from dockercontainers import Containers
 
 DEFAULT_BRANCH = "master"
+VOLUME_DRIVER_NAME = "dvol"
 
 class VolumeAlreadyExists(Exception):
     pass
@@ -33,7 +34,7 @@ class DockerLock(object):
     # stop/start ordering of linked containers (this could also help us
     # snapshot distributed databases...)
     def __init__(self):
-        self.containers = Containers()
+        self.containers = Containers(VOLUME_DRIVER_NAME)
 
     def acquire(self, volume):
         self.containers.stop()
@@ -133,13 +134,15 @@ class Voluminous(object):
 
     def listVolumes(self):
         table = get_table()
-        table.set_cols_align(["l", "l"])
+        table.set_cols_align(["l", "l", "l"])
+        dc = self.lock.containers # XXX ugly
         # TODO add list of which containers are/were using the volume
         # TODO list the branches, rather than just the number of them
-        rows = [["", ""]] + [
-                ["VOLUME", "BRANCHES"]] + [
+        rows = [["", "", ""]] + [
+                ["VOLUME", "BRANCHES", "CONTAINERS"]] + [
                 [c.basename(),
-                    str(len(c.child("branches").children()))]
+                    str(len(c.child("branches").children())),
+                    str(dc.get_related_containers(c.basename()))]
                     for c in self._directory.children()]
         table.add_rows(rows)
         self.output(table.draw())

@@ -20,8 +20,7 @@ from twisted.internet import reactor
 from twisted.web import server, resource
 from twisted.python.filepath import FilePath
 import json
-from dvol import Voluminous
-VOLUME_DRIVER_NAME = "dvol"
+from dvol import Voluminous, VOLUME_DRIVER_NAME
 
 class HandshakeResource(resource.Resource):
     """
