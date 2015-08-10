@@ -57,16 +57,16 @@ class VoluminousTests(TestCase):
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES "])
+        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCH   CONTAINERS "])
 
     def test_list_multi_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCHES \n"
-                                                       "foo      1        \n"
-                                                       "foo2     1        "])
+        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCH   CONTAINERS \n"
+                                                       "foo      master              \n"
+                                                       "foo2     master              "])
 
     def test_log(self):
         dvol = VoluminousOptions()

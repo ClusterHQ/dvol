@@ -34,7 +34,7 @@
 
 ---
 
-* push and pull between hosts/users (rsync/scp to begin with)
+* push and pull between hosts/users (rsync/scp to begin with - or dump tarball to S3 [prototype volume hub with github integration?])
 
 ---
 
