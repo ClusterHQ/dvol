@@ -8,6 +8,10 @@ So we asked ourselves the question: what do developers spend most of their time 
 
 Two things came to the top of the list: waiting for tests, and tracking down and reproducing bugs.
 
+So we built a tool which makes it faster and more fun to do these things with Docker in development.
+
+Enter voluminous...
+
 ## What is voluminous?
 
 Voluminous is a developer tool which brings git-like functionality to Docker volumes.
@@ -29,6 +33,37 @@ Commit the database state and save it, along with the code state, for later debu
 It's like having bookmarks for your development database.
 
 (Coming soon: share your voluminous volumes with colleagues using `dvol push` and `pull`, maintain a catalog of sample data).
+
+## How do I install it?
+
+Voluminous runs in Docker.
+You can also use a tiny wrapper script to make it easier to run the client binary.
+
+On Linux (with Docker 1.8.1+) or OS X (with boot2docker 1.8.1+), run the following commands:
+
+```
+# Create a docker volume container for dvol to use for its volumes
+# (bootstrapping)
+docker create -v /var/lib/dvol clusterhq/dvol dvol_volumes
+# Run the dvol docker plugin
+docker run --volumes-from dvol_volumes --restart=always -d \
+    -v /run/docker/plugins:/run/docker/plugins \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --name=dvol_docker_plugin clusterhq/dvol
+# Create a local shell script wrapper to run dvol
+echo > dvol <<EOF
+#!/bin/sh
+docker run -ti --volumes-from dvol_volumes \
+    -v /run/docker/plugins:/run/docker/plugins \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    dvol-docker-plugin dvol $@
+EOF
+# Install it
+sudo mv dvol /usr/local/bin/dvol
+sudo chmod +x /usr/local/bin/dvol
+# Try it out (should show no volumes)
+dvol list
+```
 
 ## How do I use voluminous?
 
@@ -57,7 +92,7 @@ $ docker run -v frob_mysql:/data --volume-driver=dvol busybox sh -c "echo hello 
 Now make a commit:
 
 ```
-$ sudo dvol commit -m "Hello" frob_mysql
+$ dvol commit -m "Hello" frob_mysql
 ```
 
 Now overwrite the file:
@@ -71,12 +106,14 @@ world
 If you need your volume state back, reset it:
 
 ```
-$ sudo dvol reset --hard HEAD frob_mysql
+$ dvol reset --hard HEAD frob_mysql
 $ docker run -v frob_mysql:/data --volume-driver=dvol busybox cat /data/file
 hello
 ```
 
 ## That's a neat trick, but how is it useful when I'm developing an app?
+
+TODO
 
 ## Reference: semantics
 
