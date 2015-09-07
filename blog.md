@@ -44,19 +44,19 @@ On Linux (with Docker 1.8.1+) or OS X (with boot2docker 1.8.1+), run the followi
 ```
 # Create a docker volume container for dvol to use for its volumes
 # (bootstrapping)
-docker create -v /var/lib/dvol clusterhq/dvol dvol_volumes
+docker create -v /var/lib/dvol --name=dvol-volumes clusterhq/dvol
 # Run the dvol docker plugin
-docker run --volumes-from dvol_volumes --restart=always -d \
+docker run --volumes-from dvol-volumes --restart=always -d \
     -v /run/docker/plugins:/run/docker/plugins \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    --name=dvol_docker_plugin clusterhq/dvol
+    --name=dvol-docker-plugin clusterhq/dvol
 # Create a local shell script wrapper to run dvol
-echo > dvol <<EOF
+cat > dvol <<EOF
 #!/bin/sh
-docker run -ti --volumes-from dvol_volumes \
-    -v /run/docker/plugins:/run/docker/plugins \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    dvol-docker-plugin dvol $@
+docker run -ti --volumes-from dvol-volumes \\
+    -v /run/docker/plugins:/run/docker/plugins \\
+    -v /var/run/docker.sock:/var/run/docker.sock \\
+    clusterhq/dvol dvol \$@
 EOF
 # Install it
 sudo mv dvol /usr/local/bin/dvol
