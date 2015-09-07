@@ -180,9 +180,7 @@ def getAdapter(voluminous):
 
 
 def main():
-    # TODO update this when we get a newer docker...
-    plugins_dir = FilePath("/usr/share/docker/plugins/")
-    #plugins_dir = FilePath("/run/docker/plugins/")
+    plugins_dir = FilePath("/run/docker/plugins/")
     if not plugins_dir.exists():
         plugins_dir.makedirs()
 
