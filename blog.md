@@ -53,7 +53,7 @@ docker run --volumes-from dvol-volumes --restart=always -d \
 # Create a local shell script wrapper to run dvol
 cat > dvol <<EOF
 #!/bin/sh
-docker run -ti --volumes-from dvol-volumes \\
+docker run --rm -ti --volumes-from dvol-volumes \\
     -v /run/docker/plugins:/run/docker/plugins \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     clusterhq/dvol dvol \$@

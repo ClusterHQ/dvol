@@ -12,13 +12,6 @@
 
 ---
 
-* dockerize dvol?
-    * it could bootstrap on bind-mounts (/var/run/docker.sock, /var/lib/dvol)
-    * dvol docker plugin becomes restart=always container
-    * dvol command itself becomes shell script wrapper around docker run
-
----
-
 * delete volumes
 
 ---
@@ -53,7 +46,6 @@
 ---
 
 * container quiesce hooks (ftwrl etc)
-* support HEAD^ syntax?
 
 ---
 
@@ -87,3 +79,11 @@
            not sure if this will work with zfs backend (I suspect it would work for rollbacks, but maybe not switching branches, which won't work with file based backend either).
       going with #1...
 
+---
+
+* dockerize dvol
+    * it could bootstrap on bind-mounts (/var/run/docker.sock, /var/lib/dvol)
+    * dvol docker plugin becomes restart=always container
+    * dvol command itself becomes shell script wrapper around docker run
+
+* support HEAD^ syntax
