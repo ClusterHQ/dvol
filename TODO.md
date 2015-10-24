@@ -1,5 +1,9 @@
 # todo
 
+* switch back to host bind-mounts, or guess what the path to the volume is on the host...
+
+---
+
 * fix bug where resetting doesn't delete newer commit references
 
 ---
