@@ -42,18 +42,15 @@ You can also use a tiny wrapper script to make it easier to run the client binar
 On Linux (with Docker 1.8.1+) or OS X (with boot2docker 1.8.1+), run the following commands:
 
 ```
-# Create a docker volume container for dvol to use for its volumes
-# (bootstrapping)
-docker create -v /var/lib/dvol --name=dvol-volumes clusterhq/dvol
 # Run the dvol docker plugin
-docker run --volumes-from dvol-volumes --restart=always -d \
+docker run -v /var/lib/dvol:/var/lib/dvol --restart=always -d \
     -v /run/docker/plugins:/run/docker/plugins \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --name=dvol-docker-plugin clusterhq/dvol
 # Create a local shell script wrapper to run dvol
 cat > dvol <<EOF
 #!/bin/sh
-docker run --rm -ti --volumes-from dvol-volumes \\
+docker run --rm -ti -v /var/lib/dvol:/var/lib/dvol \\
     -v /run/docker/plugins:/run/docker/plugins \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     clusterhq/dvol dvol \$@

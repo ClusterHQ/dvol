@@ -189,7 +189,11 @@ def main():
         dvol_path.makedirs()
     voluminous = Voluminous(dvol_path.path)
 
+    sock = plugins_dir.child("%s.sock" % (VOLUME_DRIVER_NAME,))
+    if sock.exists():
+        sock.remove()
+
     adapterServer = internet.UNIXServer(
-            plugins_dir.child("%s.sock" % (VOLUME_DRIVER_NAME,)).path, getAdapter(voluminous))
+            sock.path, getAdapter(voluminous))
     reactor.callWhenRunning(adapterServer.startService)
     reactor.run()
