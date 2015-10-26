@@ -37,8 +37,12 @@ class Containers(object):
                         container['Config']['VolumeDriver'] == self.volume_driver_name)
                 running = container['State']['Running']
                 using_volume = False
+                aggregated_volumes = container.get('Volumes', {}).values()
+                # docker 1.8.2 seems to have new Mounts attribute, list of
+                # objects.
+                aggregated_volumes += [mount['Source'] for mount in container.get('Mounts', {})]
                 # e.g. {u'/data': u'/var/lib/dvol/volumes/frob_mysql/branches/master'}
-                for volume_path in container.get('Volumes', {}).itervalues():
+                for volume_path in aggregated_volumes:
                     # XXX implementation detail-y, will need refactoring when
                     # we support multiple backends
                     if volume_path.startswith("/var/lib/dvol/volumes"):
