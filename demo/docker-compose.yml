@@ -1,0 +1,11 @@
+web:
+  image: binocarlos/moby-counter
+  ports:
+     - "80:80"
+  links:
+    - "redis:redis"
+redis:
+  image: redis
+  volumes:
+    - "moby_docker_dev:/data"
+  volume_driver: dvol
