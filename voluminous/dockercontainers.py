@@ -38,7 +38,7 @@ class Containers(object):
                 running = container['State']['Running']
                 using_volume = False
                 # e.g. {u'/data': u'/var/lib/dvol/volumes/frob_mysql/branches/master'}
-                for volume_path in container['Volumes'].itervalues():
+                for volume_path in container.get('Volumes', {}).itervalues():
                     # XXX implementation detail-y, will need refactoring when
                     # we support multiple backends
                     if volume_path.startswith("/var/lib/dvol/volumes"):
