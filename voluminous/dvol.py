@@ -34,9 +34,6 @@ def get_table():
 
 
 class DockerLock(object):
-    # consider using docker pause/unpause to avoid potential issues around
-    # stop/start ordering of linked containers (this could also help us
-    # snapshot distributed databases...)
     def __init__(self):
         self.containers = Containers(VOLUME_DRIVER_NAME)
 
@@ -340,6 +337,10 @@ def _main(reactor, *argv):
             print str(failure.value)
             return # skips verbose exception printing
         d.addErrback(usageError)
+        def systemExit(failure):
+            failure.trap(SystemExit)
+            return # skips verbose exception printing
+        d.addErrback(systemExit)
         def err(failure):
             # following line is debug only
             log.err(failure)

@@ -7,5 +7,5 @@ web:
 redis:
   image: redis
   volumes:
-    - "moby_docker_dev_2:/data"
+    - "moby_docker_dev_3:/data"
   volume_driver: dvol

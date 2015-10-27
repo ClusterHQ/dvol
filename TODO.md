@@ -1,5 +1,9 @@
 # todo
 
+* fix commit messages with spaces in them
+
+---
+
 * automatic initial commit, in case you want to go back to it later?
 
 ---
