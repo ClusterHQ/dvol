@@ -57,15 +57,17 @@ class CreateResource(resource.Resource):
     def render_POST(self, request):
         payload = json.loads(request.content.read())
         print "create:", payload
-        if self.voluminous.exists(payload["Name"]):
+        try:
+            if not self.voluminous.exists(payload["Name"]):
+                self.voluminous.createVolume(payload["Name"])
+                return json.dumps(dict(
+                     Err=None,
+                ))
+        except Exception, e:
             return json.dumps(dict(
-                 Err=None,
-            ))
-        else:
-            return json.dumps(dict(
-                Err=("Voluminous '%(name)s' does not exist, "
-                     "create it with: dvol init %(name)s" % (dict(name=payload["Name"]))),
-            ))
+                err=("voluminous '%(name)s' creation failed: %(err)s" %
+                    dict(name=payload["name"], err=str(e))
+            )))
 
 class RemoveResource(resource.Resource):
     """
