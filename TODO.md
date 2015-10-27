@@ -1,6 +1,6 @@
 # todo
 
-* switch back to host bind-mounts, or guess what the path to the volume is on the host...
+* automatic initial commit, in case you want to go back to it later?
 
 ---
 
