@@ -33,6 +33,7 @@ class HandshakeResource(resource.Resource):
         resource.Resource.__init__(self)
 
     def render_POST(self, request):
+        print "done handshake"
         return json.dumps(dict(
              Implements=["VolumeDriver"],
         ))
