@@ -1,6 +1,8 @@
 import docker
 from twisted.python import log
 
+RETRIES = 5
+
 class NeverLocked(Exception):
     pass
 
@@ -66,11 +68,24 @@ class Containers(object):
             raise AlreadyLocked("already locked %s, can't lock it" % (volume,))
         containers = self.get_related_containers(volume)
         self.stopped[volume] = set()
+
+        def attempt_stop(container):
+            for attempt in range(RETRIES):
+                try:
+                    self.client.stop(container['Id'])
+                    return
+                except:
+                    if attempt < RETRIES - 1:
+                        log.msg(
+                            "Failed to stop container %s, retrying..." %
+                                (container['Id'],))
+                    else:
+                        log.err(
+                            None, "while trying to stop container %s" % (container,))
+
         for container in containers:
-            try:
-                self.client.stop(container['Id'])
-            except:
-                log.err(None, "while trying to stop container %s" % (container,))
+            attempt_stop(container)
+
         self.stopped[volume] = set(c['Id'] for c in containers)
 
     def start(self, volume):

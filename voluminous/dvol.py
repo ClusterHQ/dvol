@@ -27,6 +27,10 @@ class NoSuchBranch(Exception):
     pass
 
 
+class NoSuchCommit(Exception):
+    pass
+
+
 def get_table():
     table = texttable.Texttable(max_width=140)
     table.set_deco(0)
@@ -180,7 +184,7 @@ class Voluminous(object):
             commit = self._resolveNamedCommit(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
         if not commitPath.exists():
-            raise NoSuchBranch("branch '%s' does not exist" % (commit,))
+            raise NoSuchCommit("commit '%s' does not exist" % (commit,))
         self.lock.acquire(volume)
         try:
             # TODO test the behaviour of the following commands when bind-mount

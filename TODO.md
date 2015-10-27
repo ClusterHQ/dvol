@@ -1,5 +1,12 @@
 # todo
 
+* recording default current volume
+
+* demo with (visually) inserting data into database and rolling back
+* demo with kai's moby counter app (switching branches)
+
+---
+
 * fix commit messages with spaces in them
 
 ---
@@ -16,22 +23,14 @@
 
 ---
 
-* demo with (visually) inserting data into database and rolling back
-
----
-
 * delete volumes
 
 ---
 
 * seeing what branch you're on and what branches there are (dvol branch)
-* branching from a commit (dvol branch master boozer)
-* switching to a branch (dvol checkout boozer)
+* branching from the head of a branch (dvol checkout master; dvol checkout -b newbranch)
+* switching to a branch (dvol checkout newbranch)
 * branch and switch in one go (dvol checkout -b newbranch)
-
----
-
-* demo with kai's moby counter app (switching branches)
 
 ---
 
