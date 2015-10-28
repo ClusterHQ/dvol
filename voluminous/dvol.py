@@ -170,9 +170,14 @@ class Voluminous(object):
     def _resolveNamedCommit(self, commit, volume):
         # TODO make "master" not hard-coded, fetch it from some metadata
         branch = DEFAULT_BRANCH
+        remainder = commit[len("HEAD"):]
+        if remainder == "^" * len(remainder):
+            offset = len(remainder)
+        else:
+            raise UsageError("Malformed commit identifier %r" % (commit,))
         commits = self.commitDatabase.read(volume, branch)
         # commits are appended to, so the last one is the latest
-        return commits[-1]["id"]
+        return commits[-1 - offset]["id"]
 
     def resetVolume(self, commit, volume):
         """
@@ -182,7 +187,7 @@ class Voluminous(object):
         volumePath = self._directory.child(volume)
         branchName = self.getVolumeCurrentBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
-        if commit == "HEAD":
+        if commit.startswith("HEAD"):
             commit = self._resolveNamedCommit(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
         if not commitPath.exists():
