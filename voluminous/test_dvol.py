@@ -4,13 +4,25 @@ Tests for the Voluminous CLI.
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-from voluminous.dvol import VoluminousOptions, VolumeAlreadyExists
+from voluminous.dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
 from twisted.python.usage import UsageError
+
+class EmptyContainers(object):
+    def get_related_containers(self, volume):
+        return []
+
+class NullLock(object):
+    containers = EmptyContainers()
+    def acquire(self, volume):
+        return
+    def release(self, volume):
+        return
 
 class VoluminousTests(TestCase):
     def setUp(self):
         self.tmpdir = FilePath(self.mktemp())
         self.tmpdir.makedirs()
+        self.patch(Voluminous, "lockFactory", NullLock)
 
     def test_create_volume(self):
         # TODO test volume names with '/' in them - they should not end up
@@ -158,6 +170,29 @@ class VoluminousTests(TestCase):
         # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
+
+    def test_reset_HEAD_hat_multiple_commits(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        volume = self.tmpdir.child("foo")
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("OLD")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1", "foo"])
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("NEW")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 2", "foo"])
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("NEWER")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "reset", "--hard", "HEAD^", "foo"])
+        # working copy is changed from beta to alpha, but not BAD
+        self.assertEqual(volume.child("branches").child("master")
+                .child("file.txt").getContent(), "OLD")
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages

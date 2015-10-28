@@ -1,5 +1,16 @@
 # todo
 
+* fix bug where resetting doesn't delete newer commit references
+
+---
+
+* seeing what branch you're on and what branches there are (dvol branch)
+* switching to a branch (dvol checkout newbranch)
+* branch and switch in one go (dvol checkout -b newbranch)
+* branching from the head of a branch (dvol checkout master; dvol checkout -b newbranch)
+
+---
+
 * recording default current volume
 
 * demo with (visually) inserting data into database and rolling back
@@ -15,22 +26,11 @@
 
 ---
 
-* fix bug where resetting doesn't delete newer commit references
-
----
-
 * demo making test runs faster
 
 ---
 
 * delete volumes
-
----
-
-* seeing what branch you're on and what branches there are (dvol branch)
-* branching from the head of a branch (dvol checkout master; dvol checkout -b newbranch)
-* switching to a branch (dvol checkout newbranch)
-* branch and switch in one go (dvol checkout -b newbranch)
 
 ---
 
