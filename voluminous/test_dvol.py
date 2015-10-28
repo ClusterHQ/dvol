@@ -194,5 +194,12 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "OLD")
 
+        # newest commit has been wiped out
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "log", "foo", "master"])
+        actual = dvol.voluminous.getOutput()[-1]
+        self.assertEqual(len(actual.split("\n")), 5) # 5 lines = 1 commit
+
+
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
