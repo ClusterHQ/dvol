@@ -198,9 +198,6 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path,
             "log", "foo", "master"])
         actual = dvol.voluminous.getOutput()[-1]
-        print '---'
-        print actual
-        print '---'
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
 
