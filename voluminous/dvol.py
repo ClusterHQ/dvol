@@ -179,9 +179,25 @@ class Voluminous(object):
         # commits are appended to, so the last one is the latest
         return commits[-1 - offset]["id"]
 
+    def _destroyNewerCommits(self, commit, volume):
+        # TODO make "master" not hard-coded, fetch it from some metadata
+        branch = DEFAULT_BRANCH
+        commits = self.commitDatabase.read(volume, branch)
+        commitIndex = [c["id"] for c in commits].index(commit) + 1
+        remainingCommits = commits[:commitIndex]
+        destroyCommits = commits[commitIndex:]
+        # TODO in the future, we'll care more about the following being an
+        # atomic operation
+        for commit in destroyCommits:
+            volumePath = self._directory.child(volume)
+            commitPath = volumePath.child("commits").child(commit["id"])
+            commitPath.remove()
+        self.commitDatabase.write(volume, branch, remainingCommits)
+
     def resetVolume(self, commit, volume):
         """
-        Forcefully roll back the current working copy to this commit.
+        Forcefully roll back the current working copy to this commit,
+        destroying any later commits.
         """
         # XXX tests for acquire/release
         volumePath = self._directory.child(volume)
@@ -194,25 +210,9 @@ class Voluminous(object):
             raise NoSuchCommit("commit '%s' does not exist" % (commit,))
         self.lock.acquire(volume)
         try:
-            # TODO test the behaviour of the following commands when bind-mount
-            # is in place (only matters if we pause/unpause, rather than
-            # stop/start containers probably) - indeed, this breaks:
-            """
-            luke@slim:/var/lib/dvol$ docker run -v frob_mysql:/data --volume-driver=dvol -ti busybox sh
-            / # cd /data
-            /data # ls
-            file
-            /data # cat file
-            hello
-            [...]
-            luke@slim:~/Projects/voluminous$ sudo dvol reset --hard HEAD frob_mysq
-            [...]
-            /data # ls
-            sh: getcwd: No such file or directory
-            (unknown) #
-            """
             branchPath.remove()
             commitPath.copyTo(branchPath)
+            self._destroyNewerCommits(commit, volume)
         finally:
             self.lock.release(volume)
 
