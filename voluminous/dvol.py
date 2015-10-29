@@ -86,6 +86,9 @@ class Voluminous(object):
     def getOutput(self):
         return self._output
 
+    def listBranches(self):
+        self.output("* master")
+
     def createBranch(self, name, branch):
         branchDir = self._directory.child(name).child("branches").child(branch)
         branchDir.makedirs()
