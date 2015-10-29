@@ -299,6 +299,14 @@ class ListVolumesOptions(Options):
         voluminous.listVolumes()
 
 
+class BranchOptions(Options):
+    """
+    List volumes.
+    """
+    def run(self, voluminous):
+        voluminous.listBranches()
+
+
 class VoluminousOptions(Options):
     """
     Voluminous volume manager.
@@ -318,7 +326,8 @@ class VoluminousOptions(Options):
             "List commits on a branch"],
         ["reset", None, ResetOptions,
             "Reset a branch to a given commit, throwing away more recent data"],
-        #["list-branches", None, ListBranchesOptions, "List branches for specific volume"],
+        ["branch", None, BranchOptions,
+            "List branches for specific volume"],
         #["delete-branch", None, DeleteBranchOptions, "Delete a branch"],
         #["tag", None, TagOptions, "Create a tag"],
         #["push-branch", None, PushBranchOptions, "Push a branch to another pool"],

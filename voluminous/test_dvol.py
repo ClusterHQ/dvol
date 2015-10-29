@@ -200,6 +200,18 @@ class VoluminousTests(TestCase):
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
+    def test_branch_default_master(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path, "branch"])
+        actual = dvol.voluminous.getOutput()[-1]
+        self.assertEqual(actual.strip(), "* master")
+
+    def test_create_branch_from_current_HEAD(self):
+        1/0
+
+    def test_switch_branches_restarts_containers(self):
+        1/0
 
     # TODO test branching uncommitted branch (it should fail)
     # TODO list commit messages
