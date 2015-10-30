@@ -1,4 +1,6 @@
 #!/bin/sh
+# Kill existing plugin if it exists
+docker rm -f dvol-docker-plugin || true
 # Run the dvol docker plugin
 docker run -v /var/lib/dvol:/var/lib/dvol --restart=always -d \
     -v /run/docker/plugins:/run/docker/plugins \
