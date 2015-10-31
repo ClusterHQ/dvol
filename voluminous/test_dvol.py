@@ -77,19 +77,19 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCH   CONTAINERS \n"
-                                                       "foo      master              \n"
-                                                       "foo2     master              "])
+                                                       "  foo    master              \n"
+                                                       "* foo2    master              "])
 
     def test_log(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path,
             "init", "foo"])
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "oi", "foo"])
+            "commit", "-m", "oi"])
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "you",  "foo"])
+            "commit", "-m", "you"])
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "log", "foo", "master"])
+            "log"])
         actual = dvol.voluminous.getOutput()[-1]
         expected = (
             "commit\n"
@@ -117,7 +117,7 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("alpha")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 1", "foo"])
+            "commit", "-m", "commit 1"])
         commitId = dvol.voluminous.getOutput()[-1]
         print "commitId", commitId
         commit = volume.child("commits").child(commitId)
@@ -127,7 +127,7 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "reset", "--hard", commitId, "foo"])
+            "reset", "--hard", commitId])
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
@@ -138,11 +138,11 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("alpha")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 1", "foo"])
+            "commit", "-m", "commit 1"])
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "reset", "--hard", "HEAD", "foo"])
+            "reset", "--hard", "HEAD"])
         # working copy is changed
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
@@ -156,17 +156,17 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("BAD")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 1", "foo"])
+            "commit", "-m", "commit 1"])
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("alpha")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 2", "foo"])
+            "commit", "-m", "commit 2"])
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "reset", "--hard", "HEAD", "foo"])
+            "reset", "--hard", "HEAD"])
         # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
@@ -179,24 +179,24 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("OLD")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 1", "foo"])
+            "commit", "-m", "commit 1"])
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("NEW")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 2", "foo"])
+            "commit", "-m", "commit 2"])
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("NEWER")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "reset", "--hard", "HEAD^", "foo"])
+            "reset", "--hard", "HEAD^"])
         # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "OLD")
 
         # newest commit has been wiped out
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "log", "foo", "master"])
+            "log"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
@@ -215,16 +215,16 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("hello")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "commit 1", "foo"])
+            "commit", "-m", "commit 1"])
 
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "checkout", "-b", "newbranch", "foo"])
+            "checkout", "-b", "newbranch"])
         dvol.parseOptions(["-p", self.tmpdir.path, "branch"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual.strip(), "  master\n* newbranch")
 
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "log", "foo"])
+            "log"])
         actual = dvol.voluminous.getOutput()[-1]
         # the commit should have been "copied" to the new branch
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
