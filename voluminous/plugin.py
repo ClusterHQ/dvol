@@ -147,7 +147,7 @@ class MountResource(resource.Resource):
             # TODO - (asynchronously?) add this container id to the set of
             # active containers to show up in the dvol list output?
             return json.dumps(dict(
-                Mountpoint=self.voluminous.getVolumeCurrentBranchPath(payload["Name"]),
+                Mountpoint=self.voluminous.updateRunningPoint(payload["Name"]),
                 Err=None,
             ))
         else:

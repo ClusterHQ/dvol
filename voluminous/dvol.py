@@ -115,19 +115,7 @@ class Voluminous(object):
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
                 return
         # Got here, so switch to the (maybe new branch)
-        self.switchBranch(volume, branch)
-
-    def switchBranch(self, volume, branch):
-        # TODO make symlink for "running_point" that can be updated around
-        # stop/start of container.
         self.setVolumeCurrentBranch(volume, branch)
-        self.lock.acquire(volume)
-        try:
-            branchPath.remove()
-            commitPath.copyTo(branchPath)
-            self._destroyNewerCommits(commit, volume)
-        finally:
-            self.lock.release(volume)
 
     def createBranch(self, volume, branch):
         branchDir = self._directory.child(volume).child("branches").child(branch)
@@ -146,6 +134,11 @@ class Voluminous(object):
         self._directory.child(volume).child(
             "current_branch.json").setContent(
                 json.dumps(dict(current_branch=branch)))
+        self.lock.acquire(volume)
+        try:
+            self.updateRunningPoint(volume)
+        finally:
+            self.lock.release(volume)
 
     def getVolumeCurrentBranch(self, volume):
         currentBranch = self._directory.child(volume).child("current_branch.json")
@@ -154,11 +147,18 @@ class Voluminous(object):
         else:
             return DEFAULT_BRANCH
 
-    def getVolumeCurrentBranchPath(self, volume):
+    def updateRunningPoint(self, volume):
+        """
+        construct a stable (wrt switching branches) path with symlinks
+        """
         volumePath = self._directory.child(volume)
         branchName = self.getVolumeCurrentBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
-        return branchPath.path
+        stablePath = volumePath.child("running_point")
+        if stablePath.exists():
+            stablePath.remove()
+        branchPath.linkTo(stablePath)
+        return stablePath.path
 
     def commitVolume(self, volume, message):
         commitId = (str(uuid.uuid4()) + str(uuid.uuid4())).replace("-", "")[:40]
