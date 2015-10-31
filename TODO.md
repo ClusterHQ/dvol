@@ -10,6 +10,12 @@
 
 * recording default current volume
 
+---
+
+* grab email & name from ~/.gitconfig, add date too
+
+---
+
 * demo with (visually) inserting data into database and rolling back
 * demo with kai's moby counter app (switching branches)
 

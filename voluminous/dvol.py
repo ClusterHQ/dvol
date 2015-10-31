@@ -225,7 +225,7 @@ class LogOptions(Options):
     List commits.
     """
 
-    synopsis = "<volume-name> [<branch-name>]"
+    synopsis = "<volume> [<branch>]"
 
     def parseArgs(self, name, branch=DEFAULT_BRANCH):
         self.name = name
@@ -240,7 +240,7 @@ class InitOptions(Options):
     Create a volume.
     """
 
-    synopsis = "<volume-name>"
+    synopsis = "<volume>"
 
     def parseArgs(self, name):
         self.name = name
@@ -257,7 +257,7 @@ class CommitOptions(Options):
         ["message", "m", None, "Commit message"],
         ]
 
-    synopsis = "<volume-name>"
+    synopsis = "<volume>"
 
     def postOptions(self):
         if not self["message"]:
@@ -278,7 +278,7 @@ class ResetOptions(Options):
         ["hard", None, "Force removal of newer data (must be set)"],
         ]
 
-    synopsis = "<commit-id-or-HEAD>"
+    synopsis = "<commit-id-or-HEAD[^*]> <volume>"
 
     def postOptions(self):
         if not self["hard"]:
@@ -304,10 +304,30 @@ class ListVolumesOptions(Options):
 
 class BranchOptions(Options):
     """
-    List volumes.
+    List branches.
     """
+    synopsis = "<branch> <volume>"
+
     def run(self, voluminous):
         voluminous.listBranches()
+
+
+class CheckoutOptions(Options):
+    """
+    Switch and optionally create branches.
+    """
+    optFlags = [
+        ["branch", "b", "Create branch"],
+        ]
+
+    synopsis = "<branch> <volume>"
+
+    def parseArgs(self, branch, volume):
+        self.branch = branch
+        self.volume = volume
+
+    def run(self, voluminous):
+        voluminous.switchBranch(self.branch, self.volume)
 
 
 class VoluminousOptions(Options):
