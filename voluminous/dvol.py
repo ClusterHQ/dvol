@@ -101,13 +101,16 @@ class Voluminous(object):
                 self.output("Cannot create existing branch %s" % (branch,))
                 return
             else:
+                # Copy metadata, then copy latest HEAD of branch into new
+                # branch data directory
+                # TODO
                 pass
         else:
             if not branchPath.exists():
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
                 return
-            else:
-                pass
+        # Got here, so we have to switch to a branch
+        # TODO
 
     def createBranch(self, volume, branch):
         branchDir = self._directory.child(volume).child("branches").child(branch)
@@ -122,10 +125,17 @@ class Voluminous(object):
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
 
+    def setVolumeCurrentBranch(self, volume, branch):
+        self._directory.child(volume).child(
+            "current_branch.json").setContent(
+                json.dumps(dict(current_branch=branch)))
+
     def getVolumeCurrentBranch(self, volume):
-        # TODO make "master" not hard-coded, fetch it from some metadata
-        branchName = DEFAULT_BRANCH
-        return branchName
+        currentBranch = self._directory.child(volume).child("current_branch.json")
+        if currentBranch.exists():
+            return json.loads(currentBranch.getContent())["current_branch"]
+        else:
+            return DEFAULT_BRANCH
 
     def getVolumeCurrentBranchPath(self, volume):
         volumePath = self._directory.child(volume)
