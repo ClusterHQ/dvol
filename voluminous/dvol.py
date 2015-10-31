@@ -331,9 +331,8 @@ class VoluminousOptions(Options):
             "Reset a branch to a given commit, throwing away more recent data"],
         ["branch", None, BranchOptions,
             "List branches for specific volume"],
-        #["delete-branch", None, DeleteBranchOptions, "Delete a branch"],
-        #["tag", None, TagOptions, "Create a tag"],
-        #["push-branch", None, PushBranchOptions, "Push a branch to another pool"],
+        ["checkout", None, CheckoutOptions,
+            "Switch, or create branches"],
         ]
 
 

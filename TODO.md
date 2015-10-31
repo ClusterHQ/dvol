@@ -1,13 +1,10 @@
 # todo
 
-* fix bug where resetting doesn't delete newer commit references
-
----
-
 * seeing what branch you're on and what branches there are (dvol branch)
 * switching to a branch (dvol checkout newbranch)
 * branch and switch in one go (dvol checkout -b newbranch)
 * branching from the head of a branch (dvol checkout master; dvol checkout -b newbranch)
+* delete a branch (dvol branch -d newbranch)
 
 ---
 
@@ -94,3 +91,5 @@
     * dvol command itself becomes shell script wrapper around docker run
 
 * support HEAD^ syntax
+
+* fix bug where resetting doesn't delete newer commit references

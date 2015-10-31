@@ -208,9 +208,29 @@ class VoluminousTests(TestCase):
         self.assertEqual(actual.strip(), "* master")
 
     def test_create_branch_from_current_HEAD(self):
-        1/0
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+
+        volume = self.tmpdir.child("foo")
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("hello")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1", "foo"])
+
+        dvol.parseOptions(["-p", self.tmpdir.path, "checkout", "-b", "newbranch"])
+        actual = dvol.voluminous.getOutput()[-1]
+        self.assertEqual(actual.strip(), "  newbranch\n* master")
+
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "log", "foo"])
+        actual = dvol.voluminous.getOutput()[-1]
+        # the commit should have been "copied" to the new branch
+        self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
     def test_switch_branches_restarts_containers(self):
+        1/0
+
+    def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         1/0
 
     # TODO test branching uncommitted branch (it should fail)
