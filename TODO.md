@@ -6,9 +6,11 @@
 * branching from the head of a branch (dvol checkout master; dvol checkout -b newbranch)
 * delete a branch (dvol branch -d newbranch)
 
+* make a call on uncommitted changes on branches (UX would be easier if we could see how big they were)
+
 ---
 
-* recording default current volume
+* recording current volume, stop requiring <volume> on every command, add 'dvol switch' command
 
 ---
 

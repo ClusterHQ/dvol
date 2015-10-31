@@ -91,8 +91,9 @@ class Voluminous(object):
 
     def switchBranch(self, volume, branch, create):
         """
-        "check out" a branch, creating it from current branch HEAD if
-        requested.
+        "Check out" a branch, restarting containers in process, creating it
+        from current branch HEAD if requested. Switching branches destroys
+        uncommitted changes on the current branch.
         """
         volumePath = self._directory.child(volume)
         branchPath = volumePath.child("branches").child(branch)
@@ -101,16 +102,32 @@ class Voluminous(object):
                 self.output("Cannot create existing branch %s" % (branch,))
                 return
             else:
-                # Copy metadata, then copy latest HEAD of branch into new
-                # branch data directory
-                # TODO
-                pass
+                # Copy metadata
+                meta = self.commitDatabase.read(volume,
+                        self.getVolumeCurrentBranch(volume))
+                self.commitDatabase.write(volume, branch, meta)
+                # Then copy latest HEAD of branch into new branch data
+                # directory
+                HEAD = self._resolveNamedCommitCurrentBranch("HEAD", volume)
+
         else:
             if not branchPath.exists():
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
                 return
-        # Got here, so we have to switch to a branch
-        # TODO
+        # Got here, so switch to the (maybe new branch)
+        self.switchBranch(volume, branch)
+
+    def switchBranch(self, volume, branch):
+        # TODO make symlink for "running_point" that can be updated around
+        # stop/start of container.
+        self.setVolumeCurrentBranch(volume, branch)
+        self.lock.acquire(volume)
+        try:
+            branchPath.remove()
+            commitPath.copyTo(branchPath)
+            self._destroyNewerCommits(commit, volume)
+        finally:
+            self.lock.release(volume)
 
     def createBranch(self, volume, branch):
         branchDir = self._directory.child(volume).child("branches").child(branch)
@@ -176,8 +193,6 @@ class Voluminous(object):
         table = get_table()
         table.set_cols_align(["l", "l", "l"])
         dc = self.lock.containers # XXX ugly
-        # TODO add list of which containers are/were using the volume
-        # TODO list the branches, rather than just the number of them
         rows = [["", "", ""]] + [
                 ["VOLUME", "BRANCH", "CONTAINERS"]] + [
                 [c.basename(),
@@ -200,9 +215,8 @@ class Voluminous(object):
                 "    %(message)s\n" % commit)
         self.output("\n".join(aggregate))
 
-    def _resolveNamedCommit(self, commit, volume):
-        # TODO make "master" not hard-coded, fetch it from some metadata
-        branch = DEFAULT_BRANCH
+    def _resolveNamedCommitCurrentBranch(self, commit, volume):
+        branch = self.getVolumeCurrentBranch(volume)
         remainder = commit[len("HEAD"):]
         if remainder == "^" * len(remainder):
             offset = len(remainder)
@@ -213,8 +227,7 @@ class Voluminous(object):
         return commits[-1 - offset]["id"]
 
     def _destroyNewerCommits(self, commit, volume):
-        # TODO make "master" not hard-coded, fetch it from some metadata
-        branch = DEFAULT_BRANCH
+        branch = self.getVolumeCurrentBranch(volume)
         commits = self.commitDatabase.read(volume, branch)
         commitIndex = [c["id"] for c in commits].index(commit) + 1
         remainingCommits = commits[:commitIndex]
@@ -237,7 +250,7 @@ class Voluminous(object):
         branchName = self.getVolumeCurrentBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         if commit.startswith("HEAD"):
-            commit = self._resolveNamedCommit(commit, volume)
+            commit = self._resolveNamedCommitCurrentBranch(commit, volume)
         commitPath = volumePath.child("commits").child(commit)
         if not commitPath.exists():
             raise NoSuchCommit("commit '%s' does not exist" % (commit,))
@@ -382,7 +395,7 @@ class VoluminousOptions(Options):
         ["branch", None, BranchOptions,
             "List branches for specific volume"],
         ["checkout", None, CheckoutOptions,
-            "Switch, or create branches"],
+            "Switch, or create branches."],
         ]
 
 
