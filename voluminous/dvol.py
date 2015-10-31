@@ -89,10 +89,30 @@ class Voluminous(object):
     def listBranches(self):
         self.output("* master")
 
-    def createBranch(self, name, branch):
-        branchDir = self._directory.child(name).child("branches").child(branch)
+    def switchBranch(self, volume, branch, create):
+        """
+        "check out" a branch, creating it from current branch HEAD if
+        requested.
+        """
+        volumePath = self._directory.child(volume)
+        branchPath = volumePath.child("branches").child(branch)
+        if create:
+            if branchPath.exists():
+                self.output("Cannot create existing branch %s" % (branch,))
+                return
+            else:
+                pass
+        else:
+            if not branchPath.exists():
+                self.output("Cannot switch to non-existing branch %s" % (branch,))
+                return
+            else:
+                pass
+
+    def createBranch(self, volume, branch):
+        branchDir = self._directory.child(volume).child("branches").child(branch)
         branchDir.makedirs()
-        self.output("Created branch %s/%s" % (name, branch))
+        self.output("Created branch %s/%s" % (volume, branch))
 
     def createVolume(self, name):
         if self._directory.child(name).exists():
@@ -327,7 +347,7 @@ class CheckoutOptions(Options):
         self.volume = volume
 
     def run(self, voluminous):
-        voluminous.switchBranch(self.branch, self.volume)
+        voluminous.switchBranch(self.volume, self.branch, create=self["branch"])
 
 
 class VoluminousOptions(Options):

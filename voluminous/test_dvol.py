@@ -217,9 +217,11 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "commit 1", "foo"])
 
-        dvol.parseOptions(["-p", self.tmpdir.path, "checkout", "-b", "newbranch"])
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "checkout", "-b", "newbranch", "foo"])
+        dvol.parseOptions(["-p", self.tmpdir.path, "branch"])
         actual = dvol.voluminous.getOutput()[-1]
-        self.assertEqual(actual.strip(), "  newbranch\n* master")
+        self.assertEqual(actual.strip(), "  master\n* newbranch")
 
         dvol.parseOptions(["-p", self.tmpdir.path,
             "log", "foo"])
