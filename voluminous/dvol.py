@@ -127,8 +127,19 @@ class Voluminous(object):
             self.output("Error: volume %s already exists" % (name,))
             raise VolumeAlreadyExists()
         self._directory.child(name).makedirs()
+        self.setCurrentActiveVolume(name)
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
+
+    def setCurrentActiveVolume(self, volume):
+         self._directory.child(
+            "current_volumr.json").setContent(
+                json.dumps(dict(current_volume=volume)))
+
+    def volume(self):
+        currentVolume = self._directory.child("current_volume.json")
+        if currentVolume.exists():
+            return json.loads(currentVolume.getContent())["current_volume"]
 
     def setVolumeCurrentBranch(self, volume, branch):
         self._directory.child(volume).child(
@@ -268,14 +279,8 @@ class LogOptions(Options):
     List commits.
     """
 
-    synopsis = "<volume> [<branch>]"
-
-    def parseArgs(self, name, branch=DEFAULT_BRANCH):
-        self.name = name
-        self.branch = branch
-
     def run(self, voluminous):
-        voluminous.listCommits(self.name, self.branch)
+        voluminous.listCommits()
 
 
 class InitOptions(Options):
@@ -300,17 +305,12 @@ class CommitOptions(Options):
         ["message", "m", None, "Commit message"],
         ]
 
-    synopsis = "<volume>"
-
     def postOptions(self):
         if not self["message"]:
             raise UsageError("You must provide a commit message")
 
-    def parseArgs(self, name):
-        self.name = name
-
     def run(self, voluminous):
-        voluminous.commitVolume(self.name, message=self["message"])
+        voluminous.commitVolume(self["message"])
 
 
 class ResetOptions(Options):
@@ -321,7 +321,7 @@ class ResetOptions(Options):
         ["hard", None, "Force removal of newer data (must be set)"],
         ]
 
-    synopsis = "<commit-id-or-HEAD[^*]> <volume>"
+    synopsis = "<commit-id-or-HEAD[^*]>"
 
     def postOptions(self):
         if not self["hard"]:
@@ -329,12 +329,11 @@ class ResetOptions(Options):
                     "lose data (to save your state, commit and branch, then "
                     "come back to reset)")
 
-    def parseArgs(self, commit, volume):
+    def parseArgs(self, commit):
         self.commit = commit
-        self.volume = volume
 
     def run(self, voluminous):
-        voluminous.resetVolume(self.commit, self.volume)
+        voluminous.resetVolume(self.commit)
 
 
 class ListVolumesOptions(Options):
@@ -349,7 +348,6 @@ class BranchOptions(Options):
     """
     List branches.
     """
-    synopsis = "<branch> <volume>"
 
     def run(self, voluminous):
         voluminous.listBranches()
@@ -363,15 +361,23 @@ class CheckoutOptions(Options):
         ["branch", "b", "Create branch"],
         ]
 
-    synopsis = "<branch> <volume>"
+    synopsis = "<branch>"
 
-    def parseArgs(self, branch, volume):
+    def parseArgs(self, branch):
         self.branch = branch
-        self.volume = volume
 
     def run(self, voluminous):
-        voluminous.switchBranch(self.volume, self.branch, create=self["branch"])
+        voluminous.switchBranch(self.branch, create=self["branch"])
 
+class SwitchOptions(Options):
+    """
+    Switch currently active volume.
+    """
+    def parseArgs(self, volume):
+        self.volume = volume
+
+    def run(self):
+        voluminous.switchVolume(self.volume)
 
 class VoluminousOptions(Options):
     """
@@ -385,17 +391,19 @@ class VoluminousOptions(Options):
         ["list", None, ListVolumesOptions,
             "List all volumes"],
         ["init", None, InitOptions,
-            "Create a volume and its default master branch"],
+            "Create a volume and its default master branch, then switch to it"],
         ["commit", None, CommitOptions,
-            "Create a commit"],
+            "Create a commit on the current volume and branch"],
         ["log", None, LogOptions,
-            "List commits on a branch"],
+            "List commits on the current volume and branch"],
         ["reset", None, ResetOptions,
             "Reset a branch to a given commit, throwing away more recent data"],
         ["branch", None, BranchOptions,
             "List branches for specific volume"],
         ["checkout", None, CheckoutOptions,
-            "Switch, or create branches."],
+            "Switch or create branches on the current volume"],
+        ["switch", None, SwitchOptions,
+            "Switch current active volume"],
         ]
 
 
