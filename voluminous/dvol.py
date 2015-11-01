@@ -108,18 +108,18 @@ class Voluminous(object):
                 self.output("Cannot create existing branch %s" % (branch,))
                 return
             else:
-                # Copy metadata
-                meta = self.commitDatabase.read(volume,
-                        self.getActiveBranch(volume))
-                self.commitDatabase.write(volume, branch, meta)
-                # Then copy latest HEAD of branch into new branch data
-                # directory
                 try:
                     HEAD = self._resolveNamedCommitCurrentBranch("HEAD", volume)
                 except IndexError:
                     self.output("You must commit ('dvol commit') before you can "
                                 "branch ('dvol checkout -b')")
                     return
+                # Copy metadata
+                meta = self.commitDatabase.read(volume,
+                        self.getActiveBranch(volume))
+                self.commitDatabase.write(volume, branch, meta)
+                # Then copy latest HEAD of branch into new branch data
+                # directory
                 volumePath.child("commits").child(HEAD).copyTo(branchPath)
         else:
             if not branchPath.exists():
