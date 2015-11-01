@@ -146,6 +146,25 @@ class Voluminous(object):
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
 
+    def removeVolume(self, volume):
+        if not self._directory.child(volume).exists():
+            raise UsageError("Volume %r does not exist, cannot remove it" %
+                    (volume,))
+        containers = self.lock.containers.get_related_containers(volume)
+        if containers:
+            raise UsageError("Cannot remove %r while it is in use by '%s'" %
+                    (volume, (",".join(c['Name'] for c in containers))))
+        self._directory.child(volume).remove()
+
+    def deleteBranch(self, branch):
+        volume = self.volume()
+        if branch == self.getActiveBranch(volume):
+            raise UsageError("Cannot delete active branch, use "
+                             "'dvol checkout' to switch branches first")
+        volumePath = self._directory.child(volume)
+        branchPath = volumePath.child("branches").child(branch)
+        branchPath.remove()
+
     def setActiveVolume(self, volume):
          self._directory.child(
             "current_volume.json").setContent(
@@ -396,11 +415,17 @@ class ListVolumesOptions(Options):
 
 class BranchOptions(Options):
     """
-    List branches.
+    List or delete branches.
     """
+    optParameters = [
+        ["delete", "d", None, "Delete specified branch"],
+        ]
 
     def run(self, voluminous):
-        voluminous.listBranches()
+        if self["delete"]:
+            voluminous.deleteBranch(self["delete"])
+        else:
+            voluminous.listBranches()
 
 
 class CheckoutOptions(Options):
@@ -429,6 +454,16 @@ class SwitchOptions(Options):
     def run(self, voluminous):
         voluminous.setActiveVolume(self.volume)
 
+class RemoveOptions(Options):
+    """
+    Entirely destroy a volume.
+    """
+    def parseArgs(self, volume):
+        self.volume = volume
+
+    def run(self, voluminous):
+        voluminous.removeVolume(self.volume)
+
 class VoluminousOptions(Options):
     """
     Voluminous volume manager.
@@ -438,22 +473,24 @@ class VoluminousOptions(Options):
         ]
 
     subCommands = [
-        ["list", None, ListVolumesOptions,
-            "List all volumes"],
+        ["ls", None, ListVolumesOptions,
+            "List all voluminous volumes"],
         ["init", None, InitOptions,
             "Create a volume and its default master branch, then switch to it"],
-        ["commit", None, CommitOptions,
-            "Create a commit on the current volume and branch"],
-        ["log", None, LogOptions,
-            "List commits on the current volume and branch"],
-        ["reset", None, ResetOptions,
-            "Reset a branch to a given commit, throwing away more recent data"],
-        ["branch", None, BranchOptions,
-            "List branches for specific volume"],
-        ["checkout", None, CheckoutOptions,
-            "Switch or create branches on the current volume"],
         ["switch", None, SwitchOptions,
-            "Switch current active volume"],
+            "Switch active volume for commands below (commit, log etc)"],
+        ["rm", None, RemoveOptions,
+            "Destroy a voluminous volume"],
+        ["commit", None, CommitOptions,
+            "Create a commit on the active volume and branch"],
+        ["log", None, LogOptions,
+            "List commits on the active volume and branch"],
+        ["reset", None, ResetOptions,
+            "Reset active branch to a commit, destroying later unreferenced commits"],
+        ["branch", None, BranchOptions,
+            "List or delete branches for active volume"],
+        ["checkout", None, CheckoutOptions,
+            "Check out or create branches on the active volume"],
         ]
 
 
