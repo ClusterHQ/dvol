@@ -94,11 +94,12 @@ class Voluminous(object):
             ("*" if b.basename() == currentBranch else " ")
             + " " + b.basename() for b in branches)))
 
-    def switchBranch(self, volume, branch, create):
+    def checkoutBranch(self, branch, create):
         """
         "Check out" a branch, restarting containers in process, creating it
         from current branch HEAD if requested.
         """
+        volume = self.volume()
         volumePath = self._directory.child(volume)
         branchPath = volumePath.child("branches").child(branch)
         if create:
@@ -137,7 +138,7 @@ class Voluminous(object):
 
     def setActiveVolume(self, volume):
          self._directory.child(
-            "current_volumr.json").setContent(
+            "current_volume.json").setContent(
                 json.dumps(dict(current_volume=volume)))
 
     def volume(self):
@@ -145,9 +146,10 @@ class Voluminous(object):
         if currentVolume.exists():
             volume = json.loads(currentVolume.getContent())["current_volume"]
         else:
-            raise UsageError("No current volume: use dvol switch to choose one")
+            raise UsageError("No active volume: use dvol switch to choose one")
         if not self._directory.child(volume).exists():
-            raise UsageError("Current volume does not exist: use dvol switch to choose another")
+            raise UsageError("Active volume %s does not exist: "
+                             "use dvol switch to choose another" % (volume,))
         return volume
 
     def setActiveBranch(self, volume, branch):
@@ -180,7 +182,8 @@ class Voluminous(object):
         branchPath.linkTo(stablePath)
         return stablePath.path
 
-    def commitVolume(self, volume, message):
+    def commitVolume(self, message):
+        volume = self.volume()
         commitId = (str(uuid.uuid4()) + str(uuid.uuid4())).replace("-", "")[:40]
         self.output(commitId)
         volumePath = self._directory.child(volume)
@@ -223,7 +226,8 @@ class Voluminous(object):
         table.add_rows(rows)
         self.output(table.draw())
 
-    def listCommits(self, volume, branch):
+    def listCommits(self, branch):
+        volume = self.volume()
         aggregate = []
         for commit in reversed(self.commitDatabase.read(volume, branch)):
             # TODO fill in author/date
@@ -260,12 +264,13 @@ class Voluminous(object):
             commitPath.remove()
         self.commitDatabase.write(volume, branch, remainingCommits)
 
-    def resetVolume(self, commit, volume):
+    def resetVolume(self, commit):
         """
         Forcefully roll back the current working copy to this commit,
         destroying any later commits.
         """
         # XXX tests for acquire/release
+        volume = self.volume()
         volumePath = self._directory.child(volume)
         branchName = self.getVolumeCurrentBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
@@ -376,7 +381,7 @@ class CheckoutOptions(Options):
         self.branch = branch
 
     def run(self, voluminous):
-        voluminous.switchBranch(self.branch, create=self["branch"])
+        voluminous.checkoutBranch(self.branch, create=self["branch"])
 
 class SwitchOptions(Options):
     """
@@ -386,7 +391,7 @@ class SwitchOptions(Options):
         self.volume = volume
 
     def run(self, voluminous):
-        voluminous.switchVolume(self.volume)
+        voluminous.setActiveVolume(self.volume)
 
 class VoluminousOptions(Options):
     """
