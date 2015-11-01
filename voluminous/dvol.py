@@ -92,8 +92,7 @@ class Voluminous(object):
     def switchBranch(self, volume, branch, create):
         """
         "Check out" a branch, restarting containers in process, creating it
-        from current branch HEAD if requested. Switching branches destroys
-        uncommitted changes on the current branch.
+        from current branch HEAD if requested.
         """
         volumePath = self._directory.child(volume)
         branchPath = volumePath.child("branches").child(branch)
@@ -109,7 +108,7 @@ class Voluminous(object):
                 # Then copy latest HEAD of branch into new branch data
                 # directory
                 HEAD = self._resolveNamedCommitCurrentBranch("HEAD", volume)
-
+                HEAD.copyTo(branchPath)
         else:
             if not branchPath.exists():
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
