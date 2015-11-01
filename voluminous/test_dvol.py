@@ -39,7 +39,7 @@ class VoluminousTests(TestCase):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         self.assertRaises(VolumeAlreadyExists,
-                dvol.parseOptions, ["-p", self.tmpdir.path, "init", "foo"])
+                dvol.parseOptions, ["-p", self.tmpdir.path, "init"])
         self.assertEqual(dvol.voluminous.getOutput(),
                 ["Error: volume foo already exists"])
 
@@ -59,7 +59,7 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(
             "file.txt").setContent("hello!")
         dvol.parseOptions(["-p", self.tmpdir.path,
-            "commit", "-m", "hello from 30,000 ft", "foo"])
+            "commit", "-m", "hello from 30,000 ft"])
         commitId = dvol.voluminous.getOutput()[-1]
         commit = volume.child("commits").child(commitId)
         self.assertTrue(commit.exists())
@@ -69,14 +69,14 @@ class VoluminousTests(TestCase):
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCH   CONTAINERS "])
+        self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
     def test_list_multi_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["VOLUME   BRANCH   CONTAINERS \n"
+        self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS \n"
                                                        "  foo    master              \n"
                                                        "* foo2    master              "])
 
@@ -221,7 +221,7 @@ class VoluminousTests(TestCase):
             "checkout", "-b", "newbranch"])
         dvol.parseOptions(["-p", self.tmpdir.path, "branch"])
         actual = dvol.voluminous.getOutput()[-1]
-        self.assertEqual(actual.strip(), "  master\n* newbranch")
+        self.assertEqual(actual, "  master\n* newbranch")
 
         dvol.parseOptions(["-p", self.tmpdir.path,
             "log"])

@@ -87,12 +87,13 @@ class Voluminous(object):
         return self._output
 
     def listBranches(self):
-        volumePath = self._directory.child(self.volume())
+        volume = self.volume()
+        volumePath = self._directory.child(volume)
         branches = volumePath.child("branches").children()
-        currentBranch = self.getVolumeCurrentBranch()
+        currentBranch = self.getActiveBranch(volume)
         self.output("\n".join(sorted(
             ("*" if b.basename() == currentBranch else " ")
-            + " " + b.basename() for b in branches)))
+            + " " + b.basename() for b in branches if b.isdir())))
 
     def checkoutBranch(self, branch, create):
         """
@@ -109,12 +110,12 @@ class Voluminous(object):
             else:
                 # Copy metadata
                 meta = self.commitDatabase.read(volume,
-                        self.getVolumeCurrentBranch(volume))
+                        self.getActiveBranch(volume))
                 self.commitDatabase.write(volume, branch, meta)
                 # Then copy latest HEAD of branch into new branch data
                 # directory
                 HEAD = self._resolveNamedCommitCurrentBranch("HEAD", volume)
-                HEAD.copyTo(branchPath)
+                volumePath.child("commits").child(HEAD).copyTo(branchPath)
         else:
             if not branchPath.exists():
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
@@ -162,7 +163,7 @@ class Voluminous(object):
         finally:
             self.lock.release(volume)
 
-    def getVolumeCurrentBranch(self, volume):
+    def getActiveBranch(self, volume):
         currentBranch = self._directory.child(self.volume()).child("current_branch.json")
         if currentBranch.exists():
             return json.loads(currentBranch.getContent())["current_branch"]
@@ -174,7 +175,7 @@ class Voluminous(object):
         construct a stable (wrt switching branches) path with symlinks
         """
         volumePath = self._directory.child(volume)
-        branchName = self.getVolumeCurrentBranch(volume)
+        branchName = self.getActiveBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         stablePath = volumePath.child("running_point")
         if stablePath.exists():
@@ -187,7 +188,7 @@ class Voluminous(object):
         commitId = (str(uuid.uuid4()) + str(uuid.uuid4())).replace("-", "")[:40]
         self.output(commitId)
         volumePath = self._directory.child(volume)
-        branchName = self.getVolumeCurrentBranch(volume)
+        branchName = self.getActiveBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         commitPath = volumePath.child("commits").child(commitId)
         if commitPath.exists():
@@ -216,17 +217,23 @@ class Voluminous(object):
         table = get_table()
         table.set_cols_align(["l", "l", "l"])
         dc = self.lock.containers # XXX ugly
+        volumes = [c for c in self._directory.children() if c.isdir()]
+        activeVolume = None
+        if volumes:
+            activeVolume = self.volume()
         rows = [["", "", ""]] + [
-                ["VOLUME", "BRANCH", "CONTAINERS"]] + [
-                [c.basename(),
+                ["  VOLUME", "BRANCH", "CONTAINERS"]] + [
+                [("*" if c.basename() == activeVolume else " ") + " " + c.basename(),
                     # XXX support multiple branches
                     DEFAULT_BRANCH,
                     ",".join(c['Name'] for c in dc.get_related_containers(c.basename()))]
-                    for c in self._directory.children()]
+                    for c in volumes]
         table.add_rows(rows)
         self.output(table.draw())
 
-    def listCommits(self, branch):
+    def listCommits(self, branch=None):
+        if branch is None:
+            branch = self.getActiveBranch(self.volume())
         volume = self.volume()
         aggregate = []
         for commit in reversed(self.commitDatabase.read(volume, branch)):
@@ -240,7 +247,7 @@ class Voluminous(object):
         self.output("\n".join(aggregate))
 
     def _resolveNamedCommitCurrentBranch(self, commit, volume):
-        branch = self.getVolumeCurrentBranch(volume)
+        branch = self.getActiveBranch(volume)
         remainder = commit[len("HEAD"):]
         if remainder == "^" * len(remainder):
             offset = len(remainder)
@@ -251,7 +258,7 @@ class Voluminous(object):
         return commits[-1 - offset]["id"]
 
     def _destroyNewerCommits(self, commit, volume):
-        branch = self.getVolumeCurrentBranch(volume)
+        branch = self.getActiveBranch(volume)
         commits = self.commitDatabase.read(volume, branch)
         commitIndex = [c["id"] for c in commits].index(commit) + 1
         remainingCommits = commits[:commitIndex]
@@ -272,7 +279,7 @@ class Voluminous(object):
         # XXX tests for acquire/release
         volume = self.volume()
         volumePath = self._directory.child(volume)
-        branchName = self.getVolumeCurrentBranch(volume)
+        branchName = self.getActiveBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         if commit.startswith("HEAD"):
             commit = self._resolveNamedCommitCurrentBranch(commit, volume)
