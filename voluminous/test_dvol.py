@@ -39,7 +39,7 @@ class VoluminousTests(TestCase):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         self.assertRaises(VolumeAlreadyExists,
-                dvol.parseOptions, ["-p", self.tmpdir.path, "init"])
+                dvol.parseOptions, ["-p", self.tmpdir.path, "init", "foo"])
         self.assertEqual(dvol.voluminous.getOutput(),
                 ["Error: volume foo already exists"])
 
