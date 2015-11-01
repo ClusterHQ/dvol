@@ -229,9 +229,6 @@ class VoluminousTests(TestCase):
         # the commit should have been "copied" to the new branch
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
-    def test_switch_branches_restarts_containers(self):
-        1/0
-
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         1/0
 

@@ -1,6 +1,8 @@
 """
 log of integration tests to write:
 
+write test_switch_branches_restarts_containers
+
 command:
     docker-compose up -d (in a directory with appropriate docker-compose.yml file)
 expected behaviour:

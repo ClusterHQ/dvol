@@ -114,7 +114,12 @@ class Voluminous(object):
                 self.commitDatabase.write(volume, branch, meta)
                 # Then copy latest HEAD of branch into new branch data
                 # directory
-                HEAD = self._resolveNamedCommitCurrentBranch("HEAD", volume)
+                try:
+                    HEAD = self._resolveNamedCommitCurrentBranch("HEAD", volume)
+                except IndexError:
+                    self.output("You must commit ('dvol commit') before you can "
+                                "branch ('dvol checkout -b')")
+                    return
                 volumePath.child("commits").child(HEAD).copyTo(branchPath)
         else:
             if not branchPath.exists():
@@ -282,7 +287,11 @@ class Voluminous(object):
         branchName = self.getActiveBranch(volume)
         branchPath = volumePath.child("branches").child(branchName)
         if commit.startswith("HEAD"):
-            commit = self._resolveNamedCommitCurrentBranch(commit, volume)
+            try:
+                commit = self._resolveNamedCommitCurrentBranch(commit, volume)
+            except IndexError:
+                self.output("Referenced commit does not exist; check dvol log")
+                return
         commitPath = volumePath.child("commits").child(commit)
         if not commitPath.exists():
             raise NoSuchCommit("commit '%s' does not exist" % (commit,))
