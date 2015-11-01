@@ -180,17 +180,23 @@ class VoluminousTests(TestCase):
             "file.txt").setContent("OLD")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
+        oldCommit = dvol.voluminous.getOutput()[-1]
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("NEW")
         dvol.parseOptions(["-p", self.tmpdir.path,
             "commit", "-m", "commit 2"])
+        newCommit = dvol.voluminous.getOutput()[-1]
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("NEWER")
+
+        # both exist
+        self.assertTrue(volume.child("commits").child(oldCommit).exists())
+        self.assertTrue(volume.child("commits").child(newCommit).exists())
+
         dvol.parseOptions(["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD^"])
-        # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "OLD")
 
@@ -199,6 +205,10 @@ class VoluminousTests(TestCase):
             "log"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
+
+        # only old exists
+        self.assertTrue(volume.child("commits").child(oldCommit).exists())
+        self.assertFalse(volume.child("commits").child(newCommit).exists())
 
     def test_branch_default_master(self):
         dvol = VoluminousOptions()
@@ -230,7 +240,48 @@ class VoluminousTests(TestCase):
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
-        1/0
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        volume = self.tmpdir.child("foo")
 
-    # TODO test branching uncommitted branch (it should fail)
-    # TODO list commit messages
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("OLD")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1"])
+        oldCommit = dvol.voluminous.getOutput()[-1]
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("NEW")
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "commit", "-m", "commit 2"])
+        newCommit = dvol.voluminous.getOutput()[-1]
+
+        volume.child("branches").child("master").child(
+            "file.txt").setContent("NEWER")
+
+        # both exist
+        self.assertTrue(volume.child("commits").child(oldCommit).exists())
+        self.assertTrue(volume.child("commits").child(newCommit).exists())
+
+        # create new branch from current HEAD, and then switch back to master.
+        # should protect commit *data* from being destroyed when we later
+        # rollback.
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "checkout", "-b", "newbranch"])
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "checkout", "master"])
+
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "reset", "--hard", "HEAD^"])
+        self.assertEqual(volume.child("branches").child("master")
+                .child("file.txt").getContent(), "OLD")
+
+        # newest commit has been wiped out in master branch metadata
+        dvol.parseOptions(["-p", self.tmpdir.path,
+            "log"])
+        actual = dvol.voluminous.getOutput()[-1]
+        self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
+
+        # new still exists because it's referenced in another branch
+        self.assertTrue(volume.child("commits").child(oldCommit).exists())
+        self.assertTrue(volume.child("commits").child(newCommit).exists())

@@ -86,14 +86,18 @@ class Voluminous(object):
     def getOutput(self):
         return self._output
 
-    def listBranches(self):
-        volume = self.volume()
+    def allBranches(self, volume):
         volumePath = self._directory.child(volume)
         branches = volumePath.child("branches").children()
+        return [b.basename() for b in branches if b.isdir()]
+
+    def listBranches(self):
+        volume = self.volume()
+        branches = self.allBranches(volume)
         currentBranch = self.getActiveBranch(volume)
         self.output("\n".join(sorted(
-            ("*" if b.basename() == currentBranch else " ")
-            + " " + b.basename() for b in branches if b.isdir())))
+            ("*" if b == currentBranch else " ")
+            + " " + b for b in branches)))
 
     def checkoutBranch(self, branch, create):
         """
@@ -225,7 +229,11 @@ class Voluminous(object):
         volumes = [c for c in self._directory.children() if c.isdir()]
         activeVolume = None
         if volumes:
-            activeVolume = self.volume()
+            try:
+                activeVolume = self.volume()
+            except UsageError:
+                # don't refuse to list volumes just because none of them are active
+                pass
         rows = [["", "", ""]] + [
                 ["  VOLUME", "BRANCH", "CONTAINERS"]] + [
                 [("*" if c.basename() == activeVolume else " ") + " " + c.basename(),
@@ -263,16 +271,29 @@ class Voluminous(object):
         return commits[-1 - offset]["id"]
 
     def _destroyNewerCommits(self, commit, volume):
+        # TODO in the future, we'll care more about the following being an
+        # atomic operation
         branch = self.getActiveBranch(volume)
         commits = self.commitDatabase.read(volume, branch)
         commitIndex = [c["id"] for c in commits].index(commit) + 1
         remainingCommits = commits[:commitIndex]
         destroyCommits = commits[commitIndex:]
-        # TODO in the future, we'll care more about the following being an
-        # atomic operation
+        # look in all branches for commit references before removing them
+        totalCommits = set()
+        for otherBranch in self.allBranches(volume):
+            if otherBranch == branch:
+                # skip this branch, otherwise we'll never destroy any commits
+                continue
+            commits = self.commitDatabase.read(volume, branch)
+            totalCommits.update(commit["id"] for commit in commits)
         for commit in destroyCommits:
+            commitId = commit["id"]
+            if commitId in totalCommits:
+                # skip destroying this commit; it is still actively referred to
+                # in another branch
+                continue
             volumePath = self._directory.child(volume)
-            commitPath = volumePath.child("commits").child(commit["id"])
+            commitPath = volumePath.child("commits").child(commitId)
             commitPath.remove()
         self.commitDatabase.write(volume, branch, remainingCommits)
 
@@ -281,7 +302,6 @@ class Voluminous(object):
         Forcefully roll back the current working copy to this commit,
         destroying any later commits.
         """
-        # XXX tests for acquire/release
         volume = self.volume()
         volumePath = self._directory.child(volume)
         branchName = self.getActiveBranch(volume)
