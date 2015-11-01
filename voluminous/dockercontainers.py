@@ -49,7 +49,7 @@ class Containers(object):
                     # we support multiple backends
                     if volume_path.startswith("/var/lib/dvol/volumes"):
                         parts = volume_path.split("/")
-                        volume_name = parts[-3]
+                        volume_name = parts[-2]
                         if volume_name == volume:
                             using_volume = True
                 if volume_driver_matches and running and using_volume:
