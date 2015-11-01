@@ -87,7 +87,12 @@ class Voluminous(object):
         return self._output
 
     def listBranches(self):
-        self.output("* master")
+        volumePath = self._directory.child(self.volume())
+        branches = volumePath.child("branches").children()
+        currentBranch = self.getVolumeCurrentBranch()
+        self.output("\n".join(sorted(
+            ("*" if b.basename() == currentBranch else " ")
+            + " " + b.basename() for b in branches)))
 
     def switchBranch(self, volume, branch, create):
         """
@@ -114,7 +119,7 @@ class Voluminous(object):
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
                 return
         # Got here, so switch to the (maybe new branch)
-        self.setVolumeCurrentBranch(volume, branch)
+        self.setActiveBranch(volume, branch)
 
     def createBranch(self, volume, branch):
         branchDir = self._directory.child(volume).child("branches").child(branch)
@@ -126,11 +131,11 @@ class Voluminous(object):
             self.output("Error: volume %s already exists" % (name,))
             raise VolumeAlreadyExists()
         self._directory.child(name).makedirs()
-        self.setCurrentActiveVolume(name)
+        self.setActiveVolume(name)
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
 
-    def setCurrentActiveVolume(self, volume):
+    def setActiveVolume(self, volume):
          self._directory.child(
             "current_volumr.json").setContent(
                 json.dumps(dict(current_volume=volume)))
@@ -138,9 +143,14 @@ class Voluminous(object):
     def volume(self):
         currentVolume = self._directory.child("current_volume.json")
         if currentVolume.exists():
-            return json.loads(currentVolume.getContent())["current_volume"]
+            volume = json.loads(currentVolume.getContent())["current_volume"]
+        else:
+            raise UsageError("No current volume: use dvol switch to choose one")
+        if not self._directory.child(volume).exists():
+            raise UsageError("Current volume does not exist: use dvol switch to choose another")
+        return volume
 
-    def setVolumeCurrentBranch(self, volume, branch):
+    def setActiveBranch(self, volume, branch):
         self._directory.child(volume).child(
             "current_branch.json").setContent(
                 json.dumps(dict(current_branch=branch)))
@@ -151,7 +161,7 @@ class Voluminous(object):
             self.lock.release(volume)
 
     def getVolumeCurrentBranch(self, volume):
-        currentBranch = self._directory.child(volume).child("current_branch.json")
+        currentBranch = self._directory.child(self.volume()).child("current_branch.json")
         if currentBranch.exists():
             return json.loads(currentBranch.getContent())["current_branch"]
         else:
@@ -375,7 +385,7 @@ class SwitchOptions(Options):
     def parseArgs(self, volume):
         self.volume = volume
 
-    def run(self):
+    def run(self, voluminous):
         voluminous.switchVolume(self.volume)
 
 class VoluminousOptions(Options):
