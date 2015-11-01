@@ -91,9 +91,8 @@ class RemoveResource(resource.Resource):
 
 class PathResource(resource.Resource):
     """
-    Docker has asked us for the concrete on-disk location of an extant volume.
-    If it hasn't already asked for it to be mounted, or is currently on another
-    machine, this is an error.
+    Docker has asked us for the concrete on-disk location of an volume. Create
+    it on demand.
     """
     isLeaf = True
 
