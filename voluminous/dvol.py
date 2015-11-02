@@ -154,16 +154,31 @@ class Voluminous(object):
         if containers:
             raise UsageError("Cannot remove %r while it is in use by '%s'" %
                     (volume, (",".join(c['Name'] for c in containers))))
-        self._directory.child(volume).remove()
+        if self._userIsSure():
+            self.output("Deleting volume %r" % (volume,))
+            self._directory.child(volume).remove()
+        else:
+            self.output("Aborting.")
 
     def deleteBranch(self, branch):
         volume = self.volume()
         if branch == self.getActiveBranch(volume):
             raise UsageError("Cannot delete active branch, use "
                              "'dvol checkout' to switch branches first")
-        volumePath = self._directory.child(volume)
-        branchPath = volumePath.child("branches").child(branch)
-        branchPath.remove()
+        if branch not in self.allBranches(volume):
+            raise UsageError("Branch %r does not exist" % (branch,))
+        if self._userIsSure():
+            self.output("Deleting branch %r" % (branch,))
+            volumePath = self._directory.child(volume)
+            branchPath = volumePath.child("branches").child(branch)
+            branchPath.remove()
+        else:
+            self.output("Aborting.")
+
+    def _userIsSure(self):
+        sys.stdout.write("Are you sure (y/n)? ")
+        sys.stdout.flush()
+        return raw_input().lower() in ("y", "yes")
 
     def setActiveVolume(self, volume):
          self._directory.child(
@@ -473,8 +488,10 @@ class VoluminousOptions(Options):
         ]
 
     subCommands = [
-        ["ls", None, ListVolumesOptions,
+        ["list", None, ListVolumesOptions,
             "List all voluminous volumes"],
+        ["ls", None, ListVolumesOptions,
+            "Same as 'list'"],
         ["init", None, InitOptions,
             "Create a volume and its default master branch, then switch to it"],
         ["switch", None, SwitchOptions,
