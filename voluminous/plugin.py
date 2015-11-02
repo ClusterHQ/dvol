@@ -60,9 +60,9 @@ class CreateResource(resource.Resource):
         try:
             if not self.voluminous.exists(payload["Name"]):
                 self.voluminous.createVolume(payload["Name"])
-                return json.dumps(dict(
-                     Err=None,
-                ))
+            return json.dumps(dict(
+                 Err=None,
+            ))
         except Exception, e:
             return json.dumps(dict(
                 err=("voluminous '%(name)s' creation failed: %(err)s" %

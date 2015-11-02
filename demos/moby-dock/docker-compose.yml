@@ -7,5 +7,5 @@ web:
 redis:
   image: redis
   volumes:
-    - "moby:/data"
+    - moby:/data
   volume_driver: dvol
