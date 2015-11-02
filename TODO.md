@@ -1,5 +1,7 @@
 # todo
 
+* dvol list branch output
+
 * grab email & name from ~/.gitconfig, add date too
 
 ---
