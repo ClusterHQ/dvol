@@ -1,7 +1,7 @@
 ghost:
   image: ghost:0.7.1
   ports:
-   - "2368:80"
+    - "8080:2368"
   volumes:
-   - "ghost_content:/var/lib/ghost"
+    - "ghost_content:/var/lib/ghost"
   volume_driver: dvol
