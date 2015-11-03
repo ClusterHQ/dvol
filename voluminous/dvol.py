@@ -271,8 +271,7 @@ class Voluminous(object):
         rows = [["", "", ""]] + [
                 ["  VOLUME", "BRANCH", "CONTAINERS"]] + [
                 [("*" if c.basename() == activeVolume else " ") + " " + c.basename(),
-                    # XXX support multiple branches
-                    DEFAULT_BRANCH,
+                    self.getActiveBranch(self.volume()),
                     ",".join(c['Name'] for c in dc.get_related_containers(c.basename()))]
                     for c in volumes]
         table.add_rows(rows)
