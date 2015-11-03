@@ -260,7 +260,7 @@ class Voluminous(object):
         table = get_table()
         table.set_cols_align(["l", "l", "l"])
         dc = self.lock.containers # XXX ugly
-        volumes = [c for c in self._directory.children() if c.isdir()]
+        volumes = [v for v in self._directory.children() if v.isdir()]
         activeVolume = None
         if volumes:
             try:
@@ -270,10 +270,10 @@ class Voluminous(object):
                 pass
         rows = [["", "", ""]] + [
                 ["  VOLUME", "BRANCH", "CONTAINERS"]] + [
-                [("*" if c.basename() == activeVolume else " ") + " " + c.basename(),
-                    self.getActiveBranch(self.volume()),
-                    ",".join(c['Name'] for c in dc.get_related_containers(c.basename()))]
-                    for c in volumes]
+                [("*" if v.basename() == activeVolume else " ") + " " + v.basename(),
+                    self.getActiveBranch(v.basename()),
+                    ",".join(c['Name'] for c in dc.get_related_containers(v.basename()))]
+                    for v in volumes]
         table.add_rows(rows)
         self.output(table.draw())
 
@@ -488,7 +488,7 @@ class VoluminousOptions(Options):
 
     subCommands = [
         ["list", None, ListVolumesOptions,
-            "List all voluminous volumes"],
+            "List all dvol volumes"],
         ["ls", None, ListVolumesOptions,
             "Same as 'list'"],
         ["init", None, InitOptions,
@@ -496,7 +496,7 @@ class VoluminousOptions(Options):
         ["switch", None, SwitchOptions,
             "Switch active volume for commands below (commit, log etc)"],
         ["rm", None, RemoveOptions,
-            "Destroy a voluminous volume"],
+            "Destroy a dvol volume"],
         ["commit", None, CommitOptions,
             "Create a commit on the active volume and branch"],
         ["log", None, LogOptions,
