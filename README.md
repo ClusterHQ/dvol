@@ -1,5 +1,4 @@
-# dvol: voluminous for Docker
-## It's like Git for your development database's Docker volumes.
+# dvol: Git for your development databases in Docker
 
 Key observation: doing interesting things with data volumes involves traversing
 a tree structure. What tree structure are developers everywhere familiar with
@@ -77,7 +76,7 @@ db:
   image: postgresql
   volumes:
     - HybridCP/mysql:/var/lib/mysql
-  volume_driver: voluminous
+  volume_driver: dvol
 
 $ docker-compose up -d
 $ docker-compose ps
