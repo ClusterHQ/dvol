@@ -6,7 +6,8 @@ traversing? Answer: Git.
 
 Therefore: model an interesting local developer data volume tool on git.
 
-dvol walkthrough (2 minutes):
+dvol walkthrough (2 minutes)
+
 [![dvol clusterhq](http://img.youtube.com/vi/kcoU4vCS1TE/0.jpg)](http://www.youtube.com/watch?v=kcoU4vCS1TE)
 
 ## Model
