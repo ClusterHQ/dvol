@@ -148,3 +148,8 @@ Date:   Wed Jul 8 15:00:05 2015 +0100
 $ docker-compose up -d # now the app is running with the master version of the
                        # data, before the indexes were added
 ```
+
+
+## ideas? feedback? issues? bugs?
+We absolutely really appreciate your ideas, feature request, pulls, and issues/bug reports for dvol, because we believe in building useful and user friendly tools for our communities.
+also feel free to send us a email at <feedback@clusterhq.com>
