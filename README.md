@@ -1,4 +1,4 @@
-# dvol: git for your development databases in Docker
+# dvol: git for your development databases in docker
 
 Key observation: doing interesting things with data volumes involves traversing
 a tree structure. What tree structure are developers everywhere familiar with
