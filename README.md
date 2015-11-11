@@ -1,4 +1,4 @@
-# dvol: git for your development databases in docker
+# dvol: version control for your development databases in docker
 
 Key observation: doing interesting things with data volumes involves traversing
 a tree structure. What tree structure are developers everywhere familiar with
@@ -8,7 +8,7 @@ Therefore: model an interesting local developer data volume tool on git.
 
 dvol walkthrough (2 minutes)
 
-[![dvol clusterhq](http://img.youtube.com/vi/kcoU4vCS1TE/0.jpg)](http://www.youtube.com/watch?v=kcoU4vCS1TE)
+[![dvol clusterhq](http://img.youtube.com/vi/aXMNp-L_-1c/0.jpg)](https://youtu.be/aXMNp-L_-1c)
 
 ## Model
  * **volume**: a base version of some data... like a git repo... defaults to a
