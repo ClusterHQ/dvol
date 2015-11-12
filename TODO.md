@@ -1,55 +1,8 @@
 # todo
 
-* dvol list branch output
-
 * grab email & name from ~/.gitconfig, add date too
 
----
-
-* demo with (visually) inserting data into database and rolling back
-* demo with kai's moby counter app (switching branches)
-
----
-
-* fix commit messages with spaces in them
-
----
-
 * demo making test runs faster
-
----
-
-* delete volumes
-
----
-
-* push and pull between hosts/users (rsync/scp to begin with - or dump tarball to S3 [prototype volume hub with github integration?])
-
----
-
-* zfs backend
-* make slow backend operations recommend trying the zfs backend
-
----
-
-* give commit an option to do a snapshot without stopping the container first
-
-(the following should be features of flocker, really.)
-
-* auto-commit (supporting above action)
-* auto-push
-
----
-
-* container quiesce hooks (ftwrl etc)
-
----
-
-* auto-commit on container stop/start?
-
-* show stopped/running containers with cute unicode [] and |> symbols.
-
-* start recording provenance information about which containers use which volumes...
 
 # done
 
@@ -98,3 +51,15 @@
 
 * recording current volume, stop requiring <volume> on every command, add 'dvol switch' command
 
+* dvol list branch output
+
+---
+
+* demo with (visually) inserting data into database and rolling back
+* demo with kai's moby counter app (switching branches)
+
+* fix commit messages with spaces in them
+
+---
+
+* delete volumes
