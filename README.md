@@ -1,4 +1,4 @@
-# `dvol`: version control for your development databases in docker
+# Version control for your development databases in docker
 
 `dvol` lets you `commit`, `reset` and `branch` the containerized databases running on your laptop so you can easily save a particular state and come back to it later.
 
@@ -11,7 +11,7 @@
 ## Step 2
 
 ```
-$ curl -ssL https://get.dvol.io |sh
+$ curl -sSL https://get.dvol.io |sh
 ```
 
 This will pull the `dvol` docker image, run the `dvol` docker volume plugin, and set up a tiny wrapper script in `/usr/local/bin/dvol`.
