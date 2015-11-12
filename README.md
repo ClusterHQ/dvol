@@ -24,7 +24,7 @@ This will pull the `dvol` docker image, run the `dvol` docker volume plugin, and
 
 # Docker integration
 
-Use a `dvol` volume in Docker by specifying `docker run -v name:/path --volume-driver` or the equivalent `volume_driver` in Compose.
+Use a `dvol` volume in Docker by specifying `docker run -v name:/path --volume-driver=dvol` or the equivalent `volume_driver` in Compose.
 
 If a `dvol` volume doesn't exist when it is referenced, it is created on-demand.
 
@@ -46,6 +46,10 @@ If you want other commands to be implemented, please [open an issue](https://git
 # Demo
 
 [![dvol clusterhq](http://img.youtube.com/vi/aXMNp-L_-1c/0.jpg)](https://youtu.be/aXMNp-L_-1c)
+
+# Examples
+
+Check out the [examples](https://github.com/ClusterHQ/dvol/tree/master/demos) directory.
 
 ## Ideas? Feedback? Issues? Bugs?
 
