@@ -35,7 +35,7 @@ If a `dvol` volume doesn't exist when it is referenced, it is created on-demand.
 Here are some examples:
 
 * `dvol list`: see which volumes there are, which branch each volume is on, and which containers are currently using each volume.
-* `dvol commit -m "commit description"`: create a new commit based on the running point of the dataabse container by safely stopping and starting the container around the commit.
+* `dvol commit -m "commit description"`: create a new commit based on the running point of the database container by safely stopping and starting the container around the commit.
 * `dvol checkout -b newbranch`: create a new branch named `newbranch` from the latest commit (`HEAD`) on the current branch.
 * `dvol reset --hard HEAD^`: roll back the current branch to the second last commit.
 
