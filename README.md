@@ -51,6 +51,8 @@ If you want other commands to be implemented, please [open an issue](https://git
 
 Check out the [examples](https://github.com/ClusterHQ/dvol/tree/master/demos) directory.
 
+Just run `docker-compose up -d` on any one of the `docker-compose.yml` files there.
+
 ## Ideas? Feedback? Issues? Bugs?
 
 We really appreciate your ideas, feature request, pulls, and issues/bug reports for dvol, because we believe in building useful and user friendly tools for our communities.
