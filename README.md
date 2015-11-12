@@ -1,6 +1,6 @@
-# dvol: version control for your development databases in docker
+# `dvol`: version control for your development databases in docker
 
-Dvol lets you commit, reset and branch the containerized databases running on your laptop so you can easily save a particular state and come back to it later.
+`dvol` lets you commit, reset and branch the containerized databases running on your laptop so you can easily save a particular state and come back to it later.
 
 # Installation
 
