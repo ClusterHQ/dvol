@@ -18,9 +18,9 @@ This will pull the `dvol` docker image, run the `dvol` docker volume plugin, and
 
 # Data model
 
-* **Volume**: a named repository for data files which can be mounted into a docker container.
-* **Commit**: a point-in-time snapshot of the volume, named with a UUID.
+* **Volume**: a named repository for data files (e.g. database data files) which can be mounted into a docker container.
 * **Branch**: a linear set of commits (one branch of the tree) and a live running point which the database can write to.
+* **Commit**: a point-in-time snapshot of the running point of the current branch, named with a UUID.
 
 # Docker integration
 
