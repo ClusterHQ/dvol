@@ -30,9 +30,9 @@ If a `dvol` volume doesn't exist when it is referenced, it is created on-demand.
 
 # Usage
 
-`dvol` copies `git` as closely as possible, but only implements a subset of the features.
+`dvol` copies `git` as closely as possible, but only implements a subset of its commands.
 
-Here are some example:
+Here are some examples:
 
 * `dvol list`: see which volumes there are, which branch each volume is on, and which containers are currently using each volume.
 * `dvol commit -m "commit description"`: create a new commit based on the running point of the dataabse container by safely stopping and starting the container around the commit.
