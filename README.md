@@ -1,4 +1,4 @@
-# Version control for your development databases in docker
+# Version control for your development databases in Docker
 
 `dvol` lets you `commit`, `reset` and `branch` the containerized databases running on your laptop so you can easily save a particular state and come back to it later.
 
