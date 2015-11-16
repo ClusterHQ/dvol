@@ -28,6 +28,11 @@ Use a `dvol` volume in Docker by specifying `docker run -v name:/path --volume-d
 
 If a `dvol` volume doesn't exist when it is referenced, it is created on-demand.
 
+You can also use `dvol` with [Docker Compose](https://docs.docker.com/compose/), which makes for an awesome way to spin up reproducible microservices environments on your laptop.
+With `dvol` you can set `volume_driver: dvol` in order to automatically spin up all the `dvol` volumes for your app described with Docker compose with a single `docker-compose up -d`.
+
+See [this example](https://github.com/ClusterHQ/dvol/blob/master/demos/moby-dock/docker-compose.yml) for a very simple demo.
+
 # Usage
 
 `dvol` copies `git` as closely as possible, but only implements a subset of its commands.
