@@ -22,17 +22,6 @@ This will pull the `dvol` docker image, run the `dvol` docker volume plugin, and
 * **Branch**: a linear set of commits (one branch of the tree) and a live running point which the database can write to.
 * **Commit**: a point-in-time snapshot of the running point of the current branch, named with a UUID.
 
-# Docker integration
-
-Use a `dvol` volume in Docker by specifying `docker run -v name:/path --volume-driver=dvol` or the equivalent `volume_driver` in Compose.
-
-If a `dvol` volume doesn't exist when it is referenced, it is created on-demand.
-
-You can also use `dvol` with [Docker Compose](https://docs.docker.com/compose/), which makes for an awesome way to spin up reproducible microservices environments on your laptop.
-With `dvol` you can set `volume_driver: dvol` in order to automatically spin up all the `dvol` volumes for your app described with Docker compose with a single `docker-compose up -d`.
-
-See [this example](https://github.com/ClusterHQ/dvol/blob/master/demos/moby-dock/docker-compose.yml) for a very simple demo.
-
 # Usage
 
 `dvol` copies `git` as closely as possible, but only implements a subset of its commands.
@@ -47,6 +36,20 @@ Here are some examples:
 You can see all available commands by running `dvol --help`.
 
 If you want other commands to be implemented, please [open an issue](https://github.com/clusterhq/dvol/issues/) or even better a pull request!
+
+# Docker integration
+
+Use a `dvol` volume in Docker by specifying `docker run -v demo:/path --volume-driver=dvol`.
+This will create a dvol volume called `demo`.
+
+If a `dvol` volume doesn't exist when it is referenced, it is created on-demand.
+
+# Compose integration
+
+You can also use `dvol` with [Docker Compose](https://docs.docker.com/compose/), which makes for an awesome way to spin up reproducible microservices environments on your laptop.
+With `dvol` you can set `volume_driver: dvol` in order to automatically spin up all the `dvol` volumes for your app described with Docker compose with a single `docker-compose up -d`.
+
+See [this example](https://github.com/ClusterHQ/dvol/blob/master/demos/moby-dock/docker-compose.yml) for a very simple demo.
 
 # Demo
 
