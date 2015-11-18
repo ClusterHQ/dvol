@@ -154,9 +154,12 @@ class Voluminous(object):
         if containers:
             raise UsageError("Cannot remove %r while it is in use by '%s'" %
                     (volume, (",".join(c['Name'] for c in containers))))
-        if self._userIsSure():
+        if self._userIsSure("This will remove all containers using the volume"):
             self.output("Deleting volume %r" % (volume,))
+            # Remove related containers
+            self.lock.containers.remove_related_containers(volume)
             self._directory.child(volume).remove()
+
         else:
             self.output("Aborting.")
 
