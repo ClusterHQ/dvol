@@ -35,24 +35,8 @@ class Containers(object):
             # a best-effort snapshot of current docker state
             try:
                 container = self.client.inspect_container(container['Id'])
-                volume_driver_matches = (
-                        container['Config']['VolumeDriver'] == self.volume_driver_name)
                 running = container['State']['Running']
-                using_volume = False
-                aggregated_volumes = container.get('Volumes', {}).values()
-                # docker 1.8.2 seems to have new Mounts attribute, list of
-                # objects.
-                aggregated_volumes += [mount['Source'] for mount in container.get('Mounts', {})]
-                # e.g. {u'/data': u'/var/lib/dvol/volumes/frob_mysql/branches/master'}
-                for volume_path in aggregated_volumes:
-                    # XXX implementation detail-y, will need refactoring when
-                    # we support multiple backends
-                    if volume_path.startswith("/var/lib/dvol/volumes"):
-                        parts = volume_path.split("/")
-                        volume_name = parts[-2]
-                        if volume_name == volume:
-                            using_volume = True
-                if volume_driver_matches and running and using_volume:
+                if self._is_container_related(container, volume) and running:
                     containers.append(container)
             except:
                 log.err(None, "while fetching container state %s, "
@@ -97,3 +81,50 @@ class Containers(object):
             except:
                 log.err(None, "while trying to start container %s" % (cid,))
         del self.stopped[volume]
+
+    def remove_related_containers(self, volume):
+        """
+        Remove containers using the dvol plugin that are using the given
+        volume.
+        """
+        all_containers = self.client.containers(all=True)
+
+        for container in all_containers:
+            # race condition: a container is deleted during the following
+            # iteration; catch and log exceptions but otherwise ignore; this is
+            # a best-effort snapshot of current docker state
+            try:
+                container = self.client.inspect_container(container['Id'])
+            except:
+                log.err(None, "while fetching container state %s, "
+                              "maybe it was deleted" % (container['Id']))
+
+            if self._is_container_related(container, volume):
+                log.msg(None, "Deleting container %s" % (container['Id']))
+                self.client.remove_container(container['Id'], v=True)
+
+    def _is_container_related(self, container, volume):
+        volume_driver_matches = (
+            container['Config']['VolumeDriver'] == self.volume_driver_name
+        )
+
+        if not volume_driver_matches:
+            return False
+
+        using_volume = False
+        aggregated_volumes = container.get('Volumes', {}).values()
+        # docker 1.8.2 seems to have new Mounts attribute, list of
+        # objects.
+        aggregated_volumes += [mount['Source'] for mount in container.get('Mounts', {})]
+        # e.g. {u'/data': u'/var/lib/dvol/volumes/frob_mysql/branches/master'}
+        for volume_path in aggregated_volumes:
+            # XXX implementation detail-y, will need refactoring when
+            # we support multiple backends
+            if volume_path.startswith("/var/lib/dvol/volumes"):
+                parts = volume_path.split("/")
+                volume_name = parts[-2]
+                if volume_name == volume:
+                    using_volume = True
+                    break
+
+        return using_volume
