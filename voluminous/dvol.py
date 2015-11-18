@@ -175,8 +175,12 @@ class Voluminous(object):
         else:
             self.output("Aborting.")
 
-    def _userIsSure(self):
-        sys.stdout.write("Are you sure (y/n)? ")
+    def _userIsSure(self, extraMessage=None):
+        message = "Are you sure? "
+        if extraMessage:
+            message += extraMessage
+        message += " (y/n): "
+        sys.stdout.write(message)
         sys.stdout.flush()
         return raw_input().lower() in ("y", "yes")
 
