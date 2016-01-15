@@ -14,10 +14,12 @@ import sys
 import uuid
 import texttable
 import json
+import yaml
 from dockercontainers import Containers
 
 DEFAULT_BRANCH = "master"
 VOLUME_DRIVER_NAME = "dvol"
+PWD_PATH = FilePath("/pwd")
 
 class VolumeAlreadyExists(Exception):
     pass
@@ -363,6 +365,28 @@ class Voluminous(object):
         finally:
             self.lock.release(volume)
 
+    def seedVolumes(self, compose_file):
+        # XXX: does not work with absolute paths, but should
+        compose = yaml.load(PWD_PATH.child(compose_file).open())
+        valid_volumes = []
+        # TODO: will need updating for new compose file format
+        for service, config in compose.iteritems():
+            if "volume_driver" in config and config["volume_driver"] == "dvol":
+                for volume in config["volumes"]:
+                    if ":" in volume and not volume.startswith("/"):
+                        valid_volumes.append((volume, config))
+        if not valid_volumes:
+            print 'No volumes found with "volume_driver: dvol" and a named volume (like "volumename:/path_inside_container")! Please check your docker-compose.yml file.'
+        else:
+            print "Please seed your dvol volume(s) by running the following command(s):"
+        for volume, config in valid_volumes:
+            # TODO: need some validation before running commands with string interpolation here, docker-compose file could be malicious
+            # TODO: would be better if we ran the command for the user, rather than making them copy and paste
+            print "docker run --volume-driver=dvol -v %(volume)s:/_target -ti %(image)s sh -c 'cp -av %(source)s/* /_target/'" % dict(
+                    volume=volume.split(":")[0],
+                    source=volume.split(":")[1],
+                    image=config["image"],)
+
 
 class LogOptions(Options):
     """
@@ -385,6 +409,20 @@ class InitOptions(Options):
 
     def run(self, voluminous):
         voluminous.createVolume(self.name)
+
+
+class SeedOptions(Options):
+    """
+    Seed some volumes.
+    """
+
+    synopsis = "<docker-compose-file-in-current-directory>"
+
+    def parseArgs(self, filename):
+        self.filename = filename
+
+    def run(self, voluminous):
+        voluminous.seedVolumes(self.filename)
 
 
 class CommitOptions(Options):
@@ -500,6 +538,8 @@ class VoluminousOptions(Options):
             "Same as 'list'"],
         ["init", None, InitOptions,
             "Create a volume and its default master branch, then switch to it"],
+        ["seed", None, SeedOptions,
+            "Create a set of volumes with default data extracted from the docker images referenced in a docker compose file"],
         ["switch", None, SwitchOptions,
             "Switch active volume for commands below (commit, log etc)"],
         ["rm", None, RemoveOptions,
