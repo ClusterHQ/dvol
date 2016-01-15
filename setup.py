@@ -19,7 +19,7 @@ setup(
     url="https://github.com/ClusterHQ/voluminous",
     install_requires=[
         #"PyYAML>=3",
-        "Twisted>=14",
+        "Twisted>=14.0.2",
         "treq>=14",
         "pyasn1>=0.1",
         "docker-py>=1.5.0",
