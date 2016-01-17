@@ -1,10 +1,9 @@
 from setuptools import setup
 
 setup(
-    name="Voluminous",
+    name="dvol",
     packages=[
-        "voluminous",
-        #"unofficial_flocker_tools.txflocker"
+        "dvol",
     ],
     entry_points={
         "console_scripts": [
@@ -13,10 +12,10 @@ setup(
         ],
     },
     version="0.1",
-    description="A prototype docker volume manager with git-like functionality.",
+    description="A docker volume manager with git-like functionality.",
     author="Luke Marsden",
     author_email="luke@clusterhq.com",
-    url="https://github.com/ClusterHQ/voluminous",
+    url="https://github.com/ClusterHQ/dvol",
     install_requires=[
         #"PyYAML>=3",
         "Twisted>=14.0.2",
