@@ -18,7 +18,7 @@ RUN         apt-get -qy update && \
 RUN         pip install docker-py
 
 ADD         setup.py README.md /app/
-ADD         voluminous/* /app/voluminous/
+ADD         dvol/* /app/dvol/
 
 WORKDIR     /app
 

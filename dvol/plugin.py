@@ -42,11 +42,7 @@ class CreateResource(resource.Resource):
     """
     Docker has asked us to create a named volume.
 
-    In effect this is confirming that the volume has already been created with
-    "dvol init".
-
-    Alternative UX is that it could create the volume on-demand, but that might
-    be confusing? (It is how the flocker-docker plugin works though)
+    Create the volume on-demand.
     """
     isLeaf = True
 
