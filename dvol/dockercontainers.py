@@ -105,7 +105,9 @@ class Containers(object):
 
     def _is_container_related(self, container, volume):
         volume_driver_matches = (
-            container['Config']['VolumeDriver'] == self.volume_driver_name
+            container['Config'].get('VolumeDriver') == self.volume_driver_name
+            or
+            container['HostConfig'].get('VolumeDriver') == self.volume_driver_name
         )
 
         if not volume_driver_matches:
