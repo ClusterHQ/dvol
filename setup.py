@@ -7,8 +7,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "dvol = voluminous.dvol:main",
-            "dvol-docker-plugin = voluminous.plugin:main",
+            "dvol = dvol.dvol:main",
+            "dvol-docker-plugin = dvol.plugin:main",
         ],
     },
     version="0.1",
