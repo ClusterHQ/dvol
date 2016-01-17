@@ -15,6 +15,8 @@ import uuid
 import texttable
 import json
 import yaml
+import os
+import stat
 from dockercontainers import Containers
 
 DEFAULT_BRANCH = "master"
@@ -137,6 +139,16 @@ class Voluminous(object):
     def createBranch(self, volume, branch):
         branchDir = self._directory.child(volume).child("branches").child(branch)
         branchDir.makedirs()
+        # This branchDir is the one which will be bind-mounted into running
+        # containers, via a symlink, but with symlinks and docker bind-mounts
+        # it seems that it's the permissions of the target which affects the
+        # (e.g.) writeability of the resulting mount.
+        # Because some containers have processes which run as non-root users,
+        # make the volume world-writeable so that it can still be useful to
+        # those processes. In the future, it might be better to have options
+        # for which uid, gid and perms the volume should have. This is
+        # effectively the same as `chmod a=rwx branchDir.path`.
+        os.chmod(branchDir.path, 0777)
         self.output("Created branch %s/%s" % (volume, branch))
 
     def createVolume(self, name):
