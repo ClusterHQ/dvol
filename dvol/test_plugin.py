@@ -7,12 +7,11 @@ command:
     docker-compose up -d (in a directory with appropriate docker-compose.yml file)
 expected behaviour:
     docker containers are started with dvol accordingly
-    XXX this doesn't seem to work at the moment
 
 command:
     docker run -ti --volume-driver dvol -v hello:/data busybox sh
 expected output:
-    Error response from daemon: Voluminous 'hello2' does not exist, create it with: dvol init hello2
+    dvol volume is created on-demand
 
 command:
     dvol init hello2
@@ -32,6 +31,7 @@ expected behaviour:
 
 command:
     run a container using a dvol volume
+expected behaviour:
     dvol list
     container names shows up in output
 """
