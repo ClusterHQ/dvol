@@ -4,7 +4,7 @@ Tests for the Voluminous CLI.
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-from voluminous.dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
+from dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
 from twisted.python.usage import UsageError
 
 class EmptyContainers(object):
