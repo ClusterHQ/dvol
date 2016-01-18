@@ -20,7 +20,7 @@ class Containers(object):
     def __init__(self, volume_driver_name):
         self.volume_driver_name = volume_driver_name
         self.stopped = dict()
-        self.client = docker.client.Client()
+        self.client = docker.client.Client(version="1.20")
 
     def get_related_containers(self, volume):
         """
