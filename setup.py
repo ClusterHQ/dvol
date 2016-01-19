@@ -17,7 +17,7 @@ setup(
     author_email="luke@clusterhq.com",
     url="https://github.com/ClusterHQ/dvol",
     install_requires=[
-        #"PyYAML>=3",
+        "PyYAML>=3",
         "Twisted>=14.0.2",
         "treq>=14",
         "pyasn1>=0.1",
