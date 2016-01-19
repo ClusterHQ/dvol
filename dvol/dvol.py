@@ -16,11 +16,20 @@ import texttable
 import json
 import yaml
 import os
+import subprocess
 from dockercontainers import Containers
 
 DEFAULT_BRANCH = "master"
 VOLUME_DRIVER_NAME = "dvol"
 PWD_PATH = FilePath("/pwd")
+
+def copyTo(fromPath, toPath):
+    """
+    Copy the contents of fromPath to toPath, assuming a quiesced filesystem,
+    and that toPath doesn't exist, in a way that doesn't fail to copy special
+    files like FIFOs.
+    """
+    subprocess.check_call(["cp", "-a", fromPath.path, toPath.path])
 
 class VolumeAlreadyExists(Exception):
     pass
@@ -109,6 +118,7 @@ class Voluminous(object):
         """
         volume = self.volume()
         volumePath = self._directory.child(volume)
+        # this raises an exception if branch is not a valid path segment
         branchPath = volumePath.child("branches").child(branch)
         if create:
             if branchPath.exists():
@@ -127,7 +137,7 @@ class Voluminous(object):
                 self.commitDatabase.write(volume, branch, meta)
                 # Then copy latest HEAD of branch into new branch data
                 # directory
-                volumePath.child("commits").child(HEAD).copyTo(branchPath)
+                copyTo(volumePath.child("commits").child(HEAD), branchPath)
         else:
             if not branchPath.exists():
                 self.output("Cannot switch to non-existing branch %s" % (branch,))
@@ -262,7 +272,7 @@ class Voluminous(object):
         # XXX tests for acquire/release
         self.lock.acquire(volume)
         try:
-            branchPath.copyTo(commitPath)
+            copyTo(branchPath, commitPath)
         finally:
             self.lock.release(volume)
         self._recordCommit(volume, branchName, commitId, message)
@@ -371,7 +381,7 @@ class Voluminous(object):
         self.lock.acquire(volume)
         try:
             branchPath.remove()
-            commitPath.copyTo(branchPath)
+            copyTo(commitPath, branchPath)
             self._destroyNewerCommits(commit, volume)
         finally:
             self.lock.release(volume)
