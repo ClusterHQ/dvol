@@ -16,7 +16,6 @@ import texttable
 import json
 import yaml
 import os
-import stat
 from dockercontainers import Containers
 
 DEFAULT_BRANCH = "master"
