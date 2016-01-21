@@ -76,9 +76,10 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS \n"
-                                                       "  foo      master              \n"
-                                                       "* foo2     master              "])
+        self.assertEqual(sorted(dvol.voluminous.getOutput()[0].split("\n")),
+                sorted(["  VOLUME   BRANCH   CONTAINERS ",
+                        "  foo      master              ",
+                        "* foo2     master              "]))
 
     def test_log(self):
         dvol = VoluminousOptions()

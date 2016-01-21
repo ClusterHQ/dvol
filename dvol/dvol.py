@@ -29,7 +29,12 @@ def copyTo(fromPath, toPath):
     and that toPath doesn't exist, in a way that doesn't fail to copy special
     files like FIFOs.
     """
+    if toPath.exists():
+        raise Exception(
+            "Cannot copy %(fromPath)s to %(toPath)s because it exists" %
+            dict(toPath=toPath.path, fromPath=fromPath.path))
     subprocess.check_call(["cp", "-a", fromPath.path, toPath.path])
+    os.chmod(toPath.path, 0777) # TODO add tests
 
 class VolumeAlreadyExists(Exception):
     pass
@@ -266,7 +271,9 @@ class Voluminous(object):
         commitPath = volumePath.child("commits").child(commitId)
         if commitPath.exists():
             raise Exception("woah, random uuid collision. try again!")
-        commitPath.makedirs()
+        # Make the commits directory if necessary
+        if not commitPath.parent().exists():
+            commitPath.parent().makedirs()
         # acquire lock (read: stop containers) to ensure consistent snapshot
         # with file-copy based backend
         # XXX tests for acquire/release
