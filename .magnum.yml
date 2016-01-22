@@ -1,5 +1,10 @@
+before_install:
+  - "sudo apt-get install python-virtualenv"
+  - "virtualenv ./test-env/"
+  - "./test-env/bin/pip install --upgrade pip"
+
 install:
-  - "pip install ."
+  - "./test-env/bin/pip install ."
 
 script:
-  - "trial dvol"
+  - "./test-env/bin/trial dvol"
