@@ -12,7 +12,11 @@ install:
   - "pip install ."
 
 script:
-  - "trial dvol"
+  # Run the unit test suite using trial.
+  # Let the runner parallelise the tests a little bit.
+  # Travis CI docs suggest you have between 1 and 2 CPUs to use.
+  # https://docs.travis-ci.com/user/speeding-up-the-build/#Parallelizing-your-build-on-one-VM
+  - "trial -j2 dvol"
 
 env:
   global:
