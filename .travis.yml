@@ -1,3 +1,11 @@
+notifications:
+  email: false
+  slack:
+    # Slack integration.
+    # Generated via `travis encrypt -r ClusterHQ/dvol <slack configuration>'
+    # See Travis in the Slack App directory for details.
+    secure: "IuMdO5YgVlYdq12I8PbrnjgQo2mpW53LoABUHoHFnaczpXmOD0cbgSX4YRRqGPTkBj3iMqOYtGbOtcyIRwLB9SVbr2xeDpvRYC8auX/jGMbQmaQMhG4kZOpVA9FKt+XcJFj6lsihT50tx2uJ4zn85KjOy1ZJQjgpka+vsKJbvGAg65AvCovlB/l1fyd8eaRZxDXyvapD7I39R7ij22r/QfnJ0t2JT0PKS0SR+gPemnjMhGkW0n3dyoOOkhqVAEyevt6f+s8NNnSioCuJy6X9R6eIXOeJYXHMvigxpZ7nEnrWik3IgQ9+rqJjjqzb9paxU+1+aQP0gb+r1M+hfbGyWQp1k6KCNb1IljCtjNccWxlajkooLJS1haRKiyV96U+DiDybpVIbEdtNMBQrRN+6lCbU8OduHxluH5WnAdZEUGz6pQLt7fxCazKzib/vxnUlSgvRnKzweYd21zj3c4w6aPLdCaI2eQM036Zwt/9ltWbk5I8sjAWfCgvWqxD+MaOT2vAog8T7B8WoyRjhbChtMNNHtw64a9W402WADrQO1jTU4tGsKwDbjXb4j2GtvhKahrGGigFYBfPLgOi8mzzwaJh7uBo/S8evAG/K/abc2hhhLBGWlSiA252hbNcgjGk8QuwKFhaA1DenAXZTf8GcwYC+ZlmKOczIujamQKfAvjM="
+
 language: python
 python: 2.7
 sudo: false
@@ -17,10 +25,3 @@ script:
   # Travis CI docs suggest you have between 1 and 2 CPUs to use.
   # https://docs.travis-ci.com/user/speeding-up-the-build/#Parallelizing-your-build-on-one-VM
   - "trial -j2 dvol"
-
-env:
-  global:
-    # Slack integration.
-    # Generated via `travis encrypt -r ClusterHQ/dvol <slack configuration>'
-    # See Travis in the Slack App directory for details.
-    secure: "eZG/6UeUbDX3bq8HLS9Dvk1b2FeU0SP6kowL39wIAxEwEAPs/NP/Esewb+SiqvUMNBd9KPUW4D58cApaSaJXdbXfq7sYY0dk18SzzAiK9KUFl5vIPC39TzocjVcFvPftQra/WZLrqf5/vg4lsMRQXnNdAuCurbZpF780oohgKDegdFmTZihz3hejqZYwcQTnQpABO3D6WkR78Q8f6ADR8HVWKCwB8H/0pTlqyhFswcxMo6wuE30Y87sNC+24+7Mv2nfFcBGLa8VO4QYFZ50E72BlV8W+nHlqGdWqPmTVraNYSKjsgZJf8Tp23nkdRiYJbEXVssttJFXNrIhaicLDtbRGjUvrDBDDTKdTEs61bS/KZRvMbzfnufvvuJRP4vraFPLEgxh1kYimWg4NcmAjsApHtcfCwe0AXRrZTT6VXUo7KwTfgByaz7ZKj9IYksx2qfKcGw68QHHDwDJ8EvFeFrG2EQ1Zu/ONMxTpgyaGRmSipOoo+MIve/7fpem0WECyG8CWpjlXDniKMXbbe56+0vYMcIJX+E0hdVktB0FaX0dHPEcAYmHjKYxl7BUqT/VhkFb6FLciywk4hBeqhyhusi9uebAE6fcagxSpEIFyIWvkOYsLo6FNPnhLZCSMJHT2u31mJs2qDkAZ3x+1C1a2v8Zy2NZKDzpekBfSEoY5HTk="
