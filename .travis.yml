@@ -7,3 +7,10 @@ install:
 
 script:
   - "trial dvol"
+
+env:
+  global:
+    # Slack integration.
+    # Generated via `travis encrypt -r ClusterHQ/dvol <slack configuration>'
+    # See Travis in the Slack App directory for details.
+    secure: "eZG/6UeUbDX3bq8HLS9Dvk1b2FeU0SP6kowL39wIAxEwEAPs/NP/Esewb+SiqvUMNBd9KPUW4D58cApaSaJXdbXfq7sYY0dk18SzzAiK9KUFl5vIPC39TzocjVcFvPftQra/WZLrqf5/vg4lsMRQXnNdAuCurbZpF780oohgKDegdFmTZihz3hejqZYwcQTnQpABO3D6WkR78Q8f6ADR8HVWKCwB8H/0pTlqyhFswcxMo6wuE30Y87sNC+24+7Mv2nfFcBGLa8VO4QYFZ50E72BlV8W+nHlqGdWqPmTVraNYSKjsgZJf8Tp23nkdRiYJbEXVssttJFXNrIhaicLDtbRGjUvrDBDDTKdTEs61bS/KZRvMbzfnufvvuJRP4vraFPLEgxh1kYimWg4NcmAjsApHtcfCwe0AXRrZTT6VXUo7KwTfgByaz7ZKj9IYksx2qfKcGw68QHHDwDJ8EvFeFrG2EQ1Zu/ONMxTpgyaGRmSipOoo+MIve/7fpem0WECyG8CWpjlXDniKMXbbe56+0vYMcIJX+E0hdVktB0FaX0dHPEcAYmHjKYxl7BUqT/VhkFb6FLciywk4hBeqhyhusi9uebAE6fcagxSpEIFyIWvkOYsLo6FNPnhLZCSMJHT2u31mJs2qDkAZ3x+1C1a2v8Zy2NZKDzpekBfSEoY5HTk="
