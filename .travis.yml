@@ -2,6 +2,12 @@ language: python
 python: 2.7
 sudo: false
 
+cache:
+  directories:
+    # Cache the pip downloads to try to speed up installation.  There might be
+    # a Travis CI-native way to do pip caching but I don't quite understand it.
+    - "$HOME/.cache/pip"
+
 install:
   - "pip install ."
 
