@@ -16,6 +16,11 @@ cache:
     # a Travis CI-native way to do pip caching but I don't quite understand it.
     - "$HOME/.cache/pip"
 
+before_install:
+  # Get packaging tools that can use and cache wheels.
+  - "pip install --upgrade pip>=7"
+  - "pip install wheel"
+
 install:
   - "pip install ."
 
