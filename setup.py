@@ -23,4 +23,9 @@ setup(
         "pyasn1>=0.1",
         "docker-py>=1.5.0",
     ],
+    extras_require={
+        "dev": [
+            "behave",
+        ],
+    }
 )
