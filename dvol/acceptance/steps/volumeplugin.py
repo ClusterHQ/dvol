@@ -1,4 +1,4 @@
-from __future__ import unicode_literal
+from __future__ import unicode_literals
 
 from tempfile import mkdtemp
 
