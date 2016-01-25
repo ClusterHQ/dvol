@@ -66,3 +66,5 @@ Just run `docker-compose up -d` on any one of the `docker-compose.yml` files the
 We really appreciate your ideas, feature request, pulls, and issues/bug reports for dvol, because we believe in building useful and user friendly tools for our communities.
 
 Please raise a ticket or feel free to send us a email at [feedback@clusterhq.com](mailto:feedback@clusterhq.com).
+
+[![Build Status](https://travis-ci.org/ClusterHQ/dvol.svg?branch=master)](https://github.com/ClusterHQ/dvol)
