@@ -1,5 +1,7 @@
 from __future__ import unicode_literal
 
+from tempfile import mkdtemp
+
 from docker import Client
 
 from behave import given, when, then
@@ -86,6 +88,7 @@ def install_dvol_volume_plugin(context):
         image="clusterhq/dvol",
     )
     context.dind_client.start(context.dvol_id)
+
 
 @when("a container is created with a dvol volume named <name>")
 def create_stateful_container(context):
