@@ -2,6 +2,8 @@
 Tests for the Voluminous CLI.
 """
 
+from string import letters
+
 from hypothesis import given
 from hypothesis.strategies import sets, text
 from twisted.trial.unittest import TestCase
@@ -74,24 +76,29 @@ class VoluminousTests(TestCase):
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
     # XXX: Fix the bug about empty volume names
-    @given(volume_names=sets(text(min_size=1), min_size=1, average_size=10).map(list))
+    # XXX: Handle unicode / weird volume names by rejecting them in dvol
+    # XXX Impose a maximum volume name length (at least so rendering is easy!)
+    @given(volume_names=sets(text(alphabet=letters, min_size=1, max_size=112), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volume_names):
         # XXX: This initializes duplicate volumes. I wonder what happens then.
+        tmpdir = FilePath(self.mktemp())
+        tmpdir.makedirs()
+
         dvol = VoluminousOptions()
         for volume_name in volume_names:
-            dvol.parseOptions(["-p", self.tmpdir.path, "init", volume_name])
-        dvol.parseOptions(["-p", self.tmpdir.path, "list"])
+            dvol.parseOptions(["-p", tmpdir.path, "init", volume_name])
+        dvol.parseOptions(["-p", tmpdir.path, "list"])
 
         lines = dvol.voluminous.getOutput()[0].split("\n")
         header, rest = lines[0], lines[1:]
-        expected_volumes = [(volume_name, 'master') for volume_name in volume_names]
+        expected_volumes = [[volume_name, 'master'] for volume_name in volume_names]
         # `init` activates the volume, so the last initialized volume is the
         # active one.
-        expected_volumes[-1] = [('*', expected_volumes[-1][0], expected_volumes[-1][1])]
+        expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
-            expected_volumes,
-            [line.split() for line in lines()],
+            sorted(expected_volumes),
+            sorted([line.split() for line in rest]),
         )
 
     def test_log(self):
