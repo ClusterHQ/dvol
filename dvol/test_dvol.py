@@ -2,6 +2,8 @@
 Tests for the Voluminous CLI.
 """
 
+from hypothesis import given
+from hypothesis.strategies import sets, text
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
@@ -71,15 +73,26 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
-    def test_list_multi_volumes(self):
+    # XXX: Fix the bug about empty volume names
+    @given(volume_names=sets(text(min_size=1), min_size=1, average_size=10).map(list))
+    def test_list_multi_volumes(self, volume_names):
+        # XXX: This initializes duplicate volumes. I wonder what happens then.
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
+        for volume_name in volume_names:
+            dvol.parseOptions(["-p", self.tmpdir.path, "init", volume_name])
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(sorted(dvol.voluminous.getOutput()[0].split("\n")),
-                sorted(["  VOLUME   BRANCH   CONTAINERS ",
-                        "  foo      master              ",
-                        "* foo2     master              "]))
+
+        lines = dvol.voluminous.getOutput()[0].split("\n")
+        header, rest = lines[0], lines[1:]
+        expected_volumes = [(volume_name, 'master') for volume_name in volume_names]
+        # `init` activates the volume, so the last initialized volume is the
+        # active one.
+        expected_volumes[-1] = [('*', expected_volumes[-1][0], expected_volumes[-1][1])]
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(
+            expected_volumes,
+            [line.split() for line in lines()],
+        )
 
     def test_log(self):
         dvol = VoluminousOptions()
