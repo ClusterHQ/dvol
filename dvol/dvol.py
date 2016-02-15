@@ -168,7 +168,7 @@ class Voluminous(object):
     def createVolume(self, name):
         if self._directory.child(name).exists():
             self.output("Error: volume %s already exists" % (name,))
-            raise VolumeAlreadyExists()
+            raise VolumeAlreadyExists(name)
         self._directory.child(name).makedirs()
         self.setActiveVolume(name)
         self.output("Created volume %s" % (name,))

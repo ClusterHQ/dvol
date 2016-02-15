@@ -75,10 +75,35 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
-    # XXX: Fix the bug about empty volume names
-    # XXX: Handle unicode / weird volume names by rejecting them in dvol
+    def test_branch_multi_volumes(self, vol_a="a", vol_b="b", newbranch="newbranch"):
+        tmpdir = FilePath(self.mktemp())
+        tmpdir.makedirs()
+
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", tmpdir.path, "init", vol_a])
+        dvol.parseOptions(["-p", tmpdir.path, "init", vol_b])
+        dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", "hello"])
+        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", newbranch])
+        dvol.parseOptions(["-p", tmpdir.path, "list"])
+        lines = dvol.voluminous.getOutput()[0].split("\n")
+        header, rest = lines[0], lines[1:]
+
+        expected_volumes = [[vol_a, "master"], [vol_b, newbranch]]
+        # `init` activates the volume, so the last initialized volume is the
+        # active one.
+        expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted([line.split() for line in rest]),
+        )
+
+    # XXX Fix the bug about empty volume names
+    # XXX Handle unicode / weird volume names by rejecting them in dvol
     # XXX Impose a maximum volume name length (at least so rendering is easy!)
-    @given(volume_names=sets(text(alphabet=letters, min_size=1, max_size=112),
+    # XXX Handle case insensitive filesystems (if we care about the test suite
+    #     passing on Mac)
+    @given(volume_names=sets(text(alphabet=letters[:26], min_size=1, max_size=112),
         min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volume_names):
         tmpdir = FilePath(self.mktemp())
