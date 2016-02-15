@@ -78,9 +78,9 @@ class VoluminousTests(TestCase):
     # XXX: Fix the bug about empty volume names
     # XXX: Handle unicode / weird volume names by rejecting them in dvol
     # XXX Impose a maximum volume name length (at least so rendering is easy!)
-    @given(volume_names=sets(text(alphabet=letters, min_size=1, max_size=112), min_size=1, average_size=10).map(list))
+    @given(volume_names=sets(text(alphabet=letters, min_size=1, max_size=112),
+        min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volume_names):
-        # XXX: This initializes duplicate volumes. I wonder what happens then.
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
