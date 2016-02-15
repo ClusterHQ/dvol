@@ -242,7 +242,7 @@ class Voluminous(object):
             self.lock.release(volume)
 
     def getActiveBranch(self, volume):
-        currentBranch = self._directory.child(self.volume()).child("current_branch.json")
+        currentBranch = self._directory.child(volume).child("current_branch.json")
         if currentBranch.exists():
             return json.loads(currentBranch.getContent())["current_branch"]
         else:
