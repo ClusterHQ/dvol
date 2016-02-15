@@ -4,7 +4,7 @@ Tests for the Voluminous CLI.
 
 from string import letters
 
-from hypothesis import given
+from hypothesis import given, assume
 from hypothesis.strategies import sets, text
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
@@ -75,10 +75,18 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
-    def test_branch_multi_volumes(self, vol_a="a", vol_b="b", newbranch="newbranch"):
+    # TODO Bring in jml's path_segments strategy.
+    # XXX Fix more boring wrapping output bugs (112 was too large, here).
+    @given(
+            vol_a=text(alphabet=letters[:26], min_size=1, max_size=112/2),
+            vol_b=text(alphabet=letters[:26], min_size=1, max_size=112/2),
+            newbranch=text(alphabet=letters[:26], min_size=1, max_size=112/2),
+        )
+    def test_branch_multi_volumes(self, vol_a, vol_b, newbranch):
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
+        assume(vol_a != vol_b)
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", tmpdir.path, "init", vol_a])
         dvol.parseOptions(["-p", tmpdir.path, "init", vol_b])
