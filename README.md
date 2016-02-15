@@ -1,5 +1,7 @@
 # Version control for your development databases in Docker
 
+[![Build Status](https://travis-ci.org/ClusterHQ/dvol.svg?branch=master)](https://travis-ci.org/ClusterHQ/dvol)
+
 `dvol` lets you `commit`, `reset` and `branch` the containerized databases running on your laptop so you can easily save a particular state and come back to it later.
 
 # Installation
@@ -67,4 +69,3 @@ We really appreciate your ideas, feature request, pulls, and issues/bug reports 
 
 Please raise a ticket or feel free to send us a email at [feedback@clusterhq.com](mailto:feedback@clusterhq.com).
 
-[![Build Status](https://travis-ci.org/ClusterHQ/dvol.svg?branch=master)](https://github.com/ClusterHQ/dvol)
