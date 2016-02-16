@@ -32,7 +32,9 @@ def path_segments():
     # XXX: Handle unicode / weird volume names by rejecting them in dvol
     # XXX: Impose a maximum volume name length (at least so rendering is easy!)
     # XXX: How do we handle case-insensitive file systems?
-    return text(alphabet=letters, min_size=1, max_size=40).map(lambda t: t.lower())
+    # XXX: Fix more boring wrapping output bugs (112 was too large, here).
+    return text(
+        alphabet=letters, min_size=1, max_size=40).map(lambda t: t.lower())
 
 
 volume_names = path_segments
@@ -114,28 +116,24 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    # TODO Bring in jml's path_segments strategy.
-    # XXX Fix more boring wrapping output bugs (112 was too large, here).
-    @given(
-            vol_a=text(alphabet=letters[:26], min_size=1, max_size=112/2),
-            vol_b=text(alphabet=letters[:26], min_size=1, max_size=112/2),
-            newbranch=text(alphabet=letters[:26], min_size=1, max_size=112/2),
-        )
-    def test_branch_multi_volumes(self, vol_a, vol_b, newbranch):
+    @given(vol_a=volume_names(), vol_b=volume_names(),
+           new_branch=branch_names())
+    def test_branch_multi_volumes(self, vol_a, vol_b, new_branch):
+        assume(vol_a != vol_b)
+
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
-        assume(vol_a != vol_b)
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", tmpdir.path, "init", vol_a])
         dvol.parseOptions(["-p", tmpdir.path, "init", vol_b])
         dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", "hello"])
-        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", newbranch])
+        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", new_branch])
         dvol.parseOptions(["-p", tmpdir.path, "list"])
         lines = dvol.voluminous.getOutput()[0].split("\n")
         header, rest = lines[0], lines[1:]
 
-        expected_volumes = [[vol_a, "master"], [vol_b, newbranch]]
+        expected_volumes = [[vol_a, "master"], [vol_b, new_branch]]
         # `init` activates the volume, so the last initialized volume is the
         # active one.
         expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
