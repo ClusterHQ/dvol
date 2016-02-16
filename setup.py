@@ -3,12 +3,12 @@ from setuptools import setup
 setup(
     name="dvol",
     packages=[
-        "dvol",
+        "dvol_python",
     ],
     entry_points={
         "console_scripts": [
-            "dvol = dvol.dvol:main",
-            "dvol-docker-plugin = dvol.plugin:main",
+            "dvol = dvol_python.dvol:main",
+            "dvol-docker-plugin = dvol_python.plugin:main",
         ],
     },
     version="0.1",

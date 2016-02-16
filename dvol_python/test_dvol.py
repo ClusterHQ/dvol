@@ -8,8 +8,42 @@ from hypothesis import given, assume
 from hypothesis.strategies import sets, text
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-from dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
+from dvol import VolumeAlreadyExists, Voluminous
 from twisted.python.usage import UsageError
+import subprocess
+import os
+
+TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
+
+if TEST_DVOL_BINARY:
+    # Test an alternative implementation of dvol, such as one available as a
+    # binary rather than an importable Python implementation.
+    class FakeVoluminous(object):
+        def __init__(self):
+            self._output = []
+
+        def getOutput(self):
+            """
+            Return a list of process outputs
+            """
+            return self._output
+
+        def report_output(self, output):
+            self._output.append(output)
+
+    class VoluminousOptions(object):
+        def __init__(self):
+            self.voluminous = FakeVoluminous()
+
+        def parseOptions(self, args):
+            result = subprocess.check_output(
+                    ["dvol"] + args,
+                    stderr=subprocess.STDOUT
+            )
+            self.voluminous.report_output(result)
+
+else:
+    from dvol import VoluminousOptions
 
 class EmptyContainers(object):
     def get_related_containers(self, volume):
@@ -42,6 +76,7 @@ class VoluminousTests(TestCase):
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        # XXX how will we assertRaises for an out-of-process thing?
         self.assertRaises(VolumeAlreadyExists,
                 dvol.parseOptions, ["-p", self.tmpdir.path, "init", "foo"])
         self.assertEqual(dvol.voluminous.getOutput(),
