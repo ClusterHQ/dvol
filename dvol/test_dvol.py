@@ -5,7 +5,8 @@ Tests for the Voluminous CLI.
 from string import letters
 
 from hypothesis import given, assume
-from hypothesis.strategies import sets, text
+from hypothesis.strategies import binary, characters, sets, text
+
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
@@ -21,6 +22,22 @@ class NullLock(object):
         return
     def release(self, volume):
         return
+
+
+def path_segments():
+    """
+    Strategy for generating path segments that we support.
+    """
+    # XXX: Fix the bug about empty volume names
+    # XXX: Handle unicode / weird volume names by rejecting them in dvol
+    # XXX: Impose a maximum volume name length (at least so rendering is easy!)
+    # XXX: How do we handle case-insensitive file systems?
+    return text(alphabet=letters, min_size=1, max_size=40).map(lambda t: t.lower())
+
+
+volume_names = path_segments
+branch_names = path_segments
+
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -75,6 +92,28 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
+    @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
+    def test_list_multi_volumes(self, volumes):
+        tmpdir = FilePath(self.mktemp())
+        tmpdir.makedirs()
+
+        dvol = VoluminousOptions()
+        for name in volumes:
+            dvol.parseOptions(["-p", tmpdir.path, "init", name])
+        dvol.parseOptions(["-p", tmpdir.path, "list"])
+
+        lines = dvol.voluminous.getOutput()[0].split("\n")
+        header, rest = lines[0], lines[1:]
+        expected_volumes = [[name, 'master'] for name in volumes]
+        # `init` activates the volume, so the last initialized volume is the
+        # active one.
+        expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted([line.split() for line in rest]),
+        )
+
     # TODO Bring in jml's path_segments strategy.
     # XXX Fix more boring wrapping output bugs (112 was too large, here).
     @given(
@@ -106,33 +145,26 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    # XXX Fix the bug about empty volume names
-    # XXX Handle unicode / weird volume names by rejecting them in dvol
-    # XXX Impose a maximum volume name length (at least so rendering is easy!)
-    # XXX Handle case insensitive filesystems (if we care about the test suite
-    #     passing on Mac)
-    @given(volume_names=sets(text(alphabet=letters[:26], min_size=1, max_size=112),
-        min_size=1, average_size=10).map(list))
-    def test_list_multi_volumes(self, volume_names):
+    @given(volume_name=volume_names(), branch_name=branch_names(),
+           commit_message=text(characters(max_codepoint=127), min_size=1),
+           filename=path_segments(), content=binary())
+    def test_non_standard_branch(self, volume_name, branch_name, commit_message, filename,
+                                 content):
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
         dvol = VoluminousOptions()
-        for volume_name in volume_names:
-            dvol.parseOptions(["-p", tmpdir.path, "init", volume_name])
+        dvol.parseOptions(['-p', tmpdir.path, 'init', volume_name])
+        volume = tmpdir.child(volume_name)
+        volume.child("branches").child("master").child(filename).setContent(content)
+        dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", commit_message])
+        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch_name])
         dvol.parseOptions(["-p", tmpdir.path, "list"])
-
         lines = dvol.voluminous.getOutput()[0].split("\n")
         header, rest = lines[0], lines[1:]
-        expected_volumes = [[volume_name, 'master'] for volume_name in volume_names]
-        # `init` activates the volume, so the last initialized volume is the
-        # active one.
-        expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
-            sorted(expected_volumes),
-            sorted([line.split() for line in rest]),
-        )
+            [['*', volume_name, branch_name]], [line.split() for line in rest])
 
     def test_log(self):
         dvol = VoluminousOptions()
