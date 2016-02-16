@@ -4,8 +4,8 @@ Tests for the Voluminous CLI.
 
 from string import letters
 
-from hypothesis import given, assume
-from hypothesis.strategies import binary, characters, sets, text
+from hypothesis import given
+from hypothesis.strategies import binary, characters, dictionaries, sets, text
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
@@ -22,6 +22,16 @@ class NullLock(object):
         return
     def release(self, volume):
         return
+
+
+def items(d):
+    """
+    Return the tuples that make up a dictionary.
+
+    :param Map[a, b] d: A dictionary.
+    :rtype: [(a, b)]
+    """
+    return list(d.items())
 
 
 def path_segments():
@@ -116,27 +126,30 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @given(vol_a=volume_names(), vol_b=volume_names(),
-           new_branch=branch_names())
-    def test_branch_multi_volumes(self, vol_a, vol_b, new_branch):
-        assume(vol_a != vol_b)
-
+    @given(volumes=dictionaries(
+        volume_names(), branch_names(), min_size=1).map(items))
+    def test_branch_multi_volumes(self, volumes):
+        """
+        Always show the last checked-out branch for all volumes in ``list``.
+        """
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", tmpdir.path, "init", vol_a])
-        dvol.parseOptions(["-p", tmpdir.path, "init", vol_b])
-        dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", "hello"])
-        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", new_branch])
+        for volume, branch in volumes:
+            dvol.parseOptions(["-p", tmpdir.path, "init", volume])
+            dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", "hello"])
+            dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch])
+
         dvol.parseOptions(["-p", tmpdir.path, "list"])
         lines = dvol.voluminous.getOutput()[0].split("\n")
         header, rest = lines[0], lines[1:]
 
-        expected_volumes = [[vol_a, "master"], [vol_b, new_branch]]
+        expected_volumes = [[volume, branch] for volume, branch in volumes]
         # `init` activates the volume, so the last initialized volume is the
         # active one.
-        expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
+        expected_volumes[-1] = [
+            '*', expected_volumes[-1][0], expected_volumes[-1][1]]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
             sorted(expected_volumes),
