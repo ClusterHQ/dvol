@@ -22,6 +22,9 @@ from twisted.python.filepath import FilePath
 import json
 from dvol import Voluminous, VOLUME_DRIVER_NAME
 
+# Return value to docker for no Error.
+_NO_ERROR = ""
+
 class HandshakeResource(resource.Resource):
     """
     A hook for initial handshake.  Say that we're a volume plugin.
@@ -57,7 +60,7 @@ class CreateResource(resource.Resource):
             if not self.voluminous.exists(payload["Name"]):
                 self.voluminous.createVolume(payload["Name"])
             return json.dumps(dict(
-                 Err=None,
+                 Err=_NO_ERROR,
             ))
         except Exception, e:
             return json.dumps(dict(
@@ -82,7 +85,7 @@ class RemoveResource(resource.Resource):
         payload = json.loads(request.content.read())
         print "remove:", payload
         return json.dumps(dict(
-             Err=None,
+             Err=_NO_ERROR,
         ))
 
 class PathResource(resource.Resource):
@@ -102,7 +105,7 @@ class PathResource(resource.Resource):
         path = None
         return json.dumps(dict(
              Mountpoint=path,
-             Err=None,
+             Err=_NO_ERROR,
         ))
 
 class UnmountResource(resource.Resource):
@@ -122,7 +125,7 @@ class UnmountResource(resource.Resource):
         print "unmount:", payload
         # XXX actually 'release' the volume in some sense
         return json.dumps(dict(
-             Err=None,
+             Err=_NO_ERROR,
         ))
 
 class MountResource(resource.Resource):
@@ -143,7 +146,7 @@ class MountResource(resource.Resource):
             # active containers to show up in the dvol list output?
             return json.dumps(dict(
                 Mountpoint=self.voluminous.updateRunningPoint(payload["Name"]),
-                Err=None,
+                Err=_NO_ERROR,
             ))
         else:
             return json.dumps(dict(
@@ -156,7 +159,7 @@ class MountResource(resource.Resource):
         path = None
         if path:
             new_json["Mountpoint"] = path
-            new_json["Err"] = None
+            new_json["Err"] = _NO_ERROR
         else:
             # This is how you indicate not handling this request
             new_json["Mountpoint"] = ""
