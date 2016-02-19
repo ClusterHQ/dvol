@@ -168,7 +168,7 @@ class Voluminous(object):
     def createVolume(self, name):
         if self._directory.child(name).exists():
             self.output("Error: volume %s already exists" % (name,))
-            raise VolumeAlreadyExists()
+            raise VolumeAlreadyExists(name)
         self._directory.child(name).makedirs()
         self.setActiveVolume(name)
         self.output("Created volume %s" % (name,))
@@ -242,7 +242,7 @@ class Voluminous(object):
             self.lock.release(volume)
 
     def getActiveBranch(self, volume):
-        currentBranch = self._directory.child(self.volume()).child("current_branch.json")
+        currentBranch = self._directory.child(volume).child("current_branch.json")
         if currentBranch.exists():
             return json.loads(currentBranch.getContent())["current_branch"]
         else:

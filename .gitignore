@@ -1,0 +1,4 @@
+/_trial_temp/
+.hypothesis/
+*.pyc
+*.egg-info

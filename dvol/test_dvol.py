@@ -2,6 +2,11 @@
 Tests for the Voluminous CLI.
 """
 
+from string import letters
+
+from hypothesis import given
+from hypothesis.strategies import binary, characters, dictionaries, sets, text
+
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
@@ -17,6 +22,34 @@ class NullLock(object):
         return
     def release(self, volume):
         return
+
+
+def items(d):
+    """
+    Return the tuples that make up a dictionary.
+
+    :param Map[a, b] d: A dictionary.
+    :rtype: [(a, b)]
+    """
+    return list(d.items())
+
+
+def path_segments():
+    """
+    Strategy for generating path segments that we support.
+    """
+    # XXX: Fix the bug about empty volume names
+    # XXX: Handle unicode / weird volume names by rejecting them in dvol
+    # XXX: Impose a maximum volume name length (at least so rendering is easy!)
+    # XXX: How do we handle case-insensitive file systems?
+    # XXX: Fix more boring wrapping output bugs (112 was too large, here).
+    return text(
+        alphabet=letters, min_size=1, max_size=40).map(lambda t: t.lower())
+
+
+volume_names = path_segments
+branch_names = path_segments
+
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -71,15 +104,78 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
-    def test_list_multi_volumes(self):
+    @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
+    def test_list_multi_volumes(self, volumes):
+        tmpdir = FilePath(self.mktemp())
+        tmpdir.makedirs()
+
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo2"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "list"])
-        self.assertEqual(sorted(dvol.voluminous.getOutput()[0].split("\n")),
-                sorted(["  VOLUME   BRANCH   CONTAINERS ",
-                        "  foo      master              ",
-                        "* foo2     master              "]))
+        for name in volumes:
+            dvol.parseOptions(["-p", tmpdir.path, "init", name])
+        dvol.parseOptions(["-p", tmpdir.path, "list"])
+
+        lines = dvol.voluminous.getOutput()[0].split("\n")
+        header, rest = lines[0], lines[1:]
+        expected_volumes = [[name, 'master'] for name in volumes]
+        # `init` activates the volume, so the last initialized volume is the
+        # active one.
+        expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted([line.split() for line in rest]),
+        )
+
+    @given(volumes=dictionaries(
+        volume_names(), branch_names(), min_size=1).map(items))
+    def test_branch_multi_volumes(self, volumes):
+        """
+        Always show the last checked-out branch for all volumes in ``list``.
+        """
+        tmpdir = FilePath(self.mktemp())
+        tmpdir.makedirs()
+
+        dvol = VoluminousOptions()
+        for volume, branch in volumes:
+            dvol.parseOptions(["-p", tmpdir.path, "init", volume])
+            dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", "hello"])
+            dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch])
+
+        dvol.parseOptions(["-p", tmpdir.path, "list"])
+        lines = dvol.voluminous.getOutput()[0].split("\n")
+        header, rest = lines[0], lines[1:]
+
+        expected_volumes = [[volume, branch] for volume, branch in volumes]
+        # `init` activates the volume, so the last initialized volume is the
+        # active one.
+        expected_volumes[-1] = [
+            '*', expected_volumes[-1][0], expected_volumes[-1][1]]
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted([line.split() for line in rest]),
+        )
+
+    @given(volume_name=volume_names(), branch_name=branch_names(),
+           commit_message=text(characters(max_codepoint=127), min_size=1),
+           filename=path_segments(), content=binary())
+    def test_non_standard_branch(self, volume_name, branch_name, commit_message, filename,
+                                 content):
+        tmpdir = FilePath(self.mktemp())
+        tmpdir.makedirs()
+
+        dvol = VoluminousOptions()
+        dvol.parseOptions(['-p', tmpdir.path, 'init', volume_name])
+        volume = tmpdir.child(volume_name)
+        volume.child("branches").child("master").child(filename).setContent(content)
+        dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", commit_message])
+        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch_name])
+        dvol.parseOptions(["-p", tmpdir.path, "list"])
+        lines = dvol.voluminous.getOutput()[0].split("\n")
+        header, rest = lines[0], lines[1:]
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(
+            [['*', volume_name, branch_name]], [line.split() for line in rest])
 
     def test_log(self):
         dvol = VoluminousOptions()

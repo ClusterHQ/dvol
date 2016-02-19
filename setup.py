@@ -21,6 +21,7 @@ setup(
         "Twisted>=14.0.2",
         "treq>=14",
         "pyasn1>=0.1",
+        "hypothesis>=2.0",
         "docker-py>=1.5.0",
     ],
 )
