@@ -29,4 +29,5 @@ script:
   # Let the runner parallelise the tests a little bit.
   # Travis CI docs suggest you have between 1 and 2 CPUs to use.
   # https://docs.travis-ci.com/user/speeding-up-the-build/#Parallelizing-your-build-on-one-VM
-  - "trial -j2 dvol"
+  - "trial -j2 dvol_python"
+  - "TEST_DVOL_BINARY=1 trial -j2 dvol_python"
