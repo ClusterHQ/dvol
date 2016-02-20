@@ -37,7 +37,7 @@ if TEST_DVOL_BINARY:
 
         def parseOptions(self, args):
             result = subprocess.check_output(
-                    ["dvol"] + args,
+                    ["dvol", "--disable-docker-integration"] + args,
                     stderr=subprocess.STDOUT
             )
             self.voluminous.report_output(result)
@@ -45,22 +45,10 @@ if TEST_DVOL_BINARY:
 else:
     from dvol import VoluminousOptions
 
-class EmptyContainers(object):
-    def get_related_containers(self, volume):
-        return []
-
-class NullLock(object):
-    containers = EmptyContainers()
-    def acquire(self, volume):
-        return
-    def release(self, volume):
-        return
-
 class VoluminousTests(TestCase):
     def setUp(self):
         self.tmpdir = FilePath(self.mktemp())
         self.tmpdir.makedirs()
-        self.patch(Voluminous, "lockFactory", NullLock)
 
     def test_create_volume(self):
         # TODO test volume names with '/' in them - they should not end up

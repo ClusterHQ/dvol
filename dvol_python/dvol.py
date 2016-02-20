@@ -54,6 +54,19 @@ def get_table():
     return table
 
 
+class EmptyContainers(object):
+    def get_related_containers(self, volume):
+        return []
+
+
+class NullLock(object):
+    containers = EmptyContainers()
+    def acquire(self, volume):
+        return
+    def release(self, volume):
+        return
+
+
 class DockerLock(object):
     def __init__(self):
         self.containers = Containers(VOLUME_DRIVER_NAME)
@@ -88,11 +101,13 @@ class JsonCommitDatabase(object):
 
 
 class Voluminous(object):
-    lockFactory = DockerLock
-
     def __init__(self, directory):
         self._directory = FilePath(directory)
         self._output = []
+        self.lockFactory = DockerLock
+        if self["disable-docker-integration"]:
+            # Do not attempt to connect to Docker if we've been asked not to.
+            self.lockFactory = NullLock
         self.lock = self.lockFactory()
         self.commitDatabase = JsonCommitDatabase(self._directory)
 
@@ -555,6 +570,12 @@ class VoluminousOptions(Options):
     """
     Voluminous volume manager.
     """
+    optFlags = [
+        ["disable-docker-integration", None,
+            "Do not attempt to list/stop/start docker containers "
+            "which are using dvol volumes",]
+        ]
+
     optParameters = [
         ["pool", "p", None, "The name of the directory to use"],
         ]
