@@ -101,11 +101,11 @@ class JsonCommitDatabase(object):
 
 
 class Voluminous(object):
-    def __init__(self, directory):
+    def __init__(self, directory, disable_docker_integration=False):
         self._directory = FilePath(directory)
         self._output = []
         self.lockFactory = DockerLock
-        if self["disable-docker-integration"]:
+        if disable_docker_integration:
             # Do not attempt to connect to Docker if we've been asked not to.
             self.lockFactory = NullLock
         self.lock = self.lockFactory()
@@ -615,7 +615,8 @@ class VoluminousOptions(Options):
             if not homePath.exists():
                 homePath.makedirs()
             self["pool"] = homePath.path
-        self.voluminous = Voluminous(self["pool"])
+        self.voluminous = Voluminous(self["pool"],
+            disable_docker_integration=self["disable-docker-integration"])
         self.subOptions.run(self.voluminous)
 
 

@@ -29,7 +29,7 @@ if TEST_DVOL_BINARY:
             return self._output
 
         def report_output(self, output):
-            self._output.append(output)
+            self._output = output
 
     class VoluminousOptions(object):
         def __init__(self):
@@ -39,7 +39,7 @@ if TEST_DVOL_BINARY:
             result = subprocess.check_output(
                     ["dvol", "--disable-docker-integration"] + args,
                     stderr=subprocess.STDOUT
-            )
+                    )[:-1].split("\n")
             self.voluminous.report_output(result)
 
 else:
