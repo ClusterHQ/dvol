@@ -116,7 +116,9 @@ class Voluminous(object):
         print s
 
     def getOutput(self):
-        return self._output
+        result =["\n".join(self._output)]
+        self._output = []
+        return result
 
     def allBranches(self, volume):
         volumePath = self._directory.child(volume)

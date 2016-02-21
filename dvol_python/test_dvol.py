@@ -31,7 +31,7 @@ if TEST_DVOL_BINARY:
             return self._output
 
         def report_output(self, output):
-            self._output = output
+            self._output.append(output)
 
     class VoluminousOptions(object):
         def __init__(self):
@@ -39,9 +39,10 @@ if TEST_DVOL_BINARY:
 
         def parseOptions(self, args):
             result = subprocess.check_output(
-                    ["dvol"] + ARGS + args,
-                    stderr=subprocess.STDOUT
-                    )[:-1].split("\n")
+                ["dvol"] + ARGS + args,
+                stderr=subprocess.STDOUT
+            )
+            result = result[:-1]
             self.voluminous.report_output(result)
 
 else:
@@ -89,7 +90,7 @@ class VoluminousTests(TestCase):
         self.assertTrue(self.tmpdir.child("foo").child("branches")
                 .child("master").exists())
         self.assertEqual(dvol.voluminous.getOutput(),
-                ["Created volume foo", "Created branch foo/master"])
+                ["Created volume foo\nCreated branch foo/master"])
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
@@ -165,7 +166,7 @@ class VoluminousTests(TestCase):
             dvol.parseOptions(ARGS + ["-p", tmpdir.path, "commit", "-m", "hello"])
             dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch])
 
-        dvol.parseOptions(["-p", tmpdir.path, "list"])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
         lines = dvol.voluminous.getOutput()[0].split("\n")
         header, rest = lines[0], lines[1:]
 
@@ -192,9 +193,9 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(['-p', tmpdir.path, 'init', volume_name])
         volume = tmpdir.child(volume_name)
         volume.child("branches").child("master").child(filename).setContent(content)
-        dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", commit_message])
-        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch_name])
-        dvol.parseOptions(["-p", tmpdir.path, "list"])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "commit", "-m", commit_message])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch_name])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
         lines = dvol.voluminous.getOutput()[0].split("\n")
         header, rest = lines[0], lines[1:]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
