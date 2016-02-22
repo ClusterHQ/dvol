@@ -140,7 +140,7 @@ class VoluminousTests(TestCase):
             dvol.parseOptions(ARGS + ["-p", tmpdir.path, "init", name])
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
 
-        lines = dvol.voluminous.getOutput()[0].split("\n")
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
         header, rest = lines[0], lines[1:]
         expected_volumes = [[name, 'master'] for name in volumes]
         # `init` activates the volume, so the last initialized volume is the
@@ -169,7 +169,7 @@ class VoluminousTests(TestCase):
             dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch])
 
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
-        lines = dvol.voluminous.getOutput()[0].split("\n")
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
         header, rest = lines[0], lines[1:]
 
         expected_volumes = [[volume, branch] for volume, branch in volumes]
