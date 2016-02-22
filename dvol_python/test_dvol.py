@@ -95,17 +95,16 @@ class VoluminousTests(TestCase):
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
-        # XXX how will we assertRaises for an out-of-process thing?
-        self.assertRaises(VolumeAlreadyExists,
-                dvol.parseOptions, ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        # TODO assert exit code != 0
         self.assertEqual(dvol.voluminous.getOutput(),
                 ["Error: volume foo already exists"])
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
-        self.assertRaises(UsageError,
-                dvol.parseOptions, ARGS + ["-p", self.tmpdir.path, "commit"])
+        # TODO assert exit code != 0
+        self.assertEqual(dvol.voluminous.getOutput(),
+                ["You must provide a commit message"])
 
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
