@@ -39,7 +39,7 @@ if TEST_DVOL_BINARY:
 
         def parseOptions(self, args):
             result = subprocess.check_output(
-                ["./dvol"] + args,
+                ["../dvol"] + args,
                 stderr=subprocess.STDOUT
             )
             result = result[:-1]
