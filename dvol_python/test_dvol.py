@@ -138,7 +138,6 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
-    @settings(max_examples=5)
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
@@ -161,7 +160,6 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @settings(max_examples=5)
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
     def test_branch_multi_volumes(self, volumes):
@@ -192,7 +190,6 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @settings(max_examples=5)
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(max_codepoint=127), min_size=1),
            filename=path_segments(), content=binary())
