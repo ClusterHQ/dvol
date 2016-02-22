@@ -98,8 +98,8 @@ class VoluminousTests(TestCase):
         try:
             dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
             # TODO assert exit code != 0
-            self.assertEqual(dvol.voluminous.getOutput(),
-                    ["Error: volume foo already exists"])
+            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
+                    "Error: volume foo already exists"))
         except VolumeAlreadyExists:
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
@@ -110,8 +110,8 @@ class VoluminousTests(TestCase):
         try:
             dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "commit"])
             # TODO assert exit code != 0
-            self.assertEqual(dvol.voluminous.getOutput(),
-                    ["You must provide a commit message"])
+            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
+                    "You must provide a commit message"))
         except UsageError:
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
