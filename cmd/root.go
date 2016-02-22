@@ -7,7 +7,7 @@ import (
 var RootCmd = &cobra.Command {
     Use: "dvol",
     Short: "dvol is a version control system for your development data in Docker",
-    Long: `dvol lets you commit, reset and branch the containerized databases 
+    Long: `dvol lets you commit, reset and branch the containerized databases
 running on your laptop so you can easily save a particular state
 and come back to it later.`,
     Run: func(cmd *cobra.Command, args []string) {
