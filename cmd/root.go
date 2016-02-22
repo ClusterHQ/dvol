@@ -41,7 +41,7 @@ func init() {
 
     RootCmd.Flags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
         "The name of the directory to use")
-    RootCmd.Flags().BoolVar(&disableDockerIntegration,
+    RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
         "disable-docker-integration", false, "Do not attempt to list/stop/start" +
         " docker containers which are using dvol volumes")
 }
