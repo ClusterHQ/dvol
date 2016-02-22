@@ -39,7 +39,7 @@ func init() {
     // TODO support: dvol -p <custom_path> init <volume_name>
     RootCmd.AddCommand(cmdTimes)
 
-    RootCmd.Flags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
+    RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
         "The name of the directory to use")
     RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
         "disable-docker-integration", false, "Do not attempt to list/stop/start" +
