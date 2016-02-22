@@ -39,7 +39,7 @@ if TEST_DVOL_BINARY:
 
         def parseOptions(self, args):
             result = subprocess.check_output(
-                ["dvol"] + args,
+                ["./dvol"] + args,
                 stderr=subprocess.STDOUT
             )
             result = result[:-1]
@@ -115,6 +115,8 @@ class VoluminousTests(TestCase):
         except UsageError:
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
+    if TEST_DVOL_BINARY:
+        test_commit_no_message_raises_error.todo = "not expected to work in go version"
 
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
@@ -132,11 +134,15 @@ class VoluminousTests(TestCase):
         self.assertTrue(commit.exists())
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
+    if TEST_DVOL_BINARY:
+        test_commit_volume.todo = "not expected to work in go version"
 
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
+    if TEST_DVOL_BINARY:
+        test_list_empty_volumes.todo = "not expected to work in go version"
 
     @settings(max_examples=5)
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
@@ -160,6 +166,8 @@ class VoluminousTests(TestCase):
             sorted(expected_volumes),
             sorted([line.split() for line in rest]),
         )
+    if TEST_DVOL_BINARY:
+        test_list_multi_volumes.todo = "not expected to work in go version"
 
     @settings(max_examples=5)
     @given(volumes=dictionaries(
@@ -191,6 +199,8 @@ class VoluminousTests(TestCase):
             sorted(expected_volumes),
             sorted([line.split() for line in rest]),
         )
+    if TEST_DVOL_BINARY:
+        test_branch_multi_volumes.todo = "not expected to work in go version"
 
     @settings(max_examples=5)
     @given(volume_name=volume_names(), branch_name=branch_names(),
@@ -213,6 +223,8 @@ class VoluminousTests(TestCase):
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
+    if TEST_DVOL_BINARY:
+        test_non_standard_branch.todo = "not expected to work in go version"
 
     def test_log(self):
         dvol = VoluminousOptions()
@@ -243,6 +255,8 @@ class VoluminousTests(TestCase):
         for expected, actual in zip(
                 expectedLines, actualLines):
             self.assertTrue(actual.startswith(expected))
+    if TEST_DVOL_BINARY:
+        test_log.todo = "not expected to work in go version"
 
     def test_reset(self):
         dvol = VoluminousOptions()
@@ -263,6 +277,8 @@ class VoluminousTests(TestCase):
             "reset", "--hard", commitId])
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
+    if TEST_DVOL_BINARY:
+        test_reset.todo = "not expected to work in go version"
 
     def test_reset_HEAD(self):
         dvol = VoluminousOptions()
@@ -279,6 +295,8 @@ class VoluminousTests(TestCase):
         # working copy is changed
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
+    if TEST_DVOL_BINARY:
+        test_reset_HEAD.todo = "not expected to work in go version"
 
     def test_reset_HEAD_multiple_commits(self):
         # assert that the correct (latest) commit is rolled back to
@@ -303,6 +321,8 @@ class VoluminousTests(TestCase):
         # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
+    if TEST_DVOL_BINARY:
+        test_reset_HEAD_multiple_commits.todo = "not expected to work in go version"
 
     def test_reset_HEAD_hat_multiple_commits(self):
         dvol = VoluminousOptions()
@@ -342,6 +362,8 @@ class VoluminousTests(TestCase):
         # only old exists
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertFalse(volume.child("commits").child(newCommit).exists())
+    if TEST_DVOL_BINARY:
+        test_reset_HEAD_hat_multiple_commits.todo = "not expected to work in go version"
 
     def test_branch_default_master(self):
         dvol = VoluminousOptions()
@@ -349,6 +371,8 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "branch"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual.strip(), "* master")
+    if TEST_DVOL_BINARY:
+        test_branch_default_master.todo = "not expected to work in go version"
 
     def test_create_branch_from_current_HEAD(self):
         dvol = VoluminousOptions()
@@ -371,6 +395,8 @@ class VoluminousTests(TestCase):
         actual = dvol.voluminous.getOutput()[-1]
         # the commit should have been "copied" to the new branch
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
+    if TEST_DVOL_BINARY:
+        test_create_branch_from_current_HEAD.todo = "not expected to work in go version"
 
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         dvol = VoluminousOptions()
@@ -418,3 +444,5 @@ class VoluminousTests(TestCase):
         # new still exists because it's referenced in another branch
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertTrue(volume.child("commits").child(newCommit).exists())
+    if TEST_DVOL_BINARY:
+        test_rollback_branch_doesnt_delete_referenced_data_in_other_branches.todo = "not expected to work in go version"
