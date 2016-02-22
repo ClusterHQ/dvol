@@ -207,10 +207,8 @@ class VoluminousTests(TestCase):
         volume.child("branches").child("master").child(filename).setContent(content)
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "commit", "-m", commit_message])
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch_name])
-        print "Running: dvol", " ".join(ARGS + ["-p", tmpdir.path, "list"])
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
         lines = dvol.voluminous.getOutput()[-1].split("\n")
-        print "Got:", lines
         header, rest = lines[0], lines[1:]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
@@ -255,7 +253,6 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
         commitId = dvol.voluminous.getOutput()[-1]
-        print "commitId", commitId
         commit = volume.child("commits").child(commitId)
         self.assertTrue(commit.exists())
         self.assertTrue(commit.child("file.txt").exists())
