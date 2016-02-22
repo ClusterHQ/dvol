@@ -103,6 +103,8 @@ class VoluminousTests(TestCase):
         except VolumeAlreadyExists:
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
+    if TEST_DVOL_BINARY:
+        test_create_volume_already_exists.todo = "not expected to work in go version"
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()

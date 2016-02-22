@@ -28,9 +28,13 @@ var cmdTimes = &cobra.Command{
                 fmt.Println("Please specify a volume name.")
                 return
             }
-            fmt.Println("Initializing", args[0])
-            path := filepath.FromSlash(basePath + "/" + args[0]) // XXX SEC
-            os.MkdirAll(path, 0777)
+            fmt.Println("Created volume", args[0])
+            fmt.Println("Created branch " + args[0] + "/master")
+            // TODO Factor this into a data layer object.
+            os.MkdirAll(filepath.FromSlash(
+                basePath + "/" + args[0]), 0777) // XXX SEC
+            os.MkdirAll(filepath.FromSlash(
+                basePath + "/" + args[0] + "/branches/master"), 0777) // XXX SEC
         },
     }
 
