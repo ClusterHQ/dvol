@@ -20,6 +20,6 @@ func init() {
     // TODO support: dvol -p <custom_path> init <volume_name>
     var path string
     // XXX "p" is the default, not the short version
-    RootCmd.PersistentFlags().StringVar(&path, "path", "/var/lib/dvol/volumes",
+    RootCmd.PersistentFlags().StringVarP(&path, "path", "p", "/var/lib/dvol/volumes",
         "The name of the directory to use")
 }
