@@ -327,7 +327,7 @@ class Voluminous(object):
                 [("*" if v.basename() == activeVolume else " ") + " " + v.basename(),
                     self.getActiveBranch(v.basename()),
                     ",".join(c['Name'] for c in dc.get_related_containers(v.basename()))]
-                    for v in volumes]
+                    for v in sorted(volumes)]
         table.add_rows(rows)
         self.output(table.draw())
 
@@ -421,16 +421,16 @@ class Voluminous(object):
                     if ":" in volume and not volume.startswith("/"):
                         valid_volumes.append((volume, config))
         if not valid_volumes:
-            print 'No volumes found with "volume_driver: dvol" and a named volume (like "volumename:/path_inside_container")! Please check your docker-compose.yml file.'
+            self.output('No volumes found with "volume_driver: dvol" and a named volume (like "volumename:/path_inside_container")! Please check your docker-compose.yml file.')
         else:
-            print "Please seed your dvol volume(s) by running the following command(s):"
+            self.output("Please seed your dvol volume(s) by running the following command(s):")
         for volume, config in valid_volumes:
             # TODO: need some validation before running commands with string interpolation here, docker-compose file could be malicious
             # TODO: would be better if we ran the command for the user, rather than making them copy and paste
-            print "docker run --volume-driver=dvol -v %(volume)s:/_target -ti %(image)s sh -c 'cp -av %(source)s/* /_target/'" % dict(
+            self.output("docker run --volume-driver=dvol -v %(volume)s:/_target -ti %(image)s sh -c 'cp -av %(source)s/* /_target/'" % dict(
                     volume=volume.split(":")[0],
                     source=volume.split(":")[1],
-                    image=config["image"],)
+                    image=config["image"],))
 
 
 class LogOptions(Options):

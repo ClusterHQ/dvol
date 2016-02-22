@@ -4,7 +4,7 @@ Tests for the Voluminous CLI.
 
 from string import letters
 
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import binary, characters, dictionaries, sets, text
 
 from twisted.trial.unittest import TestCase
@@ -39,7 +39,7 @@ if TEST_DVOL_BINARY:
 
         def parseOptions(self, args):
             result = subprocess.check_output(
-                ["dvol"] + ARGS + args,
+                ["dvol"] + args,
                 stderr=subprocess.STDOUT
             )
             result = result[:-1]
@@ -129,6 +129,7 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
+    @settings(max_examples=5)
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
@@ -151,6 +152,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
+    @settings(max_examples=5)
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
     def test_branch_multi_volumes(self, volumes):
@@ -181,6 +183,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
+    @settings(max_examples=5)
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(max_codepoint=127), min_size=1),
            filename=path_segments(), content=binary())
@@ -190,13 +193,15 @@ class VoluminousTests(TestCase):
         tmpdir.makedirs()
 
         dvol = VoluminousOptions()
-        dvol.parseOptions(['-p', tmpdir.path, 'init', volume_name])
+        dvol.parseOptions(ARGS + ['-p', tmpdir.path, 'init', volume_name])
         volume = tmpdir.child(volume_name)
         volume.child("branches").child("master").child(filename).setContent(content)
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "commit", "-m", commit_message])
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch_name])
+        print "Running: dvol", " ".join(ARGS + ["-p", tmpdir.path, "list"])
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
-        lines = dvol.voluminous.getOutput()[0].split("\n")
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
+        print "Got:", lines
         header, rest = lines[0], lines[1:]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
