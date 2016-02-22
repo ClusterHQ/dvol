@@ -2,15 +2,15 @@ package main
 
 import (
     "fmt"
-
+    "os"
+    "./cmd"
 //    "github.com/clusterhq/dvol/dockercontainers"
 //    "github.com/clusterhq/dvol/plugin"
 )
 
 func main() {
-    hello()
-}
-
-func hello() {
-    fmt.Printf("Hello, world.\n")
+    if err := cmd.RootCmd.Execute(); err != nil {
+        fmt.Println(err)
+        os.Exit(-1)
+    }
 }
