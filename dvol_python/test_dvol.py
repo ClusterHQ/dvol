@@ -87,22 +87,22 @@ class VoluminousTests(TestCase):
         self.assertTrue(self.tmpdir.child("foo").exists())
         self.assertTrue(self.tmpdir.child("foo").child("branches")
                 .child("master").exists())
-        self.assertEqual(dvol.voluminous.getOutput(),
-                ["Created volume foo\nCreated branch foo/master"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+                "Created volume foo\nCreated branch foo/master")
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         # Create the repository twice, second time should have the error
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
-        self.assertEqual(dvol.voluminous.getOutput(),
-                ["Error: volume foo already exists"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+                "Error: volume foo already exists")
 
     def test_create_volume_with_path_seperator(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo/bar"])
-        self.assertEqual(dvol.voluminous.getOutput(),
-                ["Error: foo/bar is not a valid name"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+                "Error: foo/bar is not a valid name")
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
