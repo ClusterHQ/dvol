@@ -18,6 +18,7 @@ TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
 ARGS = ["--disable-docker-integration"]
 
+
 class CalledProcessErrorWithOutput(Exception):
     pass
 
@@ -50,12 +51,12 @@ if TEST_DVOL_BINARY:
                 )
             except subprocess.CalledProcessError, error:
                 exc = CalledProcessErrorWithOutput(
-                        "\n>> command:\n%(command)s"
-                        "\n>> returncode\n%(returncode)d"
-                        "\n>> output:\n%(output)s" %
+                    "\n>> command:\n%(command)s"
+                    "\n>> returncode\n%(returncode)d"
+                    "\n>> output:\n%(output)s" %
                     dict(command=" ".join(cmd),
-                        returncode=error.returncode,
-                        output=error.output))
+                         returncode=error.returncode,
+                         output=error.output))
                 exc.original = error
                 raise exc
             result = result[:-1]
@@ -111,16 +112,18 @@ class VoluminousTests(TestCase):
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        expected_output = "Error: volume foo already exists"
         try:
             dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
             # TODO assert exit code != 0
             self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
-                    "Error: volume foo already exists"))
+                    expected_output))
         except VolumeAlreadyExists:
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
-    if TEST_DVOL_BINARY:
-        test_create_volume_already_exists.todo = "not expected to work in go version"
+        except CalledProcessErrorWithOutput, error:
+            self.assertTrue(error.original.output, expected_output)
+            self.assertTrue(error.original.returncode != 0)
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
