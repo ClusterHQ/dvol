@@ -4,7 +4,7 @@ import (
     "path/filepath"
     "os"
     "github.com/spf13/cobra"
-    "../datalayer"
+    "github.com/clusterhq/dvol/datalayer"
 )
 
 var basePath string

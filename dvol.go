@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/ClusterHQ/dvol/cmd"
+	"github.com/clusterhq/dvol/cmd"
 	"os"
 	//    "github.com/clusterhq/dvol/dockercontainers"
 	//    "github.com/clusterhq/dvol/plugin"
