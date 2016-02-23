@@ -185,58 +185,63 @@ $
    QUESTION: Are we okay with the tweak to actually record server-side metadata
    in the local metadatabase?
 
-push having never specified remote
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol push jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Pushed to volumehub.clusterhq.com
+push
+~~~~
+$ dvol login vh.internal.com
+You are now logged in as <jean-paul.calderone@clusterhq.com>.
+$ dvol push imaginary/pgsql_authn
+Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn on vh.internal.com
 $
 
-
-push specifying a remote
-~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol push \
---to vh.internal.com \
-jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Pushed to vh.internal.com
-$
-push having previously specified remote
-$ dvol push jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Pushed to vh.internal.com
-$
 push with divergence
-$ dvol push jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+~~~~~~~~~~~~~~~~~~~~
+$ dvol push imaginary/pgsql_authn
 Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
 OK your local changes are now "originalvariant-modified".
-Pushed version is "originalvariant-modified”.
-$ 
+Pushed version is "originalvariant-modified".
+$
+
 pull with divergence
+~~~~~~~~~~~~~~~~~~~~
 $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
 Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
 OK your local changes are now "originalvariant-modified".
-Pulled version is "originalvariant.
+Pulled version is "originalvariant".
 $
+
 commit
+------
+
 record some changes to an existing variant in a new commit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol commit -m “blah blah blah”
+
 dvol docker volume plugin interaction examples
+----------------------------------------------
+
 use a variant as a docker container volume
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 $ docker run \
---detach \
---volume-driver \
-dvol \
---volume \
-jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/staging:/var/lib/pgsql
-postgresql:7.1
+        --detach \
+        --volume-driver \
+        dvol \
+        --volume \
+        jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/staging:/var/lib/pgsql
+        postgresql:7.1
 ffffcontaineridffff
 $
+
 create a volume that may be demand-paged from a remote snapshot
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 $ docker volume create --name messing-around --volume-driver dvol --opts demand-paging
 abcdef0123456789
 $ docker run \
---detach \
---volume-driver \
-dvol \
---volume messing-around:/var/lib/pgsql
-postgresql:7.1
+        --detach \
+        --volume-driver \
+        dvol \
+        --volume messing-around:/var/lib/pgsql
+        postgresql:7.1
 ffffcontaineridffff
 
