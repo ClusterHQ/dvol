@@ -11,6 +11,10 @@ assumptions:
 * avoiding having to type your own identity is good (the computer should be able to determine it at push/pull time)
 
 
+Key:
+  * % Logical operation, does not dictate actual UX
+  * $ Literal interaction, dictates exact UX
+
 authentication
 --------------
 
@@ -57,34 +61,37 @@ $ dvol push someone.else@somewhere.else/theirproject/their_thing
 Permission denied.  You must own the thing or the owner must make you a collaborator on the thing.
 $
 
-local volume interactions
+local dataset interactions
 -------------------------
 
-successful empty volume creation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+successful empty dataset creation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol login vh.internal.com
+You are now logged in as <jean-paul.calderone@clusterhq.com>.
 $ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
 Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-$ dvol scrutinize jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Yea, jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn, sure.
-$ dvol scrutinize imaginary/pgsql_authn
-Yea, jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn, sure.
+$ dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+UUID 123
+$ dvol info imaginary/pgsql_authn
+UUID 123
 $
 
-successful empty volume creation with implicit, unknown owner
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+successful empty dataset creation with implicit, unknown owner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+% dvol logout
 $ dvol init imaginary/pgsql_authn
 Created imaginary/pgsql_authn
 $
 
-successful empty volume creation with implicit, known owner
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+successful empty dataset creation with implicit, known owner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-$ dvol login
-You are now logged in as <jean-paul.calderone@clusterhq.com>.
+% dvol login
 $ dvol init imaginary/pgsql_authn
 Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
 $
+
 remote volume interactions
 --------------------------
 
@@ -93,19 +100,19 @@ option a
 
 $ dvol init project_a/pgsql
 $ dvol list
-  VOLUME             REMOTE
+  DATASET            REMOTE
 * project_a/pgsql    <none>
 
 $ dvol clone jean-paul@clusterhq.com/project_b/mysql
 $ dvol list
-  VOLUME             REMOTE
+  DATASET             REMOTE
   project_a/pgsql    <none>
 * project_b/mysql    jean-paul@clusterhq.com/project_b/mysql
 $ dvol login
 You are logged in as luke@clusterhq.com
 $ dvol push
 $ dvol list
-  VOLUME             REMOTE
+  DATASET             REMOTE
   project_a/pgsql    luke@clusterhq.com/project_a/pgsql
 * project_b/mysql    jean-paul@clusterhq.com/project_b/mysql
 
@@ -119,25 +126,35 @@ option b
 ^^^^^^^^
 $ dvol init project_a/pgsql
 $ dvol list
-OWNER                  PROJECT     VOLUME
+OWNER                  PROJECT     DATASET
 luke@clusterhq.com     project_a   pgsql
 $
 $ dvol clone jean-paul@clusterhq.com/project_b/mysql
 $ dvol list
-OWNER                    PROJECT           VOLUME
+OWNER                    PROJECT           DATASET
 luke@clusterhq.com       project_a         pgsql
 jean-paul@clusterhq.com  project_b         mysql
 $ dvol login
 You are logged in as luke@clusterhq.com
 $ dvol push project_a/pgsql
 $ dvol list
-OWNER                    PROJECT           VOLUME
+OWNER                    PROJECT           DATASET
 luke@clusterhq.com       project_a         pgsql
 jean-paul@clusterhq.com  project_b         mysql
 $
 
 cloning someone else's repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Axes for consideration:
+  a. Can you download metadata by itself or only metadata and data?
+  b. How do you disambiguate between two projects with the same name and different owners?
+  c. How broadly or narrowly can you scope the download (project, dataset, variant, commit)?
+
+
+
+OLD THINKING BELOW
+^^^^^^^^^^^^^^^^^^
 option 1
 $ dvol login vhub.internal.com
 You are now logged in as <jean-paul.calderone@clusterhq.com>.
@@ -162,14 +179,20 @@ $ dvol pull imaginary/pgsql_authn
 $ dvol pull imaginary/pgsql_authn/testing_v3
 
 option 4 ?
+$ dvol pull luke.marsden@clusterhq.com/fish/elephant
+$ dvol pull jean-paul@clusterhq.com/fish/elephant
+$ dvol pull fish/elephant
+Ambiguous!  Try add-alias.
 $ dvol add-alias luke.marsden@clusterhq.com/fish fish-disambig
 $ dvol pull fish-disambig/elephant
+Pulled luke.marsden@clusterhq.com/fish/elephant
+$
 
 option 5
 $ dvol clone jean-paul@clusterhq.com/project_b/mysql
 <completes quickly>
 $ dvol list
-VOLUME
+DATASET
 project_b/mysql
 $ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
 Error: no data in project_b/mysql yet, run dvol pull project_b/mysql/master
