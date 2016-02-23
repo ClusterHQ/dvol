@@ -100,7 +100,7 @@ class VoluminousTests(TestCase):
 
     def test_create_volume_with_path_seperator(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo/bar"])
         self.assertEqual(dvol.voluminous.getOutput(),
                 ["Error: foo/bar is not a valid name"])
 
