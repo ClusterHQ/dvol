@@ -18,6 +18,9 @@ TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
 ARGS = ["--disable-docker-integration"]
 
+class CalledProcessErrorWithOutput(Exception):
+    pass
+
 if TEST_DVOL_BINARY:
     # Test an alternative implementation of dvol, such as one available as a
     # binary rather than an importable Python implementation.
@@ -39,10 +42,22 @@ if TEST_DVOL_BINARY:
             self.voluminous = FakeVoluminous()
 
         def parseOptions(self, args):
-            result = subprocess.check_output(
-                [DVOL_BINARY] + args,
-                stderr=subprocess.STDOUT
-            )
+            try:
+                cmd = [DVOL_BINARY] + args
+                result = subprocess.check_output(
+                    cmd,
+                    stderr=subprocess.STDOUT
+                )
+            except subprocess.CalledProcessError, error:
+                exc = CalledProcessErrorWithOutput(
+                        "\n>> command:\n%(command)s"
+                        "\n>> returncode\n%(returncode)d"
+                        "\n>> output:\n%(output)s" %
+                    dict(command=" ".join(cmd),
+                        returncode=error.returncode,
+                        output=error.output))
+                exc.original = error
+                raise exc
             result = result[:-1]
             self.voluminous.report_output(result)
 
