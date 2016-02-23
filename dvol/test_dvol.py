@@ -68,6 +68,8 @@ class VoluminousTests(TestCase):
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
+        # Create the repository twice, second time should have the error
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"]) 
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         self.assertEqual(dvol.voluminous.getOutput(),
                 ["Error: volume foo already exists"])
