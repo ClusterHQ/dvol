@@ -151,62 +151,110 @@ Axes for consideration:
   b. How do you disambiguate between two projects with the same name and different owners?
   c. How broadly or narrowly can you scope the download (project, dataset, variant, commit)?
 
+* Itamar & Jean-Paul's best guess: (a2 now, a1 later) b2 c4
 
+a1. Download metadata by itself
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-OLD THINKING BELOW
-^^^^^^^^^^^^^^^^^^
-option 1
-$ dvol login vhub.internal.com
-You are now logged in as <jean-paul.calderone@clusterhq.com>.
-$ dvol set-upstream fish luke@clusterhq.com/fish
-$ dvol pull fish/elephant
-$
-
-1a
-$ dvol remote add fish luke@clusterhq.com/fish
-$ dvol clone-metadata fish
-$ dvol pull fish/elephant
-$
-
-option 2
-$ dvol login
-$ dvol clone imaginary/pgsql_authn # defaults to cloning my own repo
-$ dvol clone luke@clusterhq.com/fish/elephant # can explicitly clone someone else's repo
-
-option 3
-$ dvol clone-metadata imaginary/pgsql_authn # defaults to cloning my own repo
-$ dvol pull imaginary/pgsql_authn
-$ dvol pull imaginary/pgsql_authn/testing_v3
-
-option 4 ?
-$ dvol pull luke.marsden@clusterhq.com/fish/elephant
-$ dvol pull jean-paul@clusterhq.com/fish/elephant
-$ dvol pull fish/elephant
-Ambiguous!  Try add-alias.
-$ dvol add-alias luke.marsden@clusterhq.com/fish fish-disambig
-$ dvol pull fish-disambig/elephant
-Pulled luke.marsden@clusterhq.com/fish/elephant
-$
-
-option 5
-$ dvol clone jean-paul@clusterhq.com/project_b/mysql
+% dvol login
+$ dvol get-metadata jean-paul@clusterhq.com/project_b/mysql
 <completes quickly>
-$ dvol list
+% dvol list
 DATASET
 project_b/mysql
-$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
-Error: no data in project_b/mysql yet, run dvol pull project_b/mysql/master
-$ dvol branch -a # (you get cached local metadata...)
+% dvol list-branches
 BRANCH                                            DATA LOCAL
 jean-paul@clusterhq.com/project_b/mysql/master    no
-$ dvol pull project_b/mysql/master
-$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
-deadbeefdeadbeef
+jean-paul@clusterhq.com/project_b/mysql/testing   yes
 $
 
- * Note: To achieve reasonable performance, metadata must be locally available.
-   QUESTION: Are we okay with the tweak to actually record server-side metadata
-   in the local metadatabase?
+a2. Download metadata and data together
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+% dvol login
+$ dvol clone jean-paul@clusterhq.com/project_b/mysql
+<completes slowly>
+% dvol list
+DATASET
+project_b/mysql
+% dvol list-branches
+BRANCH                                            DATA LOCAL
+jean-paul@clusterhq.com/project_b/mysql/master    yes
+jean-paul@clusterhq.com/project_b/mysql/testing   yes
+$
+
+b1. Use full name always
+^^^^^^^^^^^^^^^^^^^^^^^^
+% dvol info jean-paul@clusterhq.com/project_b/mysql
+UUID 123
+% dvol info luke@clusterhq.com/project_b/mysql
+UUID 456
+%
+
+b2. Set up aliases
+^^^^^^^^^^^^^^^^^^
+% dvol alias-remote luke-mysql luke@clusterhq.com/project_b/mysql
+% dvol alias-remote jp-mysql jean-paul@clusterhq.com/project_b/mysql
+% dvol info luke-mysql
+UUID 456
+% dvol info jp-mysql
+UUID 123
+%
+
+b3. DWIM
+^^^^^^^^
+% dvol clone luke@clusterhq.com/project_b/mysql
+% dvol info mysql
+UUID 456
+% dvol clone jean-paul@clusterhq.com/project_b/mysql
+% dvol info mysql
+Ambiguous, do you mean luke@clusterhq.com/project_b/mysql or jean-paul@clusterhq.com/project_b/mysql?
+% dvol info jean-paul@clusterhq.com/project_b/mysql
+UUID 123
+%
+
+* Troubles with DWIM: Conflicts with supporting referring to different sized
+  collections by leaving off parts of the name.  eg, is `project_b` a project
+  name or a dataset name or a variant name?
+
+b4. DWIM & Aliases
+^^^^^^^^^^^^^^^^^^
+% dvol clone luke@clusterhq.com/project_b/mysql
+% dvol info mysql
+UUID 456
+% dvol clone jean-paul@clusterhq.com/project_b/mysql
+% dvol info mysql
+Ambiguous, do you mean luke@clusterhq.com/project_b/mysql or jean-paul@clusterhq.com/project_b/mysql?
+% dvol alias-remote jp-mysql jean-paul@clusterhq.com/project_b/mysql
+% dvol info jp-mysql
+UUID 123
+% dvol info mysql
+Ambiguous, do you mean luke@clusterhq.com/project_b/mysql or jp-mysql?
+% dvol alias-remote luke-mysql luke@clusterhq.com/project_b/mysql
+% dvol info luke-mysql
+UUID 456
+%
+
+* Same DWIM trouble as above.
+
+b5. Don't support ambiguity
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+% dvol clone luke@clusterhq.com/project_b/mysql
+% dvol clone jean-paul@clusterhq.com/project_b/mysql
+ERROR You already have project_b/mysql.  Rename something to proceed. (clone failed)
+%
+
+c1. All owner's projects (Everything)
+c2. All of one owner's project's datasets (All of one project)
+c3. All of one owner's project's dataset's variants (All of one dataset)
+c4. All of one owner's project's dataset's variant's commits (All of one variant)
+c5. Some of one owner's project's dataset's variant's commits (1..N) (Some data belonging to one variant)
+
+(sort of different ideas)
+c6. dvol pull-variants foo/bar test-data
+c7. dvol pull 'foo/bar/*/test-data'
+c8. dvol pull 'search(owner=foo,project=bar,variant=test-data)' (Some stuff)
+c9. dvol pull foo/bar/dataset
 
 push
 ~~~~
@@ -254,6 +302,19 @@ $ docker run \
         postgresql:7.1
 ffffcontaineridffff
 $
+
+try to use a volume based on a commit that is not stored locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
+Error: no data in project_b/mysql yet, run dvol pull project_b/mysql/master
+% dvol list-branches
+BRANCH                                            DATA LOCAL
+jean-paul@clusterhq.com/project_b/mysql/master    no
+% dvol pull project_b/mysql/master
+$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
+deadbeefdeadbeef
+$
+
 
 create a volume that may be demand-paged from a remote snapshot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
