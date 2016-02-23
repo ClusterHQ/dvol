@@ -23,6 +23,7 @@ before_install:
 
 install:
   - "sudo pip install ."
+  - "go get github.com/spf13/cobra"
 
 script:
   - "go build -o dvol"
