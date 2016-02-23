@@ -1,20 +1,17 @@
-GODEP_PATH=$(shell pwd)/Godeps/_workspace
-ORIGINAL_PATH=$(shell echo $(GOPATH))
-COMBINED_GOPATH=$(GODEP_PATH):$(ORIGINAL_PATH)
 
-PHONY: test go-hack go-bootstrap
+PHONY: test verifiy go-bootstrap
 
 build: 
-	GOPATH=$(COMBINED_GOPATH) go build .
+	godep go build .
 
 # test will run the python tests using the cli 
 test: build 
 	trial -j2 dvol_python \
   	&& TEST_DVOL_BINARY=1 DVOL_BINARY=$PWD/dvol trial -j2 dvol_python \
 
-# go-hack ensures your code passes 'the basics' 
+# verifiy ensures your code passes 'the basics' 
 # locally before committing e.g. gofmt, go vet etc
-go-hack:
+verifiy:
 	scripts/run-preflight.sh
 
 # go-bootstrap installs all of the golang tools required by dvol

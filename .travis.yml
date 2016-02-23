@@ -26,8 +26,8 @@ install:
   - "godep restore"
 
 script:
+  - "make verify"
   - "make build"
-  - "make go-hack"
   # Run the unit test suite using trial.
   # Do not run things in parallel because hypothesis cannot reliably run in
   # parallel with itself.
