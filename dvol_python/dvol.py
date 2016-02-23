@@ -54,6 +54,19 @@ def get_table():
     return table
 
 
+class EmptyContainers(object):
+    def get_related_containers(self, volume):
+        return []
+
+
+class NullLock(object):
+    containers = EmptyContainers()
+    def acquire(self, volume):
+        return
+    def release(self, volume):
+        return
+
+
 class DockerLock(object):
     def __init__(self):
         self.containers = Containers(VOLUME_DRIVER_NAME)
@@ -88,12 +101,10 @@ class JsonCommitDatabase(object):
 
 
 class Voluminous(object):
-    lockFactory = DockerLock
-
-    def __init__(self, directory):
+    def __init__(self, directory, lockFactory):
         self._directory = FilePath(directory)
         self._output = []
-        self.lock = self.lockFactory()
+        self.lock = lockFactory()
         self.commitDatabase = JsonCommitDatabase(self._directory)
 
     def output(self, s):
@@ -101,7 +112,9 @@ class Voluminous(object):
         print s
 
     def getOutput(self):
-        return self._output
+        result =["\n".join(self._output)]
+        self._output = []
+        return result
 
     def allBranches(self, volume):
         volumePath = self._directory.child(volume)
@@ -310,7 +323,7 @@ class Voluminous(object):
                 [("*" if v.basename() == activeVolume else " ") + " " + v.basename(),
                     self.getActiveBranch(v.basename()),
                     ",".join(c['Name'] for c in dc.get_related_containers(v.basename()))]
-                    for v in volumes]
+                    for v in sorted(volumes)]
         table.add_rows(rows)
         self.output(table.draw())
 
@@ -404,16 +417,16 @@ class Voluminous(object):
                     if ":" in volume and not volume.startswith("/"):
                         valid_volumes.append((volume, config))
         if not valid_volumes:
-            print 'No volumes found with "volume_driver: dvol" and a named volume (like "volumename:/path_inside_container")! Please check your docker-compose.yml file.'
+            self.output('No volumes found with "volume_driver: dvol" and a named volume (like "volumename:/path_inside_container")! Please check your docker-compose.yml file.')
         else:
-            print "Please seed your dvol volume(s) by running the following command(s):"
+            self.output("Please seed your dvol volume(s) by running the following command(s):")
         for volume, config in valid_volumes:
             # TODO: need some validation before running commands with string interpolation here, docker-compose file could be malicious
             # TODO: would be better if we ran the command for the user, rather than making them copy and paste
-            print "docker run --volume-driver=dvol -v %(volume)s:/_target -ti %(image)s sh -c 'cp -av %(source)s/* /_target/'" % dict(
+            self.output("docker run --volume-driver=dvol -v %(volume)s:/_target -ti %(image)s sh -c 'cp -av %(source)s/* /_target/'" % dict(
                     volume=volume.split(":")[0],
                     source=volume.split(":")[1],
-                    image=config["image"],)
+                    image=config["image"],))
 
 
 class LogOptions(Options):
@@ -555,6 +568,12 @@ class VoluminousOptions(Options):
     """
     Voluminous volume manager.
     """
+    optFlags = [
+        ["disable-docker-integration", None,
+            "Do not attempt to list/stop/start docker containers "
+            "which are using dvol volumes",]
+        ]
+
     optParameters = [
         ["pool", "p", None, "The name of the directory to use"],
         ]
@@ -594,7 +613,13 @@ class VoluminousOptions(Options):
             if not homePath.exists():
                 homePath.makedirs()
             self["pool"] = homePath.path
-        self.voluminous = Voluminous(self["pool"])
+
+        lockFactory = DockerLock
+        if self["disable-docker-integration"]:
+            # Do not attempt to connect to Docker if we've been asked not to.
+            lockFactory = NullLock
+
+        self.voluminous = Voluminous(self["pool"], lockFactory=lockFactory)
         self.subOptions.run(self.voluminous)
 
 

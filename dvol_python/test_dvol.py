@@ -9,19 +9,44 @@ from hypothesis.strategies import binary, characters, dictionaries, sets, text
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-from dvol import VoluminousOptions, VolumeAlreadyExists, Voluminous
+from dvol import VolumeAlreadyExists
 from twisted.python.usage import UsageError
+import subprocess
+import os
 
-class EmptyContainers(object):
-    def get_related_containers(self, volume):
-        return []
+TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
+ARGS = ["--disable-docker-integration"]
 
-class NullLock(object):
-    containers = EmptyContainers()
-    def acquire(self, volume):
-        return
-    def release(self, volume):
-        return
+if TEST_DVOL_BINARY:
+    # Test an alternative implementation of dvol, such as one available as a
+    # binary rather than an importable Python implementation.
+    class FakeVoluminous(object):
+        def __init__(self):
+            self._output = []
+
+        def getOutput(self):
+            """
+            Return a list of process outputs
+            """
+            return self._output
+
+        def report_output(self, output):
+            self._output.append(output)
+
+    class VoluminousOptions(object):
+        def __init__(self):
+            self.voluminous = FakeVoluminous()
+
+        def parseOptions(self, args):
+            result = subprocess.check_output(
+                ["dvol"] + args,
+                stderr=subprocess.STDOUT
+            )
+            result = result[:-1]
+            self.voluminous.report_output(result)
+
+else:
+    from dvol import VoluminousOptions
 
 
 def items(d):
@@ -55,43 +80,52 @@ class VoluminousTests(TestCase):
     def setUp(self):
         self.tmpdir = FilePath(self.mktemp())
         self.tmpdir.makedirs()
-        self.patch(Voluminous, "lockFactory", NullLock)
 
     def test_create_volume(self):
         # TODO test volume names with '/' in them - they should not end up
         # making nested heirarchy
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         self.assertTrue(self.tmpdir.child("foo").exists())
         self.assertTrue(self.tmpdir.child("foo").child("branches")
                 .child("master").exists())
         self.assertEqual(dvol.voluminous.getOutput(),
-                ["Created volume foo", "Created branch foo/master"])
+                ["Created volume foo\nCreated branch foo/master"])
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        self.assertRaises(VolumeAlreadyExists,
-                dvol.parseOptions, ["-p", self.tmpdir.path, "init", "foo"])
-        self.assertEqual(dvol.voluminous.getOutput(),
-                ["Error: volume foo already exists"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+            # TODO assert exit code != 0
+            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
+                    "Error: volume foo already exists"))
+        except VolumeAlreadyExists:
+            # in non-out-of-process case, we'll get this exception. This is OK.
+            pass
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        self.assertRaises(UsageError,
-                dvol.parseOptions, ["-p", self.tmpdir.path, "commit"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "commit"])
+            # TODO assert exit code != 0
+            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
+                    "You must provide a commit message"))
+        except UsageError:
+            # in non-out-of-process case, we'll get this exception. This is OK.
+            pass
 
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
         # and started around commits
         # TODO test snapshotting nonexistent volume
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
         volume.child("branches").child("master").child(
             "file.txt").setContent("hello!")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "hello from 30,000 ft"])
         commitId = dvol.voluminous.getOutput()[-1]
         commit = volume.child("commits").child(commitId)
@@ -101,7 +135,7 @@ class VoluminousTests(TestCase):
 
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "list"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
@@ -111,10 +145,10 @@ class VoluminousTests(TestCase):
 
         dvol = VoluminousOptions()
         for name in volumes:
-            dvol.parseOptions(["-p", tmpdir.path, "init", name])
-        dvol.parseOptions(["-p", tmpdir.path, "list"])
+            dvol.parseOptions(ARGS + ["-p", tmpdir.path, "init", name])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
 
-        lines = dvol.voluminous.getOutput()[0].split("\n")
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
         header, rest = lines[0], lines[1:]
         expected_volumes = [[name, 'master'] for name in volumes]
         # `init` activates the volume, so the last initialized volume is the
@@ -137,12 +171,12 @@ class VoluminousTests(TestCase):
 
         dvol = VoluminousOptions()
         for volume, branch in volumes:
-            dvol.parseOptions(["-p", tmpdir.path, "init", volume])
-            dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", "hello"])
-            dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch])
+            dvol.parseOptions(ARGS + ["-p", tmpdir.path, "init", volume])
+            dvol.parseOptions(ARGS + ["-p", tmpdir.path, "commit", "-m", "hello"])
+            dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch])
 
-        dvol.parseOptions(["-p", tmpdir.path, "list"])
-        lines = dvol.voluminous.getOutput()[0].split("\n")
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
         header, rest = lines[0], lines[1:]
 
         expected_volumes = [[volume, branch] for volume, branch in volumes]
@@ -157,7 +191,7 @@ class VoluminousTests(TestCase):
         )
 
     @given(volume_name=volume_names(), branch_name=branch_names(),
-           commit_message=text(characters(max_codepoint=127), min_size=1),
+           commit_message=text(characters(min_codepoint=1, max_codepoint=127), min_size=1),
            filename=path_segments(), content=binary())
     def test_non_standard_branch(self, volume_name, branch_name, commit_message, filename,
                                  content):
@@ -165,13 +199,13 @@ class VoluminousTests(TestCase):
         tmpdir.makedirs()
 
         dvol = VoluminousOptions()
-        dvol.parseOptions(['-p', tmpdir.path, 'init', volume_name])
+        dvol.parseOptions(ARGS + ['-p', tmpdir.path, 'init', volume_name])
         volume = tmpdir.child(volume_name)
         volume.child("branches").child("master").child(filename).setContent(content)
-        dvol.parseOptions(["-p", tmpdir.path, "commit", "-m", commit_message])
-        dvol.parseOptions(["-p", tmpdir.path, "checkout", "-b", branch_name])
-        dvol.parseOptions(["-p", tmpdir.path, "list"])
-        lines = dvol.voluminous.getOutput()[0].split("\n")
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "commit", "-m", commit_message])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "checkout", "-b", branch_name])
+        dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
         header, rest = lines[0], lines[1:]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
@@ -179,13 +213,13 @@ class VoluminousTests(TestCase):
 
     def test_log(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "init", "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "oi"])
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "you"])
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "log"])
         actual = dvol.voluminous.getOutput()[-1]
         expected = (
@@ -209,36 +243,35 @@ class VoluminousTests(TestCase):
 
     def test_reset(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
         volume.child("branches").child("master").child(
             "file.txt").setContent("alpha")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
         commitId = dvol.voluminous.getOutput()[-1]
-        print "commitId", commitId
         commit = volume.child("commits").child(commitId)
         self.assertTrue(commit.exists())
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "alpha")
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "reset", "--hard", commitId])
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
     def test_reset_HEAD(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
         volume.child("branches").child("master").child(
             "file.txt").setContent("alpha")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD"])
         # working copy is changed
         self.assertEqual(volume.child("branches").child("master")
@@ -247,22 +280,22 @@ class VoluminousTests(TestCase):
     def test_reset_HEAD_multiple_commits(self):
         # assert that the correct (latest) commit is rolled back to
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("BAD")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("alpha")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 2"])
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("beta")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD"])
         # working copy is changed from beta to alpha, but not BAD
         self.assertEqual(volume.child("branches").child("master")
@@ -270,18 +303,18 @@ class VoluminousTests(TestCase):
 
     def test_reset_HEAD_hat_multiple_commits(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("OLD")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
         oldCommit = dvol.voluminous.getOutput()[-1]
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("NEW")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 2"])
         newCommit = dvol.voluminous.getOutput()[-1]
 
@@ -292,13 +325,13 @@ class VoluminousTests(TestCase):
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertTrue(volume.child("commits").child(newCommit).exists())
 
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD^"])
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "OLD")
 
         # newest commit has been wiped out
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "log"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
@@ -309,28 +342,28 @@ class VoluminousTests(TestCase):
 
     def test_branch_default_master(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "branch"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "branch"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual.strip(), "* master")
 
     def test_create_branch_from_current_HEAD(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
 
         volume = self.tmpdir.child("foo")
         volume.child("branches").child("master").child(
             "file.txt").setContent("hello")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
 
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "checkout", "-b", "newbranch"])
-        dvol.parseOptions(["-p", self.tmpdir.path, "branch"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "branch"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual, "  master\n* newbranch")
 
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "log"])
         actual = dvol.voluminous.getOutput()[-1]
         # the commit should have been "copied" to the new branch
@@ -338,18 +371,18 @@ class VoluminousTests(TestCase):
 
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         volume = self.tmpdir.child("foo")
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("OLD")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 1"])
         oldCommit = dvol.voluminous.getOutput()[-1]
 
         volume.child("branches").child("master").child(
             "file.txt").setContent("NEW")
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "commit 2"])
         newCommit = dvol.voluminous.getOutput()[-1]
 
@@ -363,18 +396,18 @@ class VoluminousTests(TestCase):
         # create new branch from current HEAD, and then switch back to master.
         # should protect commit *data* from being destroyed when we later
         # rollback.
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "checkout", "-b", "newbranch"])
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "checkout", "master"])
 
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "reset", "--hard", "HEAD^"])
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "OLD")
 
         # newest commit has been wiped out in master branch metadata
-        dvol.parseOptions(["-p", self.tmpdir.path,
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "log"])
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
