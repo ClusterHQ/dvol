@@ -23,9 +23,9 @@ before_install:
 
 install:
   - "sudo pip install ."
-  - "go get github.com/spf13/cobra"
 
 script:
+  - "go get github.com/spf13/cobra"
   - "go build dvol.go"
   # Run the unit test suite using trial.
   # Let the runner parallelise the tests a little bit.
