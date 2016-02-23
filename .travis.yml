@@ -6,9 +6,9 @@ notifications:
     # See Travis in the Slack App directory for details.
     secure: "IuMdO5YgVlYdq12I8PbrnjgQo2mpW53LoABUHoHFnaczpXmOD0cbgSX4YRRqGPTkBj3iMqOYtGbOtcyIRwLB9SVbr2xeDpvRYC8auX/jGMbQmaQMhG4kZOpVA9FKt+XcJFj6lsihT50tx2uJ4zn85KjOy1ZJQjgpka+vsKJbvGAg65AvCovlB/l1fyd8eaRZxDXyvapD7I39R7ij22r/QfnJ0t2JT0PKS0SR+gPemnjMhGkW0n3dyoOOkhqVAEyevt6f+s8NNnSioCuJy6X9R6eIXOeJYXHMvigxpZ7nEnrWik3IgQ9+rqJjjqzb9paxU+1+aQP0gb+r1M+hfbGyWQp1k6KCNb1IljCtjNccWxlajkooLJS1haRKiyV96U+DiDybpVIbEdtNMBQrRN+6lCbU8OduHxluH5WnAdZEUGz6pQLt7fxCazKzib/vxnUlSgvRnKzweYd21zj3c4w6aPLdCaI2eQM036Zwt/9ltWbk5I8sjAWfCgvWqxD+MaOT2vAog8T7B8WoyRjhbChtMNNHtw64a9W402WADrQO1jTU4tGsKwDbjXb4j2GtvhKahrGGigFYBfPLgOi8mzzwaJh7uBo/S8evAG/K/abc2hhhLBGWlSiA252hbNcgjGk8QuwKFhaA1DenAXZTf8GcwYC+ZlmKOczIujamQKfAvjM="
 
-language: python
-python: 2.7
-sudo: false
+language: go
+go: 1.6
+sudo: required
 
 cache:
   directories:
@@ -18,16 +18,18 @@ cache:
 
 before_install:
   # Get packaging tools that can use and cache wheels.
-  - "pip install --upgrade pip>=7"
-  - "pip install wheel"
+  - "sudo pip install --upgrade pip>=7"
+  - "sudo pip install wheel"
 
 install:
-  - "pip install ."
+  - "sudo pip install ."
 
 script:
+  - "go get github.com/spf13/cobra"
+  - "go build"
   # Run the unit test suite using trial.
   # Let the runner parallelise the tests a little bit.
   # Travis CI docs suggest you have between 1 and 2 CPUs to use.
   # https://docs.travis-ci.com/user/speeding-up-the-build/#Parallelizing-your-build-on-one-VM
   - "trial -j2 dvol_python"
-  - "TEST_DVOL_BINARY=1 trial -j2 dvol_python"
+  - "TEST_DVOL_BINARY=1 DVOL_BINARY=$PWD/dvol trial -j2 dvol_python"
