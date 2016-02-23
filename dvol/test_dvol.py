@@ -58,8 +58,6 @@ class VoluminousTests(TestCase):
         self.patch(Voluminous, "lockFactory", NullLock)
 
     def test_create_volume(self):
-        # TODO test volume names with '/' in them - they should not end up
-        # making nested heirarchy
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
         self.assertTrue(self.tmpdir.child("foo").exists())
@@ -71,10 +69,14 @@ class VoluminousTests(TestCase):
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo"])
-        self.assertRaises(VolumeAlreadyExists,
-                dvol.parseOptions, ["-p", self.tmpdir.path, "init", "foo"])
         self.assertEqual(dvol.voluminous.getOutput(),
                 ["Error: volume foo already exists"])
+
+    def test_create_volume_with_path_seperator(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(["-p", self.tmpdir.path, "init", "foo/bar"])
+        self.assertEqual(dvol.voluminous.getOutput(),
+                ["Error: foo/bar is not a valid name"])
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
