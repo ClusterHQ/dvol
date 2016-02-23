@@ -1,0 +1,242 @@
+dvol cli transcript samples
+===========================
+
+assumptions:
+* familiar commands are good
+  * dvol push is like git push - experience transfers
+* commands with fewer concepts are generally better
+  * dvol undo has fewer pieces than dvol reset --hard HEAD^
+* shorter commands are generally better as long as they remain descriptive
+  * dvol push myusername/project/slot has the myusername component which rarely varies
+* avoiding having to type your own identity is good (the computer should be able to determine it at push/pull time)
+
+
+authentication
+--------------
+
+unauthenticated (not logged in) voluminous interaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$ dvol <push, pull, etc, with any valid options>
+Permission denied.  Please log in using dvol login.
+$
+
+successful login to hosted Voluminous
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol login
+OAuth2 Browser Experience, detailed elsewhere (TBD)
+You are now logged in as <jean-paul.calderone@clusterhq.com>.
+$
+
+successful login to private Voluminous
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol login vh.internal.com
+OAuth2 Browser Experience, detailed elsewhere (TBD)
+You are now logged in as <jean-paul.calderone@clusterhq.com>.
+$
+
+failed login
+~~~~~~~~~~~~
+$ dvol login
+Unsuccessful OAuth2 Browser Experience
+Login failed.  Please try again.
+$
+
+logout
+~~~~~~
+$ dvol logout
+You are now logged out.
+$
+
+authorization
+-------------
+
+unauthorized voluminous interaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol push someone.else@somewhere.else/theirproject/their_thing
+Permission denied.  You must own the thing or the owner must make you a collaborator on the thing.
+$
+
+local volume interactions
+-------------------------
+
+successful empty volume creation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+$ dvol scrutinize jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Yea, jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn, sure.
+$ dvol scrutinize imaginary/pgsql_authn
+Yea, jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn, sure.
+$
+
+successful empty volume creation with implicit, unknown owner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$ dvol init imaginary/pgsql_authn
+Created imaginary/pgsql_authn
+$
+
+successful empty volume creation with implicit, known owner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$ dvol login
+You are now logged in as <jean-paul.calderone@clusterhq.com>.
+$ dvol init imaginary/pgsql_authn
+Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+$
+remote volume interactions
+--------------------------
+
+option a
+^^^^^^^^
+
+$ dvol init project_a/pgsql
+$ dvol list
+  VOLUME             REMOTE
+* project_a/pgsql    <none>
+
+$ dvol clone jean-paul@clusterhq.com/project_b/mysql
+$ dvol list
+  VOLUME             REMOTE
+  project_a/pgsql    <none>
+* project_b/mysql    jean-paul@clusterhq.com/project_b/mysql
+$ dvol login
+You are logged in as luke@clusterhq.com
+$ dvol push
+$ dvol list
+  VOLUME             REMOTE
+  project_a/pgsql    luke@clusterhq.com/project_a/pgsql
+* project_b/mysql    jean-paul@clusterhq.com/project_b/mysql
+
+$ dvol switch project_a/pgsql
+
+* project/volume name collisions could be dealt with on the client side
+* OR, they could only be dealt with when there's a conflict by forcing the user to spell the long form remote
+* OR, you can skip typing your name and just have to type everyone else's name
+
+option b
+^^^^^^^^
+$ dvol init project_a/pgsql
+$ dvol list
+OWNER                  PROJECT     VOLUME
+luke@clusterhq.com     project_a   pgsql
+$
+$ dvol clone jean-paul@clusterhq.com/project_b/mysql
+$ dvol list
+OWNER                    PROJECT           VOLUME
+luke@clusterhq.com       project_a         pgsql
+jean-paul@clusterhq.com  project_b         mysql
+$ dvol login
+You are logged in as luke@clusterhq.com
+$ dvol push project_a/pgsql
+$ dvol list
+OWNER                    PROJECT           VOLUME
+luke@clusterhq.com       project_a         pgsql
+jean-paul@clusterhq.com  project_b         mysql
+$
+
+cloning someone else's repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+option 1
+$ dvol login vhub.internal.com
+You are now logged in as <jean-paul.calderone@clusterhq.com>.
+$ dvol set-upstream fish luke@clusterhq.com/fish
+$ dvol pull fish/elephant
+$
+
+1a
+$ dvol remote add fish luke@clusterhq.com/fish
+$ dvol clone-metadata fish
+$ dvol pull fish/elephant
+$
+
+option 2
+$ dvol login
+$ dvol clone imaginary/pgsql_authn # defaults to cloning my own repo
+$ dvol clone luke@clusterhq.com/fish/elephant # can explicitly clone someone else's repo
+
+option 3
+$ dvol clone-metadata imaginary/pgsql_authn # defaults to cloning my own repo
+$ dvol pull imaginary/pgsql_authn
+$ dvol pull imaginary/pgsql_authn/testing_v3
+
+option 4 ?
+$ dvol add-alias luke.marsden@clusterhq.com/fish fish-disambig
+$ dvol pull fish-disambig/elephant
+
+option 5
+$ dvol clone jean-paul@clusterhq.com/project_b/mysql
+<completes quickly>
+$ dvol list
+VOLUME
+project_b/mysql
+$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
+Error: no data in project_b/mysql yet, run dvol pull project_b/mysql/master
+$ dvol branch -a # (you get cached local metadata...)
+BRANCH                                            DATA LOCAL
+jean-paul@clusterhq.com/project_b/mysql/master    no
+$ dvol pull project_b/mysql/master
+$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
+deadbeefdeadbeef
+$
+
+ * Note: To achieve reasonable performance, metadata must be locally available.
+   QUESTION: Are we okay with the tweak to actually record server-side metadata
+   in the local metadatabase?
+
+push having never specified remote
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol push jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Pushed to volumehub.clusterhq.com
+$
+
+
+push specifying a remote
+~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol push \
+--to vh.internal.com \
+jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Pushed to vh.internal.com
+$
+push having previously specified remote
+$ dvol push jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Pushed to vh.internal.com
+$
+push with divergence
+$ dvol push jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
+OK your local changes are now "originalvariant-modified".
+Pushed version is "originalvariant-modified”.
+$ 
+pull with divergence
+$ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
+OK your local changes are now "originalvariant-modified".
+Pulled version is "originalvariant.
+$
+commit
+record some changes to an existing variant in a new commit
+$ dvol commit -m “blah blah blah”
+dvol docker volume plugin interaction examples
+use a variant as a docker container volume
+$ docker run \
+--detach \
+--volume-driver \
+dvol \
+--volume \
+jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/staging:/var/lib/pgsql
+postgresql:7.1
+ffffcontaineridffff
+$
+create a volume that may be demand-paged from a remote snapshot
+$ docker volume create --name messing-around --volume-driver dvol --opts demand-paging
+abcdef0123456789
+$ docker run \
+--detach \
+--volume-driver \
+dvol \
+--volume messing-around:/var/lib/pgsql
+postgresql:7.1
+ffffcontaineridffff
+
