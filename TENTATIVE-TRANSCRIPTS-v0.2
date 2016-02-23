@@ -15,6 +15,15 @@ Key:
   * % Logical operation, does not dictate actual UX
   * $ Literal interaction, dictates exact UX
 
+
+* Naming dump:
+  * one segment: an alias for a dataset
+  * two segments: an alias and a variant in the aliased dataset
+  * three segments: full name of a dataset
+  * four segments: full name of a variant
+  * maybe full names should be syntactically differentiated from aliases somehow, too
+    * eg ``@full_name`` vs ``alias`` (or whatever)
+
 authentication
 --------------
 
@@ -68,11 +77,11 @@ successful empty dataset creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol login vh.internal.com
 You are now logged in as <jean-paul.calderone@clusterhq.com>.
-$ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+$ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
 Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-$ dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+$ dvol info my_authn_db
 UUID 123
-$ dvol info imaginary/pgsql_authn
+$ dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
 UUID 123
 $
 
@@ -260,13 +269,26 @@ push
 ~~~~
 $ dvol login vh.internal.com
 You are now logged in as <jean-paul.calderone@clusterhq.com>.
-$ dvol push imaginary/pgsql_authn
+% dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
+$ dvol push my_authn_db
 Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn on vh.internal.com
+$
+
+push just one variant
+~~~~~~~~~~~~~~~~~~~~~
+$ dvol push my_authn_db/testing_v3
+Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/testing_v3 on vh.internal.com
+$
+
+push latest commit on branch and all metadata on branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol push --latest my_authn_db/testing_v3
+Pushed my_authn_db/testing_v3 @ abcdefghi
 $
 
 push with divergence
 ~~~~~~~~~~~~~~~~~~~~
-$ dvol push imaginary/pgsql_authn
+$ dvol push my_authn_db
 Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
 OK your local changes are now "originalvariant-modified".
 Pushed version is "originalvariant-modified".
@@ -280,12 +302,36 @@ OK your local changes are now "originalvariant-modified".
 Pulled version is "originalvariant".
 $
 
+pull with divergence in a volume
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+Sorry, the volume for jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/testing_v3 has diverged from the branch.  Please:
+  a) throw away volume changes
+  b)  XXXXX????????? (pull failed ???????)
+$
+
+submit feedback
+~~~~~~~~~~~~~~~
+$ dvol create --help
+ ....
+  if istty(stdin) Do you want to send us some comments?  [Y/n/Never ask again]
+  > ...
+$ dvol feedback
+  > Dear ClusterHQ,
+  > You're great.
+  > Love,
+  > The internet.
+  > ^D
+$
+
+
 commit
 ------
 
 record some changes to an existing variant in a new commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol commit -m “blah blah blah”
+$ dvol commit my_authn_db -m “blah blah blah”
+$
 
 dvol docker volume plugin interaction examples
 ----------------------------------------------
@@ -319,7 +365,10 @@ $
 create a volume that may be demand-paged from a remote snapshot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-$ docker volume create --name messing-around --volume-driver dvol --opts demand-paging
+$ docker volume create \
+        --name messing-around \
+        --volume-driver dvol \
+        --opts paging=demand,branch=jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/staging
 abcdef0123456789
 $ docker run \
         --detach \
@@ -328,4 +377,4 @@ $ docker run \
         --volume messing-around:/var/lib/pgsql
         postgresql:7.1
 ffffcontaineridffff
-
+$
