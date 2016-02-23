@@ -17,7 +17,7 @@ test: build
 go-hack:
 	scripts/run-preflight.sh
 
-# bootstrap all of the golang tools required by dvol
+# go-bootstrap installs all of the golang tools required by dvol
 # remember to add {GOPATH}/bin to your Path
 go-bootstrap:  
 	go get github.com/tools/godep \

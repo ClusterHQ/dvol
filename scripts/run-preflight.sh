@@ -11,7 +11,7 @@ test -z "$(goimports -w .    | tee /dev/stderr)"
 echo "running go vet..."
 godep go vet ./...
 
-echo "running go test"
+echo "running go test..."
 godep go test -race ./...
 
 # run test coverage on each subdirectories and merge the coverage profile. 
