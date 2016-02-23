@@ -4,7 +4,7 @@ Tests for the Voluminous CLI.
 
 from string import letters
 
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis.strategies import binary, characters, dictionaries, sets, text
 
 from twisted.trial.unittest import TestCase
@@ -191,7 +191,7 @@ class VoluminousTests(TestCase):
         )
 
     @given(volume_name=volume_names(), branch_name=branch_names(),
-           commit_message=text(characters(max_codepoint=127), min_size=1),
+           commit_message=text(characters(min_codepoint=1, max_codepoint=127), min_size=1),
            filename=path_segments(), content=binary())
     def test_non_standard_branch(self, volume_name, branch_name, commit_message, filename,
                                  content):
