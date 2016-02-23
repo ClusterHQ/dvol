@@ -15,6 +15,7 @@ import subprocess
 import os
 
 TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
+DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
 ARGS = ["--disable-docker-integration"]
 
 if TEST_DVOL_BINARY:
@@ -39,7 +40,7 @@ if TEST_DVOL_BINARY:
 
         def parseOptions(self, args):
             result = subprocess.check_output(
-                ["../dvol"] + args,
+                [DVOL_BINARY] + args,
                 stderr=subprocess.STDOUT
             )
             result = result[:-1]
