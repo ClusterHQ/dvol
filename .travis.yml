@@ -26,7 +26,7 @@ install:
   - "go get github.com/spf13/cobra"
 
 script:
-  - "go build dvol.go"
+  - "go build"
   # Run the unit test suite using trial.
   # Let the runner parallelise the tests a little bit.
   # Travis CI docs suggest you have between 1 and 2 CPUs to use.
