@@ -2,10 +2,17 @@
 set -e
 
 # automatic checks
+echo "running gofmt..."
 test -z "$(gofmt -l -w .     | tee /dev/stderr)"
+
+echo "running goimports..."
 test -z "$(goimports -w .    | tee /dev/stderr)"
-go vet ./...
-go test -race ./...
+
+echo "running go vet..."
+godep go vet ./...
+
+echo "running go test"
+godep go test -race ./...
 
 # run test coverage on each subdirectories and merge the coverage profile. 
 echo "mode: count" > profile.cov
