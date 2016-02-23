@@ -1,5 +1,5 @@
 
-PHONY: test verifiy go-bootstrap
+PHONY: test verify go-bootstrap
 
 build: 
 	godep go build .
@@ -9,9 +9,9 @@ test: build
 	trial -j2 dvol_python \
   	&& TEST_DVOL_BINARY=1 DVOL_BINARY=$PWD/dvol trial -j2 dvol_python \
 
-# verifiy ensures your code passes 'the basics' 
+# verify ensures your code passes 'the basics' 
 # locally before committing e.g. gofmt, go vet etc
-verifiy:
+verify:
 	scripts/run-preflight.sh
 
 # go-bootstrap installs all of the golang tools required by dvol
