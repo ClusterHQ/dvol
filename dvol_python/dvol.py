@@ -183,6 +183,9 @@ class Voluminous(object):
 
     def createVolume(self, name):
         try:
+            # XXX: Behaviour around names with relative path identifiers
+            # such as '..' and '.' is largely undefined, these should
+            # probably be rejected outright.
             if self._directory.child(name).exists():
                 self.output("Error: volume %s already exists" % (name,))
                 return
