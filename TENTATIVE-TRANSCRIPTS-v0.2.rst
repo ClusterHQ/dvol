@@ -24,6 +24,16 @@ Key:
   * maybe full names should be syntactically differentiated from aliases somehow, too
     * eg ``@full_name`` vs ``alias`` (or whatever)
 
+
+Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reasons:
+
+* ``dvol clone`` not pulling down the entire repo.
+  Because ``dvol`` deals with data, which is likely to be orders of magnitude larger than code, it's more appropriate to initially only pull down metadata and distinguish between locally absent and present commits (or branches) in the UI.
+* Existence of ``dvol switch`` and ``dvol projects``.
+  Git users put projects into directories and organize them however they see fit.
+  Because dvol doesn't check things out into local directories, users cannot use this organizational structure.
+  Therefore, we need to replace ``cd`` with ``dvol switch`` and ``mkdir -p Projects/microservice/database`` with something like ``dvol projects`` and its various subcommands.
+
 authentication
 --------------
 
