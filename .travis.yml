@@ -18,11 +18,11 @@ cache:
 
 before_install:
   # Get packaging tools that can use and cache wheels.
-  - "sudo pip install --upgrade pip>=7"
-  - "sudo pip install wheel"
+  - "pip install --user `whoami` --upgrade pip>=7"
+  - "pip install --user `whoami` wheel"
 
 install:
-  - "sudo pip install ."
+  - "pip install --user `whoami` ."
 
 script:
   - "go get github.com/spf13/cobra"
