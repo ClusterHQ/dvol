@@ -48,31 +48,6 @@ Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reas
   Therefore, we need to replace ``cd`` with ``dvol switch`` and ``mkdir -p Projects/microservice/database`` with something like ``dvol projects`` and its various subcommands.
 
 
-key CLI experiences that are possible with 0.1 already
-======================================================
-
-
-active volume
--------------
-
-Initial design was:
-
-   $ dvol commit -m "empty state" foo
-
-ie always name the volume on every command.
-
-Specifying the volume every time got really tiring really quickly.
-This was probably exacerbated by the fact that ``git commit`` muscle memory gets hampered by this all the time.
-
-Possible solutions:
-
-   $ export DVOL_VOLUME=foo/bar
-   $ dvol commit -m "empty state"
-
-   $ cd foo_project
-   $ dvol commit -m "empty state"
-
-
 dvol 0.2 cli transcript samples
 ===============================
 
@@ -465,10 +440,44 @@ According to the spec, essentially not in scope, but this is surely an oversight
 commit
 ------
 
-record some changes to an existing variant in a new commit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol commit my_authn_db -m “blah blah blah”
-$
+record some changes to an existing branch in a new commit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a. explicitly name the volume
+
+transcript::
+
+  $ dvol commit ${IDENTIFIER} -m “blah blah blah”
+  $
+
+Observations:
+  * Tedious in practice
+  * Breaks ``git commit`` analogy
+
+b. name the volume with an environment variable
+
+transcript::
+
+   $ export DVOL_VOLUME=${IDENTIFIER}
+   $ dvol commit -m "empty state"
+
+c. name the volume with working directory state
+
+transcript::
+
+   $ cd ${IDENTIFIER} # Previously created by ``dvol init`` or ``dvol clone``
+   $ dvol commit -m "empty state"
+
+d. implicitly selected volume based on global state
+
+transcript::
+
+  $ dvol switch ${IDENTIFIER}
+  $ dvol commit -m "empty state"
+
+Observations::
+  * Compromises multi-use situations (global state) (perhaps relevant to CI)
+
 
 dvol docker volume plugin interaction examples
 ----------------------------------------------
