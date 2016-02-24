@@ -2,6 +2,10 @@ Vocabulary
 ==========
 
   * A volume is a collection of branches (organized inside a project).
+    * A volume is referred to locally by an opaque name assigned by the user (with a default sometimes)
+    * A volume is referred to remotely by a hierarchical name of the form
+      ``owner/name`` where the ``owner`` component is a Voluminous username and
+      the ``name`` is like the local name above.
   * A working copy is a writeable filesystem area which starts from the data in
     a commit and can be diverged and eventually committed.
 
@@ -151,106 +155,34 @@ $
 remote volume interactions
 --------------------------
 
-option a
-^^^^^^^^
+See the vocab section for the (CLI) naming model for volumes.
+(Names here have a project component but that's not meaningful to dvol.)
 
 transcript::
 
-    $ dvol init project_a/pgsql
-    $ dvol list
-      VOLUME            BRANCH    REMOTE
-    * project_a/pgsql   master    <none>
+    % dvol init project_a/pgsql
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB    OWNER
+    * project_a/pgsql    master    <none>        <none>
 
-    $ dvol list
-      VOLUME            BRANCH    REMOTE
-    * project_a/pgsql   master    <none>
-
-    $ dvol login
+    % dvol login
     You are logged in as luke@clusterhq.com
 
-    $ dvol list
-      VOLUME            BRANCH    REMOTE
-    * project_a/pgsql   master    <none>
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB    OWNER
+    * project_a/pgsql    master    <none>        <none>
 
-    $ dvol push
-    $ dvol list
-      VOLUME            BRANCH    REMOTE
-    * project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
+    % dvol push
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB    OWNER
+      project_a/pgsql    master    vh.cqh.com    luke@clusterhq.com
 
-    $ dvol clone jean-paul@clusterhq.com/project_b/mysql
+    % dvol clone jean-paul@clusterhq.com/project_b/mysql
 
-    $ dvol list
-      VOLUME            BRANCH    REMOTE
-    * project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
-      project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
-
-    $ dvol switch project_b/mysql
-    $ dvol list
-      VOLUME            BRANCH    REMOTE
-      project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
-    * project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
-
-    $ dvol login volumehub.internal
-    $ dvol clone bob@email.internal/project_c/redis
-
-    $ dvol list
-      VOLUME             BRANCH    VOLUME HUB            OWNER ON THAT VOLUME HUB
-      project_a/pgsql    master    <default>             luke@clusterhq.com
-      project_b/mysql    master                          jean-paul@clusterhq.com
-    * project_c/redis    master    volumehub.internal    bob@email.internal
-      project_c_x/redis  master    volumehub.pub         bob@email.internal
-
-* project/volume name collisions could be dealt with on the client side <-
-  Luke's preference, because it keeps the local namespace simple (two-level)
-  which eases conceptual model and implementation complexity
-
-  * should *projects* be the things that have globally unique identity, and remotes?
-  * alternative to consider::
-
-        $ dvol projects
-        PROJECT      REMOTE (a configured target to attempt to interact with when pushing or pulling)
-        project_a    luke@clusterhq.com/project_a
-        project_b    jean-paul@clusterhq.com/project_b
-        project_c    volumehub.internal/bob@email.internal/project_c
-
-        $ dvol list
-          VOLUME            BRANCH
-          project_a/pgsql   master
-          project_b/mysql   master
-        * project_c/redis   master
-
-Possible way to disambiguate (following on example from above)::
-
-    $ dvol clone someone@else.com/project_b/rabbit
-    Conflict: project_b is already a configured local project. Use:
-       dvol clone [<volumehub>/]<user>/<project>/<repo> <localproject>/<repo>
-    to clone it to a different local project namespace.
-
-    $ dvol clone someone@else.com/project_b/rabbit project_a_someone_else/rabbit
-
-* OR, they could only be dealt with when there's a conflict by forcing the user to spell the long form remote
-* OR, you can skip typing your name and just have to type everyone else's name
-
-option b
-^^^^^^^^
-$ dvol init project_a/pgsql
-$ dvol list
-OWNER                  PROJECT     VOLUME
-luke@clusterhq.com     project_a   pgsql
-$
-$ dvol clone jean-paul@clusterhq.com/project_b/mysql
-$ dvol list
-OWNER                    PROJECT           VOLUME
-luke@clusterhq.com       project_a         pgsql
-jean-paul@clusterhq.com  project_b         mysql
-$ dvol login
-You are logged in as luke@clusterhq.com
-$ dvol push project_a/pgsql
-$ dvol list
-OWNER                    PROJECT           VOLUME
-luke@clusterhq.com       project_a         pgsql
-jean-paul@clusterhq.com  project_b         mysql
-$
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB    OWNER
+      project_a/pgsql    master    vh.chq.com    luke@clusterhq.com
+      project_b/mysql    master    vh.chq.com    jean-paul@clusterhq.com
 
 cloning someone else's repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -261,6 +193,7 @@ Axes for consideration:
   c. How broadly or narrowly can you scope the download (project, volume, variant, commit)?
 
 * Itamar & Jean-Paul's best guess: (a2 now, a1 later) b2 c4
+* Jean-Paul & Luke's best guess (a2 & c3 now, a1 & c4 later) b2x
 
 a1. Download metadata by itself
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -309,6 +242,17 @@ UUID 456
 % dvol info jp-mysql
 UUID 123
 %
+
+b2x. Set up aliases in the clone (or init) command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+$ dvol clone luke@clusterhq.com/project_b/mysql
+$ dvol clone jean-paul@clusterhq.com/project_b/mysql jp-mysql
+% dvol list
+VOLUME             BRANCH    VOLUME HUB    OWNER
+project_b/mysql    master    vh.chq.com    luke@clusterhq.com
+jp-mysql           master    vh.chq.com    jean-paul@clusterhq.com
+$
+
 
 b3. DWIM
 ^^^^^^^^
@@ -364,6 +308,16 @@ c6. dvol pull-variants foo/bar test-data
 c7. dvol pull 'foo/bar/*/test-data'
 c8. dvol pull 'search(owner=foo,project=bar,variant=test-data)' (Some stuff)
 c9. dvol pull foo/bar/volume
+
+
+cloning a repository with some kind of name collision
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+% dvol init foo
+% dvol clone jean-paul.calderone@clusterhq.com/foo
+You can't do that because you have a foo already.  Try `dvol clone remote_name local_name`.
+% dvol clone jean-paul.calderone@clusterhq.com/foo jp-foo
+%
 
 push
 ~~~~
