@@ -1,3 +1,10 @@
+Vocabulary
+==========
+
+  * A volume is a collection of branches (organized inside a project).
+  * A working copy is a writeable filesystem area which starts from the data in
+    a commit and can be diverged and eventually committed.
+
 dvol cli transcript samples
 ===========================
 
@@ -11,15 +18,16 @@ assumptions:
 * avoiding having to type your own identity is good (the computer should be able to determine it at push/pull time)
 
 
+
 Key:
   * % Logical operation, does not dictate actual UX
   * $ Literal interaction, dictates exact UX
 
 
 * Naming dump:
-  * one segment: an alias for a dataset
-  * two segments: an alias and a variant in the aliased dataset
-  * three segments: full name of a dataset
+  * one segment: an alias for a volume
+  * two segments: an alias and a variant in the aliased volume
+  * three segments: full name of a volume
   * four segments: full name of a variant
   * maybe full names should be syntactically differentiated from aliases somehow, too
     * eg ``@full_name`` vs ``alias`` (or whatever)
@@ -80,10 +88,10 @@ $ dvol push someone.else@somewhere.else/theirproject/their_thing
 Permission denied.  You must own the thing or the owner must make you a collaborator on the thing.
 $
 
-local dataset interactions
+local volume interactions
 -------------------------
 
-successful empty dataset creation
+successful empty volume creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol login vh.internal.com
 You are now logged in as <jean-paul.calderone@clusterhq.com>.
@@ -95,7 +103,7 @@ $ dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
 UUID 123
 $
 
-successful empty dataset creation with implicit, unknown owner
+successful empty volume creation with implicit, unknown owner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 % dvol logout
@@ -103,7 +111,7 @@ $ dvol init imaginary/pgsql_authn
 Created imaginary/pgsql_authn
 $
 
-successful empty dataset creation with implicit, known owner
+successful empty volume creation with implicit, known owner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 % dvol login
@@ -193,19 +201,19 @@ option b
 ^^^^^^^^
 $ dvol init project_a/pgsql
 $ dvol list
-OWNER                  PROJECT     DATASET
+OWNER                  PROJECT     VOLUME
 luke@clusterhq.com     project_a   pgsql
 $
 $ dvol clone jean-paul@clusterhq.com/project_b/mysql
 $ dvol list
-OWNER                    PROJECT           DATASET
+OWNER                    PROJECT           VOLUME
 luke@clusterhq.com       project_a         pgsql
 jean-paul@clusterhq.com  project_b         mysql
 $ dvol login
 You are logged in as luke@clusterhq.com
 $ dvol push project_a/pgsql
 $ dvol list
-OWNER                    PROJECT           DATASET
+OWNER                    PROJECT           VOLUME
 luke@clusterhq.com       project_a         pgsql
 jean-paul@clusterhq.com  project_b         mysql
 $
@@ -216,7 +224,7 @@ cloning someone else's repository
 Axes for consideration:
   a. Can you download metadata by itself or only metadata and data?
   b. How do you disambiguate between two projects with the same name and different owners?
-  c. How broadly or narrowly can you scope the download (project, dataset, variant, commit)?
+  c. How broadly or narrowly can you scope the download (project, volume, variant, commit)?
 
 * Itamar & Jean-Paul's best guess: (a2 now, a1 later) b2 c4
 
@@ -227,7 +235,7 @@ a1. Download metadata by itself
 $ dvol get-metadata jean-paul@clusterhq.com/project_b/mysql
 <completes quickly>
 % dvol list
-DATASET
+VOLUME
 project_b/mysql
 % dvol list-branches
 BRANCH                                            DATA LOCAL
@@ -242,7 +250,7 @@ a2. Download metadata and data together
 $ dvol clone jean-paul@clusterhq.com/project_b/mysql
 <completes slowly>
 % dvol list
-DATASET
+VOLUME
 project_b/mysql
 % dvol list-branches
 BRANCH                                            DATA LOCAL
@@ -282,7 +290,7 @@ UUID 123
 
 * Troubles with DWIM: Conflicts with supporting referring to different sized
   collections by leaving off parts of the name.  eg, is `project_b` a project
-  name or a dataset name or a variant name?
+  name or a volume name or a variant name?
 
 b4. DWIM & Aliases
 ^^^^^^^^^^^^^^^^^^
@@ -312,16 +320,16 @@ ERROR You already have project_b/mysql.  Rename something to proceed. (clone fai
 %
 
 c1. All owner's projects (Everything)
-c2. All of one owner's project's datasets (All of one project)
-c3. All of one owner's project's dataset's variants (All of one dataset)
-c4. All of one owner's project's dataset's variant's commits (All of one variant)
-c5. Some of one owner's project's dataset's variant's commits (1..N) (Some data belonging to one variant)
+c2. All of one owner's project's volumes (All of one project)
+c3. All of one owner's project's volume's variants (All of one volume)
+c4. All of one owner's project's volume's variant's commits (All of one variant)
+c5. Some of one owner's project's volume's variant's commits (1..N) (Some data belonging to one variant)
 
 (sort of different ideas)
 c6. dvol pull-variants foo/bar test-data
 c7. dvol pull 'foo/bar/*/test-data'
 c8. dvol pull 'search(owner=foo,project=bar,variant=test-data)' (Some stuff)
-c9. dvol pull foo/bar/dataset
+c9. dvol pull foo/bar/volume
 
 push
 ~~~~
@@ -360,11 +368,11 @@ OK your local changes are now "originalvariant-modified".
 Pulled version is "originalvariant".
 $
 
-pull with divergence in a volume
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pull with divergence in a working copy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Sorry, the volume for jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/testing_v3 has diverged from the branch.  Please:
-  a) throw away volume changes
+Sorry, the working copy for jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/testing_v3 has diverged from the branch.  Please:
+  a) throw away working copy changes
   b)  XXXXX????????? (pull failed ???????)
 $
 
@@ -410,8 +418,8 @@ $ docker run \
 ffffcontaineridffff
 $
 
-try to use a volume based on a commit that is not stored locally
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+try to get a working copy based on a commit that is not stored locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
 Error: no data in project_b/mysql yet, run dvol pull project_b/mysql/master
 % dvol list-branches
@@ -423,8 +431,8 @@ deadbeefdeadbeef
 $
 
 
-create a volume that may be demand-paged from a remote snapshot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+create a working copy that may be demand-paged from a remote snapshot
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 $ docker volume create \
         --name messing-around \
