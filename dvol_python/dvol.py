@@ -7,7 +7,10 @@ directly.
 
 from twisted.python.usage import Options, UsageError
 from twisted.internet import defer
-from twisted.python.filepath import FilePath
+from twisted.python.filepath import (
+    FilePath,
+    InsecurePath,
+)
 from twisted.python import log
 from twisted.internet.task import react
 import sys
@@ -179,9 +182,16 @@ class Voluminous(object):
         self.output("Created branch %s/%s" % (volume, branch))
 
     def createVolume(self, name):
-        if self._directory.child(name).exists():
-            self.output("Error: volume %s already exists" % (name,))
-            raise VolumeAlreadyExists(name)
+        try:
+            # XXX: Behaviour around names with relative path identifiers
+            # such as '..' and '.' is largely undefined, these should
+            # probably be rejected outright.
+            if self._directory.child(name).exists():
+                self.output("Error: volume %s already exists" % (name,))
+                return
+        except InsecurePath:
+            self.output("Error: %s is not a valid name" % (name,))
+            return
         self._directory.child(name).makedirs()
         self.setActiveVolume(name)
         self.output("Created volume %s" % (name,))

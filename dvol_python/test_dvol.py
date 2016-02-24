@@ -9,7 +9,6 @@ from hypothesis.strategies import binary, characters, dictionaries, sets, text
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-from dvol import VolumeAlreadyExists
 from twisted.python.usage import UsageError
 import subprocess
 import os
@@ -99,31 +98,35 @@ class VoluminousTests(TestCase):
         self.tmpdir.makedirs()
 
     def test_create_volume(self):
-        # TODO test volume names with '/' in them - they should not end up
-        # making nested heirarchy
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         self.assertTrue(self.tmpdir.child("foo").exists())
         self.assertTrue(self.tmpdir.child("foo").child("branches")
                 .child("master").exists())
-        self.assertEqual(dvol.voluminous.getOutput(),
-                ["Created volume foo\nCreated branch foo/master"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+                "Created volume foo\nCreated branch foo/master")
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        # Create the repository twice, second time should have the error
         expected_output = "Error: volume foo already exists"
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         try:
             dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
-            # TODO assert exit code != 0
-            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
-                    expected_output))
-        except VolumeAlreadyExists:
-            # in non-out-of-process case, we'll get this exception. This is OK.
-            pass
+            self.assertEqual(dvol.voluminous.getOutput()[-1], expected_output)
         except CalledProcessErrorWithOutput, error:
-            self.assertTrue(error.original.output, expected_output)
+            self.assertIn(expected_output, error.original.output)
             self.assertTrue(error.original.returncode != 0)
+
+    def test_create_volume_with_path_separator(self):
+        dvol = VoluminousOptions()
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo/bar"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
+        self.assertIn("Error", output)
+        self.assertIn("foo/bar", output)
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
