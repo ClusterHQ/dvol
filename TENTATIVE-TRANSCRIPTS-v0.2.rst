@@ -107,27 +107,73 @@ remote volume interactions
 option a
 ^^^^^^^^
 
-$ dvol init project_a/pgsql
-$ dvol list
-  DATASET            REMOTE
-* project_a/pgsql    <none>
+transcript::
 
-$ dvol clone jean-paul@clusterhq.com/project_b/mysql
-$ dvol list
-  DATASET             REMOTE
-  project_a/pgsql    <none>
-* project_b/mysql    jean-paul@clusterhq.com/project_b/mysql
-$ dvol login
-You are logged in as luke@clusterhq.com
-$ dvol push
-$ dvol list
-  DATASET             REMOTE
-  project_a/pgsql    luke@clusterhq.com/project_a/pgsql
-* project_b/mysql    jean-paul@clusterhq.com/project_b/mysql
+    $ dvol init project_a/pgsql
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+    * project_a/pgsql   master    <none>
 
-$ dvol switch project_a/pgsql
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+    * project_a/pgsql   master    <none>
 
-* project/volume name collisions could be dealt with on the client side
+    $ dvol login
+    You are logged in as luke@clusterhq.com
+
+    $ dvol push
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+    * project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
+
+    $ dvol clone jean-paul@clusterhq.com/project_b/mysql
+
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+    * project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
+      project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
+
+    $ dvol switch project_b/mysql
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+      project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
+    * project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
+
+    $ dvol login volumehub.internal
+    $ dvol clone bob@email.internal/project_c/redis
+
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+      project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
+      project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
+    * project_c/redis   master    volumehub.internal/bob@email.internal/project_c/redis
+
+* project/volume name collisions could be dealt with on the client side <- Luke's preference, because it keeps the local namespace simple (two-level) which eases conceptual model and implementation complexity
+
+  * should *projects* be the things that have globally unique identity, and remotes?
+  * alternative to consider::
+
+        $ dvol projects
+        PROJECT      REMOTE
+        project_a    luke@clusterhq.com/project_a/pgsql
+        project_b    jean-paul@clusterhq.com/project_b/mysql
+        project_c    volumehub.internal/bob@email.internal/project_c/redis
+
+        $ dvol list
+          VOLUME            BRANCH
+          project_a/pgsql   master
+          project_b/mysql   master
+        * project_c/redis   master
+
+Possible way to disambiguate (following on example from above)::
+
+    $ dvol clone someone@else.com/project_b/rabbit
+    Conflict: project_b is already a configured local project. Use:
+       dvol clone [<volumehub>/]<user>/<project>/<repo> <local_repo>
+    to clone it to a different project namespace.
+
+    $ dvol clone someone@else.com/project_b/rabbit project_a_someone_else/rabbit
+
 * OR, they could only be dealt with when there's a conflict by forcing the user to spell the long form remote
 * OR, you can skip typing your name and just have to type everyone else's name
 
