@@ -148,7 +148,9 @@ transcript::
       project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
     * project_c/redis   master    volumehub.internal/bob@email.internal/project_c/redis
 
-* project/volume name collisions could be dealt with on the client side <- Luke's preference, because it keeps the local namespace simple (two-level) which eases conceptual model and implementation complexity
+* project/volume name collisions could be dealt with on the client side <-
+  Luke's preference, because it keeps the local namespace simple (two-level)
+  which eases conceptual model and implementation complexity
 
   * should *projects* be the things that have globally unique identity, and remotes?
   * alternative to consider::
