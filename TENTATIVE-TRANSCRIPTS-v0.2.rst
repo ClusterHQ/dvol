@@ -157,9 +157,9 @@ transcript::
 
         $ dvol projects
         PROJECT      REMOTE
-        project_a    luke@clusterhq.com/project_a/pgsql
-        project_b    jean-paul@clusterhq.com/project_b/mysql
-        project_c    volumehub.internal/bob@email.internal/project_c/redis
+        project_a    luke@clusterhq.com/project_a
+        project_b    jean-paul@clusterhq.com/project_b
+        project_c    volumehub.internal/bob@email.internal/project_c
 
         $ dvol list
           VOLUME            BRANCH
