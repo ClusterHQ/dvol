@@ -13,6 +13,7 @@ from dvol import VolumeAlreadyExists
 from twisted.python.usage import UsageError
 import subprocess
 import os
+import json
 
 TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
@@ -125,6 +126,43 @@ class VoluminousTests(TestCase):
             self.assertTrue(error.original.output, expected_output)
             self.assertTrue(error.original.returncode != 0)
 
+    def _parse_list_output(self, dvol):
+        """
+        Return a tuple containing the first line of output, and then the
+        remaining lines of output from the last command output in the dvol
+        object.
+        """
+        lines = dvol.voluminous.getOutput()[-1].split("\n")
+        return lines[0].split(), [line.split() for line in lines[1:]]
+
+    def test_switch_active_volume(self):
+        """
+        ``dvol switch`` should switch the currently active volume displayed
+        with a ``*`` in ``dvol list`` output.
+
+        Assert both blackboxy and whiteboxy things about the implementation,
+        because we care about upgradeability (wrt on-disk format) between
+        different implementations.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        self.assertEqual(sorted(rest), sorted([["foo", "master"], ["*", "bar", "master"]]))
+        self.assertEqual(
+            json.loads(self.tmpdir.child("current_volume.json").getContent()),
+            dict(current_volume="bar")
+        )
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "foo"])
+        self.assertEqual(
+            json.loads(self.tmpdir.child("current_volume.json").getContent()),
+            dict(current_volume="foo")
+        )
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        self.assertEqual(sorted(rest), sorted([["*", "foo", "master"], ["bar", "master"]]))
+
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -175,16 +213,15 @@ class VoluminousTests(TestCase):
             dvol.parseOptions(ARGS + ["-p", tmpdir.path, "init", name])
         dvol.parseOptions(ARGS + ["-p", tmpdir.path, "list"])
 
-        lines = dvol.voluminous.getOutput()[-1].split("\n")
-        header, rest = lines[0], lines[1:]
+        header, rest = self._parse_list_output(dvol)
         expected_volumes = [[name, 'master'] for name in volumes]
         # `init` activates the volume, so the last initialized volume is the
         # active one.
         expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
-        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
+        self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header)
         self.assertEqual(
             sorted(expected_volumes),
-            sorted([line.split() for line in rest]),
+            sorted(rest),
         )
     if TEST_DVOL_BINARY:
         test_list_multi_volumes.todo = "not expected to work in go version"
