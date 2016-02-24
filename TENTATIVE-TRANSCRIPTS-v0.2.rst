@@ -328,6 +328,30 @@ $ dvol push my_authn_db
 Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn on vh.internal.com
 $
 
+push a volume to two different volume hubs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+transcript::
+
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB    OWNER
+    * project_a/pgsql    master    <none>        <none>
+    % dvol login vh.internal.com
+    Logged in as jean-paul@clusterhq.com
+    % dvol push project_a/pgsql
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB       OWNER
+    * project_a/pgsql    master    vh.internal.com  jean-paul@clusterhq.com
+    % dvol logout
+    % dvol login
+    Logged in as luke@clusterhq.com
+    % dvol push project_a/pgsql
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB       OWNER
+    * project_a/pgsql    master    vh.chq.com       luke@clusterhq.com
+    %
+
+
 push a volume created before registering with volumehub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
