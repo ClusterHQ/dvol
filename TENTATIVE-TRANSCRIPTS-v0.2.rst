@@ -206,6 +206,10 @@ transcript::
     $ dvol login
     You are logged in as luke@clusterhq.com
 
+    $ dvol list
+      VOLUME            BRANCH    REMOTE
+    * project_a/pgsql   master    <none>
+
     $ dvol push
     $ dvol list
       VOLUME            BRANCH    REMOTE
@@ -228,10 +232,11 @@ transcript::
     $ dvol clone bob@email.internal/project_c/redis
 
     $ dvol list
-      VOLUME            BRANCH    REMOTE
-      project_a/pgsql   master    luke@clusterhq.com/project_a/pgsql
-      project_b/mysql   master    jean-paul@clusterhq.com/project_b/mysql
-    * project_c/redis   master    volumehub.internal/bob@email.internal/project_c/redis
+      VOLUME             BRANCH    VOLUME HUB            OWNER ON THAT VOLUME HUB
+      project_a/pgsql    master    <default>             luke@clusterhq.com
+      project_b/mysql    master                          jean-paul@clusterhq.com
+    * project_c/redis    master    volumehub.internal    bob@email.internal
+      project_c_x/redis  master    volumehub.pub         bob@email.internal
 
 * project/volume name collisions could be dealt with on the client side <-
   Luke's preference, because it keeps the local namespace simple (two-level)
@@ -241,7 +246,7 @@ transcript::
   * alternative to consider::
 
         $ dvol projects
-        PROJECT      REMOTE
+        PROJECT      REMOTE (a configured target to attempt to interact with when pushing or pulling)
         project_a    luke@clusterhq.com/project_a
         project_b    jean-paul@clusterhq.com/project_b
         project_c    volumehub.internal/bob@email.internal/project_c
