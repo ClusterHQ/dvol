@@ -17,7 +17,54 @@ assumptions:
   * dvol push myusername/project/slot has the myusername component which rarely varies
 * avoiding having to type your own identity is good (the computer should be able to determine it at push/pull time)
 
+some CLI experiences that are possible with 0.1 already::
 
+    # Imagine this with a database application running in a web browser instead of 'echo'
+    $ dvol init foo
+    $ dvol list
+      VOLUME  BRANCH
+    * foo     master
+    $ dvol commit -m "empty state"
+    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu sh -c 'echo 1 > /foo/1'
+    $ dvol checkout -b another
+    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu ls /foo
+    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu sh -c 'echo 2 > /foo/2'
+    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu ls /foo
+    2
+    $ dvol checkout master
+      # docker stop somecontainer
+      # swizzle state
+      # docker start somecontainer w/ new branch
+
+    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu ls /foo
+    1
+    $
+
+    $ docker run -ti -v foo/another:/foo --volume-driver=dvol ubuntu ls /foo
+    $ docker run -ti -v foo/another:/foo --volume-driver=dvol ubuntu sh -c 'echo 2 > /foo/2'
+    $ docker run -ti -v foo/another:/foo --volume-driver=dvol ubuntu ls /foo
+    2
+    $ docker run -ti -v foo/master:/foo --volume-driver=dvol ubuntu ls /foo
+    1
+    $
+
+
+Demo hinges on a contextually provided branch name for an explicitly provided volume.
+
+---
+
+Separately:
+
+   $ export DVOL_VOLUME=foo/bar
+   $ dvol commit -m "empty state"
+
+   $ cd foo_project
+   $ dvol commit -m "empty state"
+
+Specifying the volume every time got really tiring really quickly.
+This was probably exacerbated by the fact that ``git commit`` muscle memory gets hampered by this all the time.
+
+---
 
 Key:
   * % Logical operation, does not dictate actual UX
