@@ -403,7 +403,17 @@ transcript::
 push a volume created before registering with volumehub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-a. ???
+transcript::
+
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB    OWNER
+    * project_a/pgsql    master    <none>        <none>
+    % dvol login vh.internal.com
+    Logged in as jean-paul@clusterhq.com
+    % dvol push project_a/pgsql
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB       OWNER
+    * project_a/pgsql    master    vh.internal.com  jean-paul@clusterhq.com
 
 transcript::
 
