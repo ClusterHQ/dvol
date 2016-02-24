@@ -380,11 +380,12 @@ push a volume to two different volume hubs
 
 transcript::
 
-    % dvol list
-      VOLUME             BRANCH    VOLUME HUB    OWNER
-    * project_a/pgsql    master    <none>        <none>
     % dvol login vh.internal.com
     Logged in as jean-paul@clusterhq.com
+    % dvol init project_a/pgsql
+    % dvol list
+      VOLUME             BRANCH    VOLUME HUB       OWNER
+    * project_a/pgsql    master    <none>           <none>
     % dvol push project_a/pgsql
     % dvol list
       VOLUME             BRANCH    VOLUME HUB       OWNER
