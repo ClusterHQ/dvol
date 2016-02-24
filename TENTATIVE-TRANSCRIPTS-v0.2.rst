@@ -51,37 +51,6 @@ Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reas
 key CLI experiences that are possible with 0.1 already
 ======================================================
 
-active branch
--------------
-
-interactively switching branches and having "running" containers have their data swapped out live.
-
-transcript::
-
-    $ mkdir demo; cd demo
-    $ wget https://raw.githubusercontent.com/ClusterHQ/dvol/master/demos/moby-dock/docker-compose.yml
-    $ docker-compose up -d
-    $ dvol list
-      VOLUME  BRANCH
-    * foo     master
-    $ dvol commit -m "empty state"
-    $ dvol checkout -b branch_a
-
-    # Click around in the web app, add some moby docks in the shape of an 'A'.
-
-    $ dvol commit -m "A state"
-    deadbeefcafe
-
-    $ dvol checkout master
-      # docker stop somecontainer
-      # swizzle state
-      # docker start somecontainer w/ new branch
-
-    $ dvol checkout master
-    # Reload the web app, observe that the data goes away.
-
-
-NB: Demo hinges on a contextually provided branch name for an explicitly provided volume.
 
 active volume
 -------------
@@ -547,4 +516,30 @@ $ docker run \
 ffffcontaineridffff
 $
 
+changing the branch used by already running containers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+A container is run using the name of a volume.
+A working copy is supplied based on the "checked out" branch of the volume.
+``dvol checkout`` is how the "checked out" branch is controlled.
+"Checked out" branch is a global property of each volume.
+
+transcript::
+
+    % docker run \
+            --detach \
+            --volume-driver \
+            dvol \
+            --volume ${VOLUME_NAME}:/var/lib/pgsql
+            postgresql:7.1
+    ffffcontaineridffff
+    % pgsql <talk to that container> -c 'INSERT INTO foo VALUES ("bar")'
+    % dvol commit -m "Foo and bar"
+    $ dvol checkout -b branch_a
+    $ pgsql <talk to that container> -c "SELECT * FROM foo"
+    0 rows
+    $ dvol checkout master
+    $ pgsql <talk to that container> -c "SELECT * FROM foo"
+    bar
+    1 rows
+    $
