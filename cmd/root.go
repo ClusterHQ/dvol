@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/clusterhq/dvol/datalayer"
+	"github.com/ClusterHQ/dvol/datalayer"
 	"github.com/spf13/cobra"
 	"os"
 )
