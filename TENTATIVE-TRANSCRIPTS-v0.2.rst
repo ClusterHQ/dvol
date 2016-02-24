@@ -140,15 +140,35 @@ local volume interactions
 
 successful empty volume creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol login vh.internal.com
-You are now logged in as <jean-paul.calderone@clusterhq.com>.
-$ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
-Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-$ dvol info my_authn_db
-UUID 123
-$ dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-UUID 123
-$
+
+a. init creates state somewhere far away, names are identifiers to dvol only
+
+transcript::
+
+    % dvol login vh.internal.com
+    You are now logged in as <jean-paul.calderone@clusterhq.com>.
+    $ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
+    Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    To work on this volume: export DVOL_VOLUME=jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    % dvol info my_authn_db
+    UUID 123
+    % dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    UUID 123
+
+b. init creates a new directory and writes some identifying information
+
+transcript::
+
+    % dvol login vh.internal.com
+    You are now logged in as <jean-paul.calderone@clusterhq.com>.
+    $ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
+    Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    % cd my_authn_db
+    % dvol info
+    UUID 123
+    % dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    UUID 123
+    %
 
 successful empty volume creation with implicit, unknown owner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
