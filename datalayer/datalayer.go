@@ -24,12 +24,11 @@ func VolumeExists(basePath string, volumeName string) bool {
 func CreateVolume(basePath string, volumeName string) error {
 	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
 	// TODO Factor this into a data layer object.
-	os.MkdirAll(volumePath, 0777) // XXX SEC
-	return nil
+	return os.MkdirAll(volumePath, 0777) // XXX SEC
 }
+
 func CreateVariant(basePath, volumeName, variantName string) error {
 	// XXX Variants are meant to be tagged commits???
 	variantPath := filepath.FromSlash(basePath + "/" + volumeName + "/branches/master")
-	os.MkdirAll(variantPath, 0777) // XXX SEC
-	return nil
+	return os.MkdirAll(variantPath, 0777) // XXX SEC
 }
