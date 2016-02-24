@@ -407,6 +407,15 @@ $ dvol push my_authn_db
 Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn on vh.internal.com
 $
 
+push a volume created before registering with volumehub
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a. ???
+
+transcript::
+
+  
+
 push just one variant
 ~~~~~~~~~~~~~~~~~~~~~
 $ dvol push my_authn_db/testing_v3
