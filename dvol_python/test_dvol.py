@@ -92,10 +92,11 @@ def path_segments():
 volume_names = path_segments
 branch_names = path_segments
 
-_go_version_skip = skipIf(
+skip_if_go_version = skipIf(
     TEST_DVOL_BINARY,
     "Not expected to work in go version"
 )
+
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -133,7 +134,7 @@ class VoluminousTests(TestCase):
         self.assertIn("Error", output)
         self.assertIn("foo/bar", output)
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -146,7 +147,7 @@ class VoluminousTests(TestCase):
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
         # and started around commits
@@ -164,13 +165,13 @@ class VoluminousTests(TestCase):
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
-    @_go_version_skip
+    @skip_if_go_version
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
@@ -193,7 +194,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @_go_version_skip
+    @skip_if_go_version
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
     def test_branch_multi_volumes(self, volumes):
@@ -224,7 +225,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @_go_version_skip
+    @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(min_codepoint=1, max_codepoint=127), min_size=1),
            filename=path_segments(), content=binary())
@@ -246,7 +247,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_log(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
@@ -277,7 +278,7 @@ class VoluminousTests(TestCase):
                 expectedLines, actualLines):
             self.assertTrue(actual.startswith(expected))
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_reset(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -298,7 +299,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_reset_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -315,7 +316,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_reset_HEAD_multiple_commits(self):
         # assert that the correct (latest) commit is rolled back to
         dvol = VoluminousOptions()
@@ -340,7 +341,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_reset_HEAD_hat_multiple_commits(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -380,7 +381,7 @@ class VoluminousTests(TestCase):
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertFalse(volume.child("commits").child(newCommit).exists())
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_branch_default_master(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -388,7 +389,7 @@ class VoluminousTests(TestCase):
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual.strip(), "* master")
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_create_branch_from_current_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -411,7 +412,7 @@ class VoluminousTests(TestCase):
         # the commit should have been "copied" to the new branch
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
-    @_go_version_skip
+    @skip_if_go_version
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
