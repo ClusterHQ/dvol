@@ -26,8 +26,7 @@ install:
 
 script:
   # Run the unit test suite using trial.
-  # Let the runner parallelise the tests a little bit.
-  # Travis CI docs suggest you have between 1 and 2 CPUs to use.
-  # https://docs.travis-ci.com/user/speeding-up-the-build/#Parallelizing-your-build-on-one-VM
-  - "trial -j2 dvol_python"
-  - "TEST_DVOL_BINARY=1 trial -j2 dvol_python"
+  # Do not run things in parallel because hypothesis cannot reliably run in
+  # parallel with itself.
+  - "HYPOTHESIS_PROFILE=ci trial dvol_python"
+  - "HYPOTHESIS_PROFILE=ci TEST_DVOL_BINARY=1 trial dvol_python"
