@@ -171,8 +171,8 @@ Possible way to disambiguate (following on example from above)::
 
     $ dvol clone someone@else.com/project_b/rabbit
     Conflict: project_b is already a configured local project. Use:
-       dvol clone [<volumehub>/]<user>/<project>/<repo> <local_repo>
-    to clone it to a different project namespace.
+       dvol clone [<volumehub>/]<user>/<project>/<repo> <localproject>/<repo>
+    to clone it to a different local project namespace.
 
     $ dvol clone someone@else.com/project_b/rabbit project_a_someone_else/rabbit
 
