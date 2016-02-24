@@ -5,10 +5,9 @@ Vocabulary
   * A working copy is a writeable filesystem area which starts from the data in
     a commit and can be diverged and eventually committed.
 
-dvol cli transcript samples
-===========================
+Assumptions
+===========
 
-assumptions:
 * familiar commands are good
   * dvol push is like git push - experience transfers
 * commands with fewer concepts are generally better
@@ -17,59 +16,15 @@ assumptions:
   * dvol push myusername/project/slot has the myusername component which rarely varies
 * avoiding having to type your own identity is good (the computer should be able to determine it at push/pull time)
 
-some CLI experiences that are possible with 0.1 already::
+Key for transcripts
+===================
 
-    # Imagine this with a database application running in a web browser instead of 'echo'
-    $ dvol init foo
-    $ dvol list
-      VOLUME  BRANCH
-    * foo     master
-    $ dvol commit -m "empty state"
-    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu sh -c 'echo 1 > /foo/1'
-    $ dvol checkout -b another
-    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu ls /foo
-    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu sh -c 'echo 2 > /foo/2'
-    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu ls /foo
-    2
-    $ dvol checkout master
-      # docker stop somecontainer
-      # swizzle state
-      # docker start somecontainer w/ new branch
-
-    $ docker run -ti -v foo:/foo --volume-driver=dvol ubuntu ls /foo
-    1
-    $
-
-    $ docker run -ti -v foo/another:/foo --volume-driver=dvol ubuntu ls /foo
-    $ docker run -ti -v foo/another:/foo --volume-driver=dvol ubuntu sh -c 'echo 2 > /foo/2'
-    $ docker run -ti -v foo/another:/foo --volume-driver=dvol ubuntu ls /foo
-    2
-    $ docker run -ti -v foo/master:/foo --volume-driver=dvol ubuntu ls /foo
-    1
-    $
-
-
-Demo hinges on a contextually provided branch name for an explicitly provided volume.
-
----
-
-Separately:
-
-   $ export DVOL_VOLUME=foo/bar
-   $ dvol commit -m "empty state"
-
-   $ cd foo_project
-   $ dvol commit -m "empty state"
-
-Specifying the volume every time got really tiring really quickly.
-This was probably exacerbated by the fact that ``git commit`` muscle memory gets hampered by this all the time.
-
----
-
-Key:
   * % Logical operation, does not dictate actual UX
   * $ Literal interaction, dictates exact UX
 
+
+Potential naming model for fully qualified remote names
+=======================================================
 
 * Naming dump:
   * one segment: an alias for a volume
@@ -78,7 +33,10 @@ Key:
   * four segments: full name of a variant
   * maybe full names should be syntactically differentiated from aliases somehow, too
     * eg ``@full_name`` vs ``alias`` (or whatever)
-  * Leave name off if DVOL_VOLUME is set in the environment
+  * Leave name off commands if DVOL_VOLUME is set in the environment
+
+Divergences from git
+====================
 
 Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reasons:
 
@@ -88,6 +46,66 @@ Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reas
   Git users put projects into directories and organize them however they see fit.
   Because dvol doesn't check things out into local directories, users cannot use this organizational structure.
   Therefore, we need to replace ``cd`` with ``dvol switch`` and ``mkdir -p Projects/microservice/database`` with something like ``dvol projects`` and its various subcommands.
+
+
+key CLI experiences that are possible with 0.1 already
+======================================================
+
+active branch
+-------------
+
+interactively switching branches and having "running" containers have their data swapped out live.
+
+transcript::
+
+    $ mkdir demo; cd demo
+    $ wget https://raw.githubusercontent.com/ClusterHQ/dvol/master/demos/moby-dock/docker-compose.yml
+    $ docker-compose up -d
+    $ dvol list
+      VOLUME  BRANCH
+    * foo     master
+    $ dvol commit -m "empty state"
+    $ dvol checkout -b branch_a
+
+    # Click around in the web app, add some moby docks in the shape of an 'A'.
+
+    $ dvol commit -m "A state"
+    deadbeefcafe
+
+    $ dvol checkout master
+      # docker stop somecontainer
+      # swizzle state
+      # docker start somecontainer w/ new branch
+
+    $ dvol checkout master
+    # Reload the web app, observe that the data goes away.
+
+
+NB: Demo hinges on a contextually provided branch name for an explicitly provided volume.
+
+active volume
+-------------
+
+Initial design was:
+
+   $ dvol commit -m "empty state" foo
+
+ie always name the volume on every command.
+
+Specifying the volume every time got really tiring really quickly.
+This was probably exacerbated by the fact that ``git commit`` muscle memory gets hampered by this all the time.
+
+Possible solutions:
+
+   $ export DVOL_VOLUME=foo/bar
+   $ dvol commit -m "empty state"
+
+   $ cd foo_project
+   $ dvol commit -m "empty state"
+
+
+dvol 0.2 cli transcript samples
+===============================
 
 authentication
 --------------
@@ -528,3 +546,5 @@ $ docker run \
         postgresql:7.1
 ffffcontaineridffff
 $
+
+
