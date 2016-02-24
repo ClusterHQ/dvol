@@ -107,19 +107,21 @@ local volume interactions
 successful empty volume creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Luke best guess & Jean-Paul not objecting: e
+
 a. init creates state somewhere far away, names are identifiers to dvol only
 
 transcript::
 
     % dvol login vh.internal.com
     You are now logged in as <jean-paul.calderone@clusterhq.com>.
-    $ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
-    Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-    To work on this volume: export DVOL_VOLUME=jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-    % dvol info my_authn_db
-    UUID 123
-    % dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-    UUID 123
+    $ dvol init imaginary/pgsql_authn
+    Created imaginary/pgsql_authn
+    To work on this volume: export DVOL_VOLUME=imaginary/pgsql_authn
+    % dvol list
+      VOLUME                BRANCH    VOLUME HUB       OWNER
+    * imaginary/pgsql_authn master    <none>           <none>
+    %
 
 b. init creates a new directory and writes some identifying information
 
@@ -127,14 +129,59 @@ transcript::
 
     % dvol login vh.internal.com
     You are now logged in as <jean-paul.calderone@clusterhq.com>.
-    $ dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
-    Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-    % cd my_authn_db
-    % dvol info
-    UUID 123
-    % dvol info jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-    UUID 123
+    $ dvol init imaginary/pgsql_authn
+    Created imaginary/pgsql_authn
+    To work on this volume: cd imaginary/pgsql_authn
+    % cd imaginary/pgsql_authn
+    % dvol log
+    Nothing I guess.
+    % dvol list
+      VOLUME                BRANCH    VOLUME HUB       OWNER
+    * imaginary/pgsql_authn master    <none>           <none>
     %
+
+c. dvol stores what was global state in 0.1 in your (code) project directory instead
+
+as (b), but with putting dvol configuration file in your code directory rather
+than having a directory per volume.
+
+Questions:
+
+* how do you find the file?
+
+
+d. global volume & branch state with env var override
+
+e. global volume & branch state with increased specificity support in naming
+
+Case analysis:
+
+* specificity for CI case
+* global volume & branch state for single user single machine case
+
+f. environment variables only (for active volume)
+
+transcript::
+
+    $ dvol switch imaginary
+    To switch your current active volume, run:
+
+        export DVOL_VOLUME=imaginary
+    $ export DVOL_VOLUME=imaginary
+    $ dvol list
+    ...
+    * imaginary <- based on env var
+      something-else
+    $ dvol init hack
+    Created hack
+    Created hack/master
+    To make this the active branch, run:
+
+        export DVOL_VOLUME=hack
+
+    $ dvol commit -m "hello"
+    Error: no branch specified. Set one with: export DVOL_BRANCH=foo
+
 
 successful empty volume creation with implicit, unknown owner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -506,6 +553,8 @@ $
 changing the branch used by already running containers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+a. Global per-volume active branch state
+
 A container is run using the name of a volume.
 A working copy is supplied based on the "checked out" branch of the volume.
 ``dvol checkout`` is how the "checked out" branch is controlled.
@@ -522,11 +571,17 @@ transcript::
     ffffcontaineridffff
     % pgsql <talk to that container> -c 'INSERT INTO foo VALUES ("bar")'
     % dvol commit -m "Foo and bar"
-    $ dvol checkout -b branch_a
+    % dvol checkout -b branch_a
     $ pgsql <talk to that container> -c "SELECT * FROM foo"
     0 rows
-    $ dvol checkout master
+    % dvol checkout master
     $ pgsql <talk to that container> -c "SELECT * FROM foo"
     bar
     1 rows
     $
+
+b. Per-container active branch state
+
+Like above, but when you want a container to switch to a different branch, you
+use some dvol command that goes and updates that container (or _those_
+containers or something).
