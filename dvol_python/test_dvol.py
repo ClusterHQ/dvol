@@ -98,11 +98,12 @@ class VoluminousTests(TestCase):
         self.assertEqual(dvol.voluminous.getOutput()[-1],
                 "Error: volume foo already exists")
 
-    def test_create_volume_with_path_seperator(self):
+    def test_create_volume_with_path_separator(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo/bar"])
-        self.assertEqual(dvol.voluminous.getOutput()[-1],
-                "Error: foo/bar is not a valid name")
+        output = dvol.voluminous.getOutput()[-1]
+        self.assertIn("Error", output)
+        self.assertIn("foo/bar", output)
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
