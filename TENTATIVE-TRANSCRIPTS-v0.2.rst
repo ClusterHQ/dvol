@@ -78,7 +78,7 @@ Key:
   * four segments: full name of a variant
   * maybe full names should be syntactically differentiated from aliases somehow, too
     * eg ``@full_name`` vs ``alias`` (or whatever)
-
+  * Leave name off if DVOL_VOLUME is set in the environment
 
 Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reasons:
 
