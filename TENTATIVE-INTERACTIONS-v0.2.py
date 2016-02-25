@@ -115,6 +115,7 @@ Local data store:
 
 Local metadata store:
   Snapshots (any number):
+    dataset id (exactly one): <uuid:zzz>
     snapshot id (exactly 1): <uuid:1>
     parent snapshot id (0 or 1): nil (first snapshot, no parent)
     blob (0 or 1):
@@ -165,6 +166,7 @@ Local metadata store:
     {exactly as above}
 
     snapshot id (exactly 1): <uuid:2>
+    dataset id (exactly one): <uuid:zzz>
     parent snapshot id (0 or 1): <uuid:1>
     blob (0 or 1):
       content id (exactly 1): <uuid:D>
