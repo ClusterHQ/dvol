@@ -5,9 +5,8 @@ set -e
 echo "running go test..."
 echo "mode: count" > profile.cov
 
-
-# standard go tooling behavior is to ignore dirs with leading underscores and 
-# the vendored dependancies
+# standard go tooling behavior is to ignore dirs with
+# leading underscores and the vendored dependencies
 for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/vendor/*' -not -path '*/_*' -type d);
 do
 if ls $dir/*.go &> /dev/null; then
@@ -21,3 +20,4 @@ fi
 done
 
 go tool cover -func profile.cov
+ 
