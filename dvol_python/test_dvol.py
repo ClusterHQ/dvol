@@ -9,13 +9,18 @@ from hypothesis.strategies import binary, characters, dictionaries, sets, text
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-from dvol import VolumeAlreadyExists
 from twisted.python.usage import UsageError
+from unittest import skipIf
 import subprocess
 import os
 
 TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
+DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
 ARGS = ["--disable-docker-integration"]
+
+
+class CalledProcessErrorWithOutput(Exception):
+    pass
 
 if TEST_DVOL_BINARY:
     # Test an alternative implementation of dvol, such as one available as a
@@ -38,10 +43,22 @@ if TEST_DVOL_BINARY:
             self.voluminous = FakeVoluminous()
 
         def parseOptions(self, args):
-            result = subprocess.check_output(
-                ["dvol"] + args,
-                stderr=subprocess.STDOUT
-            )
+            try:
+                cmd = [DVOL_BINARY] + args
+                result = subprocess.check_output(
+                    cmd,
+                    stderr=subprocess.STDOUT
+                )
+            except subprocess.CalledProcessError, error:
+                exc = CalledProcessErrorWithOutput(
+                    "\n>> command:\n%(command)s"
+                    "\n>> returncode\n%(returncode)d"
+                    "\n>> output:\n%(output)s" %
+                    dict(command=" ".join(cmd),
+                         returncode=error.returncode,
+                         output=error.output))
+                exc.original = error
+                raise exc
             result = result[:-1]
             self.voluminous.report_output(result)
 
@@ -75,6 +92,11 @@ def path_segments():
 volume_names = path_segments
 branch_names = path_segments
 
+skip_if_go_version = skipIf(
+    TEST_DVOL_BINARY,
+    "Not expected to work in go version"
+)
+
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -93,18 +115,26 @@ class VoluminousTests(TestCase):
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
         # Create the repository twice, second time should have the error
+        expected_output = "Error: volume foo already exists"
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
-        self.assertEqual(dvol.voluminous.getOutput()[-1],
-                "Error: volume foo already exists")
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+            self.assertEqual(dvol.voluminous.getOutput()[-1], expected_output)
+        except CalledProcessErrorWithOutput, error:
+            self.assertIn(expected_output, error.original.output)
+            self.assertTrue(error.original.returncode != 0)
 
     def test_create_volume_with_path_separator(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo/bar"])
-        output = dvol.voluminous.getOutput()[-1]
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo/bar"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
         self.assertIn("Error", output)
         self.assertIn("foo/bar", output)
 
+    @skip_if_go_version
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -117,6 +147,7 @@ class VoluminousTests(TestCase):
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
 
+    @skip_if_go_version
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
         # and started around commits
@@ -134,11 +165,13 @@ class VoluminousTests(TestCase):
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
 
+    @skip_if_go_version
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
 
+    @skip_if_go_version
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
@@ -161,6 +194,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
+    @skip_if_go_version
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
     def test_branch_multi_volumes(self, volumes):
@@ -191,6 +225,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
+    @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(min_codepoint=1, max_codepoint=127), min_size=1),
            filename=path_segments(), content=binary())
@@ -212,6 +247,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
 
+    @skip_if_go_version
     def test_log(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
@@ -242,6 +278,7 @@ class VoluminousTests(TestCase):
                 expectedLines, actualLines):
             self.assertTrue(actual.startswith(expected))
 
+    @skip_if_go_version
     def test_reset(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -262,6 +299,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
+    @skip_if_go_version
     def test_reset_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -278,6 +316,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
+    @skip_if_go_version
     def test_reset_HEAD_multiple_commits(self):
         # assert that the correct (latest) commit is rolled back to
         dvol = VoluminousOptions()
@@ -302,6 +341,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
+    @skip_if_go_version
     def test_reset_HEAD_hat_multiple_commits(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -341,6 +381,7 @@ class VoluminousTests(TestCase):
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertFalse(volume.child("commits").child(newCommit).exists())
 
+    @skip_if_go_version
     def test_branch_default_master(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -348,6 +389,7 @@ class VoluminousTests(TestCase):
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual.strip(), "* master")
 
+    @skip_if_go_version
     def test_create_branch_from_current_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -370,6 +412,7 @@ class VoluminousTests(TestCase):
         # the commit should have been "copied" to the new branch
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
+    @skip_if_go_version
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
