@@ -201,8 +201,9 @@ class Voluminous(object):
 
     def removeVolume(self, volume, force=False):
         if not self._directory.child(volume).exists():
-            raise UsageError("Volume %r does not exist, cannot remove it" %
+            self.output("Volume %r does not exist, cannot remove it" %
                     (volume,))
+            return
         containers = self.lock.containers.get_related_containers(volume)
         if containers:
             raise UsageError("Cannot remove %r while it is in use by '%s'" %
