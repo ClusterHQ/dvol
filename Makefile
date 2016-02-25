@@ -1,21 +1,21 @@
 
 PHONY: build test verify bootstrap go-bootstrap python-bootstrap
 
-build: 
+build:
 	godep go build .
 
-# 'test' will run the python tests using the cli
+# 'test' will run the python tests using the dvol cli
 test: build
 	source venv/bin/activate \
 	HYPOTHESIS_PROFILE=ci trial dvol_python \
 	&& HYPOTHESIS_PROFILE=ci DVOL_BINARY=$PWD/dvol trial -j2 dvol_python \
-	&& scripts/verify-tests.sh 
+	&& scripts/verify-tests.sh
 
 # 'verify' ensures your golang code passes 'the basics'
 # locally before committing e.g. gofmt, go vet etc
 verify:
-	scripts/verify-preflight.sh 
-    
+	scripts/verify-preflight.sh
+
 bootstrap: go-bootstrap python-bootstrap
 
 # 'go-bootstrap' installs all of the golang tools required by dvol
