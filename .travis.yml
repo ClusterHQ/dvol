@@ -23,12 +23,9 @@ before_install:
 
 install:
   - "pip install --user `whoami` ."
+  - "make bootstrap"
 
 script:
-  - "go get github.com/spf13/cobra"
-  - "go build"
-  # Run the unit test suite using trial.
-  # Do not run things in parallel because hypothesis cannot reliably run in
-  # parallel with itself.
-  - "HYPOTHESIS_PROFILE=ci trial dvol_python"
-  - "HYPOTHESIS_PROFILE=ci TEST_DVOL_BINARY=1 DVOL_BINARY=$PWD/dvol trial dvol_python"
+  - "make verify"
+  - "make build"
+  - "make test"
