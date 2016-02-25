@@ -2,3 +2,5 @@
 .hypothesis/
 *.pyc
 *.egg-info
+
+.DS_Store
