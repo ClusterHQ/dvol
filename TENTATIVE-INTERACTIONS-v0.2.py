@@ -1,25 +1,80 @@
-Preamble
-========
-Considering only a single volume, what are the metadata and data consequences of each proposed dvol interaction?
-This is not a dvol UI/UX design document.
-dvol interactions described here probably exist in some form in the dvol 0.2 UI but not necessarily exactly as described here
-(hopefully close enough that there are no data/metadata consequences, though).
+# Preamble
+# ========
+# Considering only a single volume, what are the metadata and data consequences of each proposed dvol interaction?
+# This is not a dvol UI/UX design document.
+# dvol interactions described here probably exist in some form in the dvol 0.2 UI but not necessarily exactly as described here
+# (hopefully close enough that there are no data/metadata consequences, though).
 
-Conventions:
+# Conventions:
 
-``$ <dvol cli interaction>``:
-Something you can do with dvol
+# ``$ dvol <cli interaction>``:
+# Something you can do with dvol
 
-``<type:value>``:
+# ``<type:value>``:
 
-A sample value.
-``type`` gives an idea of the range.
-``value`` gives a trivial sample meant to be easy for a human to consume for the purposes of understanding the document.
-Equality (and non-equality) of values in the document is meant to be meaningful.
+# A sample value.
+# ``type`` gives an idea of the range.
+# ``value`` gives a trivial sample meant to be easy for a human to consume for the purposes of understanding the document.
+# Equality (and non-equality) of values in the document is meant to be meaningful.
 
 
-Amble
-=====
+# Amble
+# =====
+
+
+class BlobMap(CheckedPMap):
+    __key_type__ = UUID
+    __value_type__ = StoredBlob
+
+
+class DataStore(PClass):
+    # Uniquely identify this data store.
+    location_id = field(type=unicode)
+
+    # Mapping from local blob id to StoredBlob
+    blobs = BlobMap()
+
+    def output_delta(self, first_blob, last_blob):
+        """
+        Return bytes which can be applied to first_blob to produce second_blob.
+        """
+
+    def create_blob_from_delta(self, first_blob, delta_bytes):
+        """
+        Create a new blob by applying delta_bytes (from output_delta) to
+        first_blob.
+        """
+
+
+class StoredBlob(PClass):
+    # Uniquely identify this blob in the system where it is stored.
+    local_id = field(type=UUID)
+
+
+class MetadataStore(CheckedPMap):
+    __key_type__ = unicode
+    __value_type__ = unicode
+
+
+def snapshots(metadata):
+    snapshots = metadata[u"snapshots"]
+    
+    SNAPSHOT = "snapshot:"
+
+    for (k, v) in metadata.iteritems():
+        if k.startswith(SNAPSHOT):
+            snapshot_id = k[len(SNAPSHOT):]
+            snapshot_
+
+
+def main():
+    # Empty state.
+    data = DataStore(location_id=u"foo")
+    metadata = MetadataStore()
+
+    # dvol 
+
+
 
 Empty State
 -----------
