@@ -6,7 +6,7 @@ build:
 
 # 'test' will run the python tests using the dvol cli
 test: build
-	source venv/bin/activate \
+	. venv/bin/activate \
 	HYPOTHESIS_PROFILE=ci trial dvol_python \
 	&& HYPOTHESIS_PROFILE=ci DVOL_BINARY=$PWD/dvol trial -j2 dvol_python \
 	&& scripts/verify-tests.sh
@@ -37,7 +37,7 @@ goimports:
 # 'python-bootstrap' installs all of python dependencies
 # required by dvol.
 python-bootstrap: venv
-	source venv/bin/activate \
+	. venv/bin/activate \
 	&& pip install .
 
 venv:
