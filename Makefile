@@ -16,11 +16,12 @@ test: build
 verify:
 	scripts/verify-preflight.sh
 
+# 'bootstrap' installs all of the python and golang prerequisites
 bootstrap: go-bootstrap python-bootstrap
 
 # 'go-bootstrap' installs all of the golang tools required by dvol
 # remember to add {GOPATH}/bin to your Path
-go-bootstrap: godep cover vet goimports
+go-bootstrap: godep cover vet goimports gotestcover
 
 godep:
 	go get github.com/tools/godep
@@ -30,6 +31,9 @@ cover:
 
 vet:
 	go get golang.org/x/tools/cmd/vet
+
+gotestcover:
+	go get github.com/pierrre/gotestcover
 
 goimports:
 	go get golang.org/x/tools/cmd/goimports
