@@ -15,7 +15,7 @@ Assumptions
 * familiar commands are good
   * dvol push is like git push - experience transfers
 * commands with fewer concepts are generally better
-  * dvol undo has fewer pieces than dvol reset --hard HEAD^
+  * dvol undo has fewer pieces than dvol reset --hard HEAD^ (but is more ambiguous to those who understand the latter)
 * shorter commands are generally better as long as they remain descriptive
   * dvol push myusername/project/slot has the myusername component which rarely varies
 * avoiding having to type your own identity is good (the computer should be able to determine it at push/pull time)
@@ -27,29 +27,33 @@ Key for transcripts
   * $ Literal interaction, dictates exact UX
 
 
-Potential naming model for fully qualified remote names
-=======================================================
+Naming model for local and remote names
+=======================================
 
-* Naming dump:
-  * one segment: an alias for a volume
-  * two segments: an alias and a variant in the aliased volume
-  * three segments: full name of a volume
-  * four segments: full name of a variant
-  * maybe full names should be syntactically differentiated from aliases somehow, too
-    * eg ``@full_name`` vs ``alias`` (or whatever)
-  * Leave name off commands if DVOL_VOLUME is set in the environment
+* Local names (maybe "aliases")
+
+  * opaque string which may have ``/``s in it, so that users can self-organize their projects/microservices/whatever
+  * may be set to sensible defaults by e.g. ``dvol clone``
+
+* Remote names
+
+  * always in the form: ``[<volumehub-address>/]<user>/<repo-name>``
+
+  .. note::
+
+     (Luke) where <repo-name> *cannot* contain a ``/``?
 
 Divergences from git
 ====================
 
 Ways in which it's OK to diverge from ``git`` syntax and/or semantics, with reasons:
 
-* ``dvol clone`` not pulling down the entire repo.
+* ``dvol clone`` not pulling down the entire repo (in latter case "a1 & c4", see below).
   Because ``dvol`` deals with data, which is likely to be orders of magnitude larger than code, it's more appropriate to initially only pull down metadata and distinguish between locally absent and present commits (or branches) in the UI.
-* Existence of ``dvol switch`` and ``dvol projects``.
+* Existence of ``dvol switch``.
   Git users put projects into directories and organize them however they see fit.
   Because dvol doesn't check things out into local directories, users cannot use this organizational structure.
-  Therefore, we need to replace ``cd`` with ``dvol switch`` and ``mkdir -p Projects/microservice/database`` with something like ``dvol projects`` and its various subcommands.
+  Therefore, we need to replace ``cd`` with ``dvol switch``.
 
 
 dvol 0.2 cli transcript samples
@@ -68,21 +72,21 @@ $
 successful login to hosted Voluminous
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol login
-OAuth2 Browser Experience, detailed elsewhere (TBD)
+<OAuth2 Browser Experience, detailed elsewhere (TBD)>
 You are now logged in as <jean-paul.calderone@clusterhq.com>.
 $
 
 successful login to private Voluminous
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol login vh.internal.com
-OAuth2 Browser Experience, detailed elsewhere (TBD)
+<OAuth2 Browser Experience, detailed elsewhere (TBD)>
 You are now logged in as <jean-paul.calderone@clusterhq.com>.
 $
 
 failed login
 ~~~~~~~~~~~~
 $ dvol login
-Unsuccessful OAuth2 Browser Experience
+<Unsuccessful OAuth2 Browser Experience>
 Login failed.  Please try again.
 $
 
@@ -98,7 +102,7 @@ authorization
 unauthorized voluminous interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ dvol push someone.else@somewhere.else/theirproject/their_thing
-Permission denied.  You must own the thing or the owner must make you a collaborator on the thing.
+Permission denied.  You must own the thing or the owner must make you a collaborator on the thing. <link to docs on collaborators>
 $
 
 local volume interactions
@@ -109,49 +113,6 @@ successful empty volume creation
 
 Luke best guess & Jean-Paul not objecting: e
 
-a. init creates state somewhere far away, names are identifiers to dvol only
-
-transcript::
-
-    % dvol login vh.internal.com
-    You are now logged in as <jean-paul.calderone@clusterhq.com>.
-    $ dvol init imaginary/pgsql_authn
-    Created imaginary/pgsql_authn
-    To work on this volume: export DVOL_VOLUME=imaginary/pgsql_authn
-    % dvol list
-      VOLUME                BRANCH    VOLUME HUB       OWNER
-    * imaginary/pgsql_authn master    <none>           <none>
-    %
-
-b. init creates a new directory and writes some identifying information
-
-transcript::
-
-    % dvol login vh.internal.com
-    You are now logged in as <jean-paul.calderone@clusterhq.com>.
-    $ dvol init imaginary/pgsql_authn
-    Created imaginary/pgsql_authn
-    To work on this volume: cd imaginary/pgsql_authn
-    % cd imaginary/pgsql_authn
-    % dvol log
-    Nothing I guess.
-    % dvol list
-      VOLUME                BRANCH    VOLUME HUB       OWNER
-    * imaginary/pgsql_authn master    <none>           <none>
-    %
-
-c. dvol stores what was global state in 0.1 in your (code) project directory instead
-
-as (b), but with putting dvol configuration file in your code directory rather
-than having a directory per volume.
-
-Questions:
-
-* how do you find the file?
-
-
-d. global volume & branch state with env var override
-
 e. global volume & branch state with increased specificity support in naming
 
 Case analysis:
@@ -159,29 +120,7 @@ Case analysis:
 * specificity for CI case
 * global volume & branch state for single user single machine case
 
-f. environment variables only (for active volume)
-
-transcript::
-
-    $ dvol switch imaginary
-    To switch your current active volume, run:
-
-        export DVOL_VOLUME=imaginary
-    $ export DVOL_VOLUME=imaginary
-    $ dvol list
-    ...
-    * imaginary <- based on env var
-      something-else
-    $ dvol init hack
-    Created hack
-    Created hack/master
-    To make this the active branch, run:
-
-        export DVOL_VOLUME=hack
-
-    $ dvol commit -m "hello"
-    Error: no branch specified. Set one with: export DVOL_BRANCH=foo
-
+TODO write an example
 
 successful empty volume creation with implicit, unknown owner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -189,14 +128,6 @@ successful empty volume creation with implicit, unknown owner
 % dvol logout
 $ dvol init imaginary/pgsql_authn
 Created imaginary/pgsql_authn
-$
-
-successful empty volume creation with implicit, known owner
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-% dvol login
-$ dvol init imaginary/pgsql_authn
-Created jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
 $
 
 remote volume interactions
@@ -237,143 +168,83 @@ cloning someone else's repository
 Axes for consideration:
   a. Can you download metadata by itself or only metadata and data?
   b. How do you disambiguate between two projects with the same name and different owners?
-  c. How broadly or narrowly can you scope the download (project, volume, variant, commit)?
+  c. How broadly or narrowly can you scope the download (project, volume, branch, commit)?
 
-* Itamar & Jean-Paul's best guess: (a2 now, a1 later) b2 c4
-* Jean-Paul & Luke's best guess (a2 & c3 now, a1 & c4 later) b2x
-
-a1. Download metadata by itself
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-% dvol login
-$ dvol get-metadata jean-paul@clusterhq.com/project_b/mysql
-<completes quickly>
-% dvol list
-VOLUME
-project_b/mysql
-% dvol list-branches
-BRANCH                                            DATA LOCAL
-jean-paul@clusterhq.com/project_b/mysql/master    no
-jean-paul@clusterhq.com/project_b/mysql/testing   yes
-$
-
-a2. Download metadata and data together
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-% dvol login
-$ dvol clone jean-paul@clusterhq.com/project_b/mysql
-<completes slowly>
-% dvol list
-VOLUME
-project_b/mysql
-% dvol list-branches
-BRANCH                                            DATA LOCAL
-jean-paul@clusterhq.com/project_b/mysql/master    yes
-jean-paul@clusterhq.com/project_b/mysql/testing   yes
-$
-
-b1. Use full name always
-^^^^^^^^^^^^^^^^^^^^^^^^
-% dvol info jean-paul@clusterhq.com/project_b/mysql
-UUID 123
-% dvol info luke@clusterhq.com/project_b/mysql
-UUID 456
-%
-
-b2. Set up aliases
-^^^^^^^^^^^^^^^^^^
-% dvol alias-remote luke-mysql luke@clusterhq.com/project_b/mysql
-% dvol alias-remote jp-mysql jean-paul@clusterhq.com/project_b/mysql
-% dvol info luke-mysql
-UUID 456
-% dvol info jp-mysql
-UUID 123
-%
+* Jean-Paul & Luke's best guess (a2 & c3 now [milestone 1], a1 & c4 later [milestone 2]) b2x
 
 b2x. Set up aliases in the clone (or init) command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-$ dvol clone luke@clusterhq.com/project_b/mysql
-$ dvol clone jean-paul@clusterhq.com/project_b/mysql jp-mysql
-% dvol list
-VOLUME             BRANCH    VOLUME HUB    OWNER
-project_b/mysql    master    vh.chq.com    luke@clusterhq.com
-jp-mysql           master    vh.chq.com    jean-paul@clusterhq.com
-$
+**************************************************
+
+transcript::
+
+    $ dvol clone luke@clusterhq.com/project_b/mysql
+    $ dvol clone jean-paul@clusterhq.com/project_b/mysql jp-mysql
+    % dvol list
+    VOLUME             BRANCH    VOLUME HUB    OWNER
+    project_b/mysql    master    vh.chq.com    luke@clusterhq.com
+    jp-mysql           master    vh.chq.com    jean-paul@clusterhq.com
+    $
 
 
-b3. DWIM
-^^^^^^^^
-% dvol clone luke@clusterhq.com/project_b/mysql
-% dvol info mysql
-UUID 456
-% dvol clone jean-paul@clusterhq.com/project_b/mysql
-% dvol info mysql
-Ambiguous, do you mean luke@clusterhq.com/project_b/mysql or jean-paul@clusterhq.com/project_b/mysql?
-% dvol info jean-paul@clusterhq.com/project_b/mysql
-UUID 123
-%
+milestone 1: pull entire volume all the time
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Troubles with DWIM: Conflicts with supporting referring to different sized
-  collections by leaving off parts of the name.  eg, is `project_b` a project
-  name or a volume name or a variant name?
+``dvol pull`` option:
 
-b4. DWIM & Aliases
-^^^^^^^^^^^^^^^^^^
-% dvol clone luke@clusterhq.com/project_b/mysql
-% dvol info mysql
-UUID 456
-% dvol clone jean-paul@clusterhq.com/project_b/mysql
-% dvol info mysql
-Ambiguous, do you mean luke@clusterhq.com/project_b/mysql or jean-paul@clusterhq.com/project_b/mysql?
-% dvol alias-remote jp-mysql jean-paul@clusterhq.com/project_b/mysql
-% dvol info jp-mysql
-UUID 123
-% dvol info mysql
-Ambiguous, do you mean luke@clusterhq.com/project_b/mysql or jp-mysql?
-% dvol alias-remote luke-mysql luke@clusterhq.com/project_b/mysql
-% dvol info luke-mysql
-UUID 456
-%
+c3. All of one owner's volume's branchs (All of one volume)
 
-* Same DWIM trouble as above.
+a2. Download metadata and data together
+***************************************
 
-b5. Don't support ambiguity
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-% dvol clone luke@clusterhq.com/project_b/mysql
-% dvol clone jean-paul@clusterhq.com/project_b/mysql
-ERROR You already have project_b/mysql.  Rename something to proceed. (clone failed)
-%
+transcript::
 
-c1. All owner's projects (Everything)
-c2. All of one owner's project's volumes (All of one project)
-c3. All of one owner's project's volume's variants (All of one volume)
-c4. All of one owner's project's volume's variant's commits (All of one variant)
-c5. Some of one owner's project's volume's variant's commits (1..N) (Some data belonging to one variant)
+    % dvol login
+    $ dvol clone jean-paul@clusterhq.com/project_b/mysql
+    <completes slowly>
+    % dvol list
+    VOLUME
+    project_b/mysql
+    % dvol list-branches
+    BRANCH                                            DATA LOCAL
+    jean-paul@clusterhq.com/project_b/mysql/master    yes
+    jean-paul@clusterhq.com/project_b/mysql/testing   yes
+    $
 
-(sort of different ideas)
-c6. dvol pull-variants foo/bar test-data
-c7. dvol pull 'foo/bar/*/test-data'
-c8. dvol pull 'search(owner=foo,project=bar,variant=test-data)' (Some stuff)
-c9. dvol pull foo/bar/volume
+
+milestone 2: clone copies metadata, then user can choose what data to actually pull
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``dvol pull`` option:
+
+c4. All of one owner's volume's branch's commits (All of one branch)
+
+a1. Download metadata by itself
+*******************************
+
+transcript::
+
+    % dvol login
+    $ dvol get-metadata jean-paul@clusterhq.com/project_b/mysql
+    <completes quickly>
+    % dvol list
+    VOLUME
+    project_b/mysql
+    % dvol list-branches
+    BRANCH                                            DATA LOCAL
+    jean-paul@clusterhq.com/project_b/mysql/master    no
+    jean-paul@clusterhq.com/project_b/mysql/testing   yes
+    $
 
 
 cloning a repository with some kind of name collision
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+transcript::
 
-% dvol init foo
-% dvol clone jean-paul.calderone@clusterhq.com/foo
-You can't do that because you have a foo already.  Try `dvol clone remote_name local_name`.
-% dvol clone jean-paul.calderone@clusterhq.com/foo jp-foo
-%
-
-push
-~~~~
-$ dvol login vh.internal.com
-You are now logged in as <jean-paul.calderone@clusterhq.com>.
-% dvol init jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn my_authn_db
-$ dvol push my_authn_db
-Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn on vh.internal.com
-$
+    % dvol init foo
+    % dvol clone jean-paul.calderone@clusterhq.com/foo
+    You can't do that because you have a foo already.  Try `dvol clone remote_name local_name`.
+    % dvol clone jean-paul.calderone@clusterhq.com/foo jp-foo
+    %
 
 push a volume to two different volume hubs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -415,45 +286,105 @@ transcript::
       VOLUME             BRANCH    VOLUME HUB       OWNER
     * project_a/pgsql    master    vh.internal.com  jean-paul@clusterhq.com
 
+
+push just one branch
+~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+    (Luke) I changed this to use a space rather than a / because if we allow /s in local aliases, we can't reliably figure out whether users mean branches any more.
+
 transcript::
 
-  
-
-push just one variant
-~~~~~~~~~~~~~~~~~~~~~
-$ dvol push my_authn_db/testing_v3
-Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/testing_v3 on vh.internal.com
-$
-
-push latest commit on branch and all metadata on branch
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol push --latest my_authn_db/testing_v3
-Pushed my_authn_db/testing_v3 @ abcdefghi
-$
+    $ dvol push my_authn_db testing_v3
+    Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn testing_v3 branch on vh.internal.com
+    $
 
 push with divergence
 ~~~~~~~~~~~~~~~~~~~~
-$ dvol push my_authn_db
-Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
-OK your local changes are now "originalvariant-modified".
-Pushed version is "originalvariant-modified".
-$
+
+transript::
+
+    $ dvol push my_authn_db
+    Sorry, you've diverged. Pick a new name for local version [originalbranch-modified]:
+    OK your local changes are now "originalbranch-modified".
+    Pushed version is "originalbranch-modified".
+    $
+
+alternative, guide the user in using git style commands to resolve conflict::
+
+    $ dvol push my_authn_db
+    Unable to push, your local tree has diverged from the remote.
+    There are 3 local commits and 2 remote commits.
+    You can resolve this by "renaming" your current branch, and pushing again:
+
+        dvol checkout -b new-branch
+        dvol push
+
+.. note::
+
+    (Luke) Should we support force-pushing the deletion of certain commits?
 
 pull with divergence
 ~~~~~~~~~~~~~~~~~~~~
-$ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Sorry, you've diverged. Pick a new name for local version [originalvariant-modified]:
-OK your local changes are now "originalvariant-modified".
-Pulled version is "originalvariant".
-$
+
+transript::
+
+    $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    Sorry, you've diverged. Pick a new name for local version [originalbranch-modified]:
+    OK your local changes are now "originalbranch-modified".
+    Pulled version is "originalbranch".
+    $
+
+alternative, guide the user in using git style commands to resolve conflict::
+
+    $ dvol push my_authn_db
+    Unable to push, your local tree has diverged from the remote.
+    There are 3 local commits and 2 remote commits.
+    You can resolve this by "renaming" your current branch:
+
+        dvol checkout -b new-branch
+        dvol checkout <current-branch>
+        dvol reset --hard HEAD^^^
+        dvol pull
 
 pull with divergence in a working copy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
-Sorry, the working copy for jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/testing_v3 has diverged from the branch.  Please:
-  a) throw away working copy changes
-  b)  XXXXX????????? (pull failed ???????)
-$
+
+.. note::
+
+    (Luke) This needs more thought. Currently there's no way to detect whether a working copy has diverged or not, because we never actually look at the data.
+    I suggest the behaviour could be that pulls always clobber local changes, with appropriate warning/prompts.
+    Alternatively, we could mark a volume as "dirty" if a container is ever started on it.
+    Then we could only warn/prompt users in that case.
+
+no update
+^^^^^^^^^
+
+transcript::
+
+    $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    No new commits on remote, doing nothing.
+    $
+
+new commits on remote
+^^^^^^^^^^^^^^^^^^^^^
+
+a. always warn::
+
+    $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    Warning there are new commits to pull: if you have uncommitted changes,
+    they will be lost.
+    Destroy uncommitted changes (y/n)? y
+    Pulling... done.
+    $
+
+b. warn if dirty::
+
+    $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    Working copy clean (no containers started).
+    Pulling... done.
+    $
 
 submit feedback
 ~~~~~~~~~~~~~~~
@@ -469,8 +400,18 @@ $ dvol feedback
   > ^D
 $
 
-branches
+checkout
 --------
+
+TODO
+
+reset
+-----
+
+TODO
+
+branch
+------
 According to the spec, essentially not in scope, but this is surely an oversight.
 
 commit
@@ -518,49 +459,6 @@ Observations::
 dvol docker volume plugin interaction examples
 ----------------------------------------------
 
-use a variant as a docker container volume
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-$ docker run \
-        --detach \
-        --volume-driver \
-        dvol \
-        --volume \
-        jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/staging:/var/lib/pgsql
-        postgresql:7.1
-ffffcontaineridffff
-$
-
-try to get a working copy based on a commit that is not stored locally
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
-Error: no data in project_b/mysql yet, run dvol pull project_b/mysql/master
-% dvol list-branches
-BRANCH                                            DATA LOCAL
-jean-paul@clusterhq.com/project_b/mysql/master    no
-% dvol pull project_b/mysql/master
-$ docker run -v project_b/mysql:/foo --volume-driver=dvol ...
-deadbeefdeadbeef
-$
-
-
-create a working copy that may be demand-paged from a remote snapshot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-$ docker volume create \
-        --name messing-around \
-        --volume-driver dvol \
-        --opts paging=demand,branch=jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn/staging
-abcdef0123456789
-$ docker run \
-        --detach \
-        --volume-driver \
-        dvol \
-        --volume messing-around:/var/lib/pgsql
-        postgresql:7.1
-ffffcontaineridffff
-$
-
 changing the branch used by already running containers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -590,9 +488,3 @@ transcript::
     bar
     1 rows
     $
-
-b. Per-container active branch state
-
-Like above, but when you want a container to switch to a different branch, you
-use some dvol command that goes and updates that container (or _those_
-containers or something).
