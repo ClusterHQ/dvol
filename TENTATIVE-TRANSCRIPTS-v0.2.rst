@@ -412,7 +412,7 @@ submit feedback
 
 .. note::
 
-    (Luke) Is this supposed to be given that ``create`` is a command that doesn't exist?
+    (Luke) Is this supposed to imply that ``create`` is any command that doesn't exist?
 
 a. transcript::
 
@@ -437,31 +437,138 @@ b. alternative, dedicated feedback commands::
 checkout
 --------
 
-NB: also stops and starts containers, see "dvol docker volume plugin interaction examples".
+NB: stops containers and starts containers with the new data, see "dvol docker volume plugin interaction examples".
 
 switch the current active branch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+acts on the currently globally active volume.
+optionally, supports specifying volume with ``--volume``.
+(all commands which operate on volumes should take this optional argument.)
+
+transcript::
+
+    $ dvol branch [--volume=specific_volume]
+    * master
+      another
+    $ dvol checkout [--volume=specific_volume] another
+    $ dvol branch [--volume=specific_volume]
+      master
+    * another
+
+
 create a new branch from the existing branch, and switch to it
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+(eliding ``--volume`` arguments here, for readability)
+
+transcript::
+
+    $ dvol branch
+    * master
+    $ dvol checkout -b new_branch
+    $ dvol branch
+      master
+    * new_branch
+
+longer example showing how commits are "copied" to new branch from user's perspective, implementation will use fossil-style inherited labels::
+
+    $ dvol branch
+    * master
+    $ dvol log
+    commit b0c8a6067c0e4924b8c56aeef9e56b5aa6d62431
+    Author: Who knows <mystery@person>
+    Date: Whenever
+
+      hello
+
+    $ dvol checkout -b new_branch
+    $ dvol branch
+      master
+    * new_branch
+    $ dvol log
+    commit b0c8a6067c0e4924b8c56aeef9e56b5aa6d62431
+    Author: Who knows <mystery@person>
+    Date: Whenever
+
+      hello
 
 reset
 -----
 
+optionally takes ``--volume`` for concurrent operation.
+optionally takes ``--branch`` for concurrent operation.
 
+move ("unwind") a branch to point to a previous commit.
+also reset the respective working copy to the previous commit, irrespective of whether it has any new modifications::
 
+    $ dvol log
+    commit b0c8a6067c0e4924b8c56aeef9e56b5aa6d62431
+    Author: Who knows <mystery@person>
+    Date: Whenever
+
+      commit 1
+
+    commit c0c8a6067c0e4924b8c56aeef9e56b5aa6d62431
+    Author: Who knows <mystery@person>
+    Date: Whenever
+
+      commit 2
+
+    $ dvol reset --hard b0c8a6067c0e4924b8c56aeef9e56b5aa6d62431
+    $ dvol log
+    commit b0c8a6067c0e4924b8c56aeef9e56b5aa6d62431
+    Author: Who knows <mystery@person>
+    Date: Whenever
+
+      commit 1
+
+if no other branches refer to that commit, automatically garbage collect the orphaned commits. (hard to show in a transcript)
+
+do *not* delete commits when they are still referenced by another branch. see test_rollback_branch_doesnt_delete_referenced_data_in_other_branches in test_dvol.py.
+
+reset can take a commit id, or HEAD meaning the latest commit on the branch.
+0 or more ``^`` symbols may be suffixed, meaning predecessor commit, all of the following are valid::
+
+    $ dvol reset --hard b0c8a6067c0e4924b8c56aeef9e56b5aa6d62431^
+    $ dvol reset --hard HEAD
+    $ dvol reset --hard HEAD^
+    $ dvol reset --hard HEAD^^^^^^^^^^^
+
+not specifying ``--hard`` is unsupported, this forces the user to acknowledge that they are performing a potentially destructive operation.
+
+also supports any unique prefix of a commit, for example::
+
+    $ dvol reset --hard b0c8a6
+    $ dvol reset --hard b0c8a6^
 
 branch
 ------
 
+optionally takes ``--volume`` for concurrent operation.
 
+list the branches in the current active volume.
+
+log
+---
+
+optionally takes ``--volume`` for concurrent operation.
+optionally takes ``--branch`` for concurrent operation.
+
+list the linear commits in the current branch.
 
 commit
 ------
 
+NB: stops containers using the branch before making a commit.
+Then starts them again afterwards.
+This is because current directory copy mechanism isn't atomic.
+
 record some changes to an existing branch in a new commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+optionally takes ``--volume`` for concurrent operation.
+optionally takes ``--branch`` for concurrent operation.
 
 implicitly selected volume based on global state, but allow override for increased specificity for automated (e.g. CI) usage.
 
@@ -475,7 +582,7 @@ Observations::
 
 ignore global state and commit a specific volume name::
 
-  $ dvol commit -m "empty state" mything/no_race_conditions_here
+  $ dvol commit -m "empty state" --volume mything/no_race_conditions_here
 
 
 dvol docker volume plugin interaction examples
