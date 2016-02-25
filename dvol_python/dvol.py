@@ -200,9 +200,13 @@ class Voluminous(object):
         self.createBranch(name, DEFAULT_BRANCH)
 
     def removeVolume(self, volume, force=False):
-        if not self._directory.child(volume).exists():
-            self.output("Volume %r does not exist, cannot remove it" %
-                    (volume,))
+        try:
+            if not self._directory.child(volume).exists():
+                self.output("Volume %r does not exist, cannot remove it" %
+                        (volume,))
+                return
+        except InsecurePath:
+            self.output("Error: %s is not a valid name" % (volume,))
             return
         containers = self.lock.containers.get_related_containers(volume)
         if containers:
