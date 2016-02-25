@@ -437,16 +437,25 @@ b. alternative, dedicated feedback commands::
 checkout
 --------
 
-TODO
+NB: also stops and starts containers, see "dvol docker volume plugin interaction examples".
+
+switch the current active branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+create a new branch from the existing branch, and switch to it
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 reset
 -----
 
-TODO
+
+
 
 branch
 ------
-According to the spec, essentially not in scope, but this is surely an oversight.
+
+
 
 commit
 ------
