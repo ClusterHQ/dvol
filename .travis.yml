@@ -23,7 +23,7 @@ before_install:
 
 install:
   - "pip install --user `whoami` ."
-  - "make go-bootstrap"
+  - "make bootstrap"
 
 script:
   - "make verify"
