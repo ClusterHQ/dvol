@@ -4,7 +4,7 @@ Vocabulary
   * A volume is a collection of branches (organized inside a project).
     * A volume is referred to locally by an opaque name assigned by the user (with a default sometimes)
     * A volume is referred to remotely by a hierarchical name of the form
-      ``owner/name`` where the ``owner`` component is a Voluminous username and
+      ``owner/name`` where the ``owner`` component is a Volume Hub username and
       the ``name`` is like the local name above.
   * A working copy is a writeable filesystem area which starts from the data in
     a commit and can be diverged and eventually committed.
@@ -65,45 +65,58 @@ authentication
 unauthenticated (not logged in) voluminous interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-$ dvol <push, pull, etc, with any valid options>
-Permission denied.  Please log in using dvol login.
-$
+transcript::
 
-successful login to hosted Voluminous
+    $ dvol <push, pull, etc, with any valid options>
+    Permission denied.  Please log in using dvol login.
+    $
+
+successful login to hosted Volume Hub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol login
-<OAuth2 Browser Experience, detailed elsewhere (TBD)>
-You are now logged in as <jean-paul.calderone@clusterhq.com>.
-$
+transcript::
 
-successful login to private Voluminous
+    $ dvol login
+    <OAuth2 Browser Experience, detailed elsewhere (TBD)>
+    You are now logged in as <jean-paul.calderone@clusterhq.com>.
+    $
+
+successful login to private Volume Hub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol login vh.internal.com
-<OAuth2 Browser Experience, detailed elsewhere (TBD)>
-You are now logged in as <jean-paul.calderone@clusterhq.com>.
-$
+transcript::
+
+    $ dvol login vh.internal.com
+    <OAuth2 Browser Experience, detailed elsewhere (TBD)>
+    You are now logged in as <jean-paul.calderone@clusterhq.com>.
+    $
 
 failed login
 ~~~~~~~~~~~~
-$ dvol login
-<Unsuccessful OAuth2 Browser Experience>
-Login failed.  Please try again.
-$
+transcript::
+
+    $ dvol login
+    <Unsuccessful OAuth2 Browser Experience>
+    Login failed.  Please try again.
+    $
 
 logout
 ~~~~~~
-$ dvol logout
-You are now logged out.
-$
+transcript::
+
+    $ dvol logout
+    You are now logged out.
+    $
 
 authorization
 -------------
 
 unauthorized voluminous interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ dvol push someone.else@somewhere.else/theirproject/their_thing
-Permission denied.  You must own the thing or the owner must make you a collaborator on the thing. <link to docs on collaborators>
-$
+transcript::
+
+    $ dvol push someone.else@somewhere.else/theirproject/their_thing
+    Permission denied.  You must own the thing or the owner must make you a
+    collaborator on the thing. <link to docs on collaborators>
+    $
 
 local volume interactions
 -------------------------
@@ -125,10 +138,12 @@ TODO write an example
 successful empty volume creation with implicit, unknown owner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-% dvol logout
-$ dvol init imaginary/pgsql_authn
-Created imaginary/pgsql_authn
-$
+transcript::
+
+    % dvol logout
+    $ dvol init imaginary/pgsql_authn
+    Created imaginary/pgsql_authn
+    $
 
 remote volume interactions
 --------------------------
@@ -242,7 +257,8 @@ transcript::
 
     % dvol init foo
     % dvol clone jean-paul.calderone@clusterhq.com/foo
-    You can't do that because you have a foo already.  Try `dvol clone remote_name local_name`.
+    You can't do that because you have a foo already.  Try `dvol clone
+    remote_name local_name`.
     % dvol clone jean-paul.calderone@clusterhq.com/foo jp-foo
     %
 
@@ -292,18 +308,21 @@ push just one branch
 
 .. note::
 
-    (Luke) I changed this to use a space rather than a / because if we allow /s in local aliases, we can't reliably figure out whether users mean branches any more.
+    (Luke) I changed this to use a space rather than a / because if we allow /s
+    in local aliases, we can't reliably figure out whether users mean branches
+    any more.
 
 transcript::
 
     $ dvol push my_authn_db testing_v3
-    Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn testing_v3 branch on vh.internal.com
+    Pushed to jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+    testing_v3 branch on vh.internal.com
     $
 
 push with divergence
 ~~~~~~~~~~~~~~~~~~~~
 
-transript::
+a. transript::
 
     $ dvol push my_authn_db
     Sorry, you've diverged. Pick a new name for local version [originalbranch-modified]:
@@ -311,7 +330,7 @@ transript::
     Pushed version is "originalbranch-modified".
     $
 
-alternative, guide the user in using git style commands to resolve conflict::
+b. alternative, guide the user in using git style commands to resolve conflict::
 
     $ dvol push my_authn_db
     Unable to push, your local tree has diverged from the remote.
@@ -324,11 +343,12 @@ alternative, guide the user in using git style commands to resolve conflict::
 .. note::
 
     (Luke) Should we support force-pushing the deletion of certain commits?
+    Currently there is no way to delete remote commits, AIUI.
 
 pull with divergence
 ~~~~~~~~~~~~~~~~~~~~
 
-transript::
+a. transript::
 
     $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
     Sorry, you've diverged. Pick a new name for local version [originalbranch-modified]:
@@ -336,7 +356,7 @@ transript::
     Pulled version is "originalbranch".
     $
 
-alternative, guide the user in using git style commands to resolve conflict::
+b. alternative, guide the user in using git style commands to resolve conflict::
 
     $ dvol push my_authn_db
     Unable to push, your local tree has diverged from the remote.
@@ -353,7 +373,8 @@ pull with divergence in a working copy
 
 .. note::
 
-    (Luke) This needs more thought. Currently there's no way to detect whether a working copy has diverged or not, because we never actually look at the data.
+    (Luke) This needs more thought.
+    Currently there's no way to detect whether a working copy has diverged or not, because we never actually look at the data.
     I suggest the behaviour could be that pulls always clobber local changes, with appropriate warning/prompts.
     Alternatively, we could mark a volume as "dirty" if a container is ever started on it.
     Then we could only warn/prompt users in that case.
@@ -388,17 +409,30 @@ b. warn if dirty::
 
 submit feedback
 ~~~~~~~~~~~~~~~
-$ dvol create --help
- ....
-  if istty(stdin) Do you want to send us some comments?  [Y/n/Never ask again]
-  > ...
-$ dvol feedback
-  > Dear ClusterHQ,
-  > You're great.
-  > Love,
-  > The internet.
-  > ^D
-$
+
+.. note::
+
+    (Luke) Is this supposed to be given that ``create`` is a command that doesn't exist?
+
+a. transcript::
+
+    $ dvol create --help
+     ....
+      if istty(stdin) Do you want to send us some comments?  [Y/n/Never ask again]
+      > ...
+    $ dvol feedback
+      > Dear ClusterHQ,
+      > You're great.
+      > Love,
+      > The internet.
+      > ^D
+    $
+
+b. alternative, dedicated feedback commands::
+
+   $ dvol feedback
+   Please let us know your feedback at https://clusterhq.com/dvol-feedback/ - thanks!
+   $
 
 checkout
 --------
@@ -420,32 +454,7 @@ commit
 record some changes to an existing branch in a new commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-a. explicitly name the volume
-
-transcript::
-
-  $ dvol commit ${IDENTIFIER} -m “blah blah blah”
-  $
-
-Observations:
-  * Tedious in practice
-  * Breaks ``git commit`` analogy
-
-b. name the volume with an environment variable
-
-transcript::
-
-   $ export DVOL_VOLUME=${IDENTIFIER}
-   $ dvol commit -m "empty state"
-
-c. name the volume with working directory state
-
-transcript::
-
-   $ cd ${IDENTIFIER} # Previously created by ``dvol init`` or ``dvol clone``
-   $ dvol commit -m "empty state"
-
-d. implicitly selected volume based on global state
+implicitly selected volume based on global state, but allow override for increased specificity for automated (e.g. CI) usage.
 
 transcript::
 
@@ -454,6 +463,10 @@ transcript::
 
 Observations::
   * Compromises multi-use situations (global state) (perhaps relevant to CI)
+
+ignore global state and commit a specific volume name::
+
+  $ dvol commit -m "empty state" mything/no_race_conditions_here
 
 
 dvol docker volume plugin interaction examples

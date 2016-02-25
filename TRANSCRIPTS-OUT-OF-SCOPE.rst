@@ -237,3 +237,31 @@ $ dvol push --latest my_authn_db/testing_v3
 Pushed my_authn_db/testing_v3 @ abcdefghi
 $
 
+record some changes to an existing branch in a new commit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a. explicitly name the volume
+
+transcript::
+
+  $ dvol commit ${IDENTIFIER} -m “blah blah blah”
+  $
+
+Observations:
+  * Tedious in practice
+  * Breaks ``git commit`` analogy
+
+b. name the volume with an environment variable
+
+transcript::
+
+   $ export DVOL_VOLUME=${IDENTIFIER}
+   $ dvol commit -m "empty state"
+
+c. name the volume with working directory state
+
+transcript::
+
+   $ cd ${IDENTIFIER} # Previously created by ``dvol init`` or ``dvol clone``
+   $ dvol commit -m "empty state"
+
