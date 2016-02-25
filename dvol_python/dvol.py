@@ -580,7 +580,6 @@ class RemoveOptions(Options):
         self.volume = volume
 
     def run(self, voluminous):
-        import pdb; pdb.set_trace()
         voluminous.removeVolume(self.volume, force=self["force"])
 
 class VoluminousOptions(Options):
