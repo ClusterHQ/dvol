@@ -9,12 +9,13 @@ test: build
 	trial -j2 dvol_python \
 	&& HYPOTHESIS_PROFILE=ci trial dvol_python \
 	&& HYPOTHESIS_PROFILE=ci  DVOL_BINARY=$PWD/dvol trial -j2 dvol_python \
-	&& go test -race .../.
+	&& scripts/verify-tests.sh 
 
 # verify ensures your golang code passes 'the basics' 
 # locally before committing e.g. gofmt, go vet etc
 verify:
-	scripts/run-preflight.sh
+	scripts/verify-preflight.sh \
+	&& scripts/verify-tests.sh
 
 bootstrap: go-bootstrap python-bootstrap
 
