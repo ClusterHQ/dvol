@@ -20,4 +20,3 @@ fi
 done
 
 go tool cover -func profile.cov
-
