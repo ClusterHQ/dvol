@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ClusterHQ/dvol/datalayer"
+	"github.com/ClusterHQ/dvol/pkg/datalayer"
 	"github.com/spf13/cobra"
 )
 

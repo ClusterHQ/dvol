@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ClusterHQ/dvol/cmd"
-	//    "github.com/ClusterHQ/dvol/dockercontainers"
-	//    "github.com/ClusterHQ/dvol/plugin"
+	"github.com/ClusterHQ/dvol/pkg/cmd"
 )
 
 func main() {
