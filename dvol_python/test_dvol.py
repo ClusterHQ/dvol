@@ -459,3 +459,25 @@ class VoluminousTests(TestCase):
         # new still exists because it's referenced in another branch
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertTrue(volume.child("commits").child(newCommit).exists())
+
+    def test_remove_volume(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+            "Deleting volume 'foo'")
+        self.assertFalse(self.tmpdir.child("foo").exists())
+    
+    def test_remove_volume_does_not_exist(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+            "Volume 'foo' does not exist, cannot remove it")
+        self.assertFalse(self.tmpdir.child("foo").exists())
+    
+    def test_remove_volume_invalid_name(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo/bar"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+            "Volume 'foo' does not exist, cannot remove it")
+        self.assertFalse(self.tmpdir.child("foo").exists())
