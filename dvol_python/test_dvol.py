@@ -460,6 +460,7 @@ class VoluminousTests(TestCase):
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertTrue(volume.child("commits").child(newCommit).exists())
 
+    @skip_if_go_version
     def test_remove_volume(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -468,6 +469,7 @@ class VoluminousTests(TestCase):
             "Deleting volume 'foo'")
         self.assertFalse(self.tmpdir.child("foo").exists())
     
+    @skip_if_go_version
     def test_remove_volume_does_not_exist(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
@@ -475,6 +477,7 @@ class VoluminousTests(TestCase):
             "Volume 'foo' does not exist, cannot remove it")
         self.assertFalse(self.tmpdir.child("foo").exists())
     
+    @skip_if_go_version
     def test_remove_volume_invalid_name(self):
         dvol = VoluminousOptions()
         try:
