@@ -478,7 +478,7 @@ class VoluminousTests(TestCase):
         self.assertFalse(self.tmpdir.child("foo").exists())
     
     @skip_if_go_version
-    def test_remove_volume_invalid_name(self):
+    def test_remove_volume_path_separator(self):
         dvol = VoluminousOptions()
         try:
             dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo/bar"])
