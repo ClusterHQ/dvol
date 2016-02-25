@@ -495,6 +495,8 @@ longer example showing how commits are "copied" to new branch from user's perspe
 
       hello
 
+nb: create the new branch from the latest commit in the branch. working copy is ignored when creating a new branch.
+
 reset
 -----
 
