@@ -37,11 +37,13 @@ Naming model for local and remote names
 
 * Remote names
 
-  * always in the form: ``[<volumehub-address>/]<user>/<repo-name>``
+  * always in the form: ``<user>/<volume-name>``
 
   .. note::
 
-     (Luke) where <repo-name> *cannot* contain a ``/``?
+     Where <volume-name> may contain a ``/``
+     Commands which need to refer to the location of the remote will do so separately.
+
 
 Divergences from git
 ====================
