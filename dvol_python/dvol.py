@@ -61,6 +61,8 @@ class EmptyContainers(object):
     def get_related_containers(self, volume):
         return []
 
+    def remove_related_containers(self, volume):
+        pass
 
 class NullLock(object):
     containers = EmptyContainers()
@@ -201,6 +203,7 @@ class Voluminous(object):
         if not self._directory.child(volume).exists():
             raise UsageError("Volume %r does not exist, cannot remove it" %
                     (volume,))
+        import pdb; pdb.set_trace()
         containers = self.lock.containers.get_related_containers(volume)
         if containers:
             raise UsageError("Cannot remove %r while it is in use by '%s'" %
