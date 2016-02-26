@@ -370,6 +370,16 @@ b. alternative, guide the user in using git style commands to resolve conflict::
         dvol reset --hard HEAD^^^
         dvol pull
 
+.. note::
+
+   (Jean-Paul & Itamar)
+   This needs more thought.
+   Even in git you cannot use ``reset --hard`` if you want to be able to collaborate with people.
+   At best, you have to use ``push --force`` and everyone else has to sort out the resulting problems individually.
+   No one has proposed supporting a ``dvol push --force`` so if you ever use ``dvol reset --hard HEAD^`` then you're not likely to be able to push.
+   The only case where this **could** work as specified is if you haven't pushed the thing you're resetting yet.
+
+
 pull with divergence in a working copy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
