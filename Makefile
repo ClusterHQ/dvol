@@ -7,7 +7,7 @@ build:
 # 'test' will run the python tests using the dvol cli
 test: build
 	. venv/bin/activate \
-	HYPOTHESIS_PROFILE=ci trial dvol_python \
+	&& HYPOTHESIS_PROFILE=ci trial dvol_python \
 	&& HYPOTHESIS_PROFILE=ci TEST_DVOL_BINARY=1 DVOL_BINARY=$(PWD)/dvol trial dvol_python \
 	&& scripts/verify-tests.sh
 
