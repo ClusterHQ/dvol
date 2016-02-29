@@ -56,5 +56,5 @@ func CreateVariant(basePath, volumeName, variantName string) error {
 }
 
 func SwitchVolume(basePath, volumeName string) error {
-	return nil
+	return setActiveVolume(basePath, volumeName)
 }
