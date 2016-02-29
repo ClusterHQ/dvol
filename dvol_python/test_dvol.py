@@ -106,10 +106,13 @@ class VoluminousTests(TestCase):
     
     def _active_volume(self):
         # TODO: In the Go version this could be a function in the Data Layer
-        active_volume = json.loads(
-            self.tmpdir.child("current_volume.json").open()
-        )['current_volume']
-        return active_volume
+        current_volume = self.tmpdir.child('current_volume.json')
+        if current_volume.exists():
+            active_volume = json.loads(
+                current_volume.open()
+            )['current_volume']
+            return active_volume
+        return None
 
     def test_create_volume(self):
         dvol = VoluminousOptions()
