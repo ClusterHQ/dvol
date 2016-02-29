@@ -33,3 +33,7 @@ func CreateVariant(basePath, volumeName, variantName string) error {
 	os.MkdirAll(variantPath, 0777) // XXX SEC
 	return nil
 }
+
+func SwitchVolume(basePath, volumeName string) error {
+	return nil
+}
