@@ -24,7 +24,7 @@ running on your laptop so you can easily save a particular state
 and come back to it later.`,
 }
 
-var cmdTimes = &cobra.Command{
+var cmdInit = &cobra.Command{
 	Use:   "init",
 	Short: "Create a volume and its default master branch, then switch to it",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -60,7 +60,7 @@ var cmdTimes = &cobra.Command{
 func init() {
 	// cobra.OnInitialize(initConfig)
 	// TODO support: dvol -p <custom_path> init <volume_name>
-	RootCmd.AddCommand(cmdTimes)
+	RootCmd.AddCommand(cmdInit)
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
