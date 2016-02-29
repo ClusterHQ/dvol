@@ -108,7 +108,7 @@ class VoluminousTests(TestCase):
         # TODO: In the Go version this could be a function in the Data Layer
         current_volume = self.tmpdir.child('current_volume.json')
         if current_volume.exists():
-            active_volume = json.loads(
+            active_volume = json.load(
                 current_volume.open()
             )['current_volume']
             return active_volume
