@@ -73,7 +73,8 @@ var cmdRm = &cobra.Command{
 			os.Exit(1)
 		}
 		if !datalayer.VolumeExists(basePath, volumeName) {
-			fmt.Println("Error: volume " + volumeName + " does not exist")
+			msg := fmt.Sprintf("Volume '%s' does not exist, cannot remove it", volumeName)
+			fmt.Println(msg)
 			os.Exit(1)
 		}
 		err := datalayer.RemoveVolume(basePath, volumeName)

@@ -468,12 +468,14 @@ class VoluminousTests(TestCase):
             "Deleting volume 'foo'")
         self.assertFalse(self.tmpdir.child("foo").exists())
 
-    @skip_if_go_version
     def test_remove_volume_does_not_exist(self):
         dvol = VoluminousOptions()
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
-        self.assertEqual(dvol.voluminous.getOutput()[-1],
-            "Volume 'foo' does not exist, cannot remove it")
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
+        self.assertIn("Volume 'foo' does not exist, cannot remove it", output)
         self.assertFalse(self.tmpdir.child("foo").exists())
 
     @skip_if_go_version
