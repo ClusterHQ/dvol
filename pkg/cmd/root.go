@@ -11,6 +11,7 @@ import (
 var basePath string
 var echoTimes int
 var disableDockerIntegration bool
+var forceRemoveVolume bool
 
 const DEFAULT_BRANCH string = "master"
 
@@ -57,10 +58,40 @@ var cmdInit = &cobra.Command{
 	},
 }
 
+var cmdRm = &cobra.Command{
+	// TODO: Improve the usage string to include a volume name to remove
+	Use:   "rm",
+	Short: "Destroy a dvol volume",
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			fmt.Println("Please specify a volume name.")
+			os.Exit(1)
+		}
+		volumeName := args[0]
+		if !datalayer.ValidVolumeName(volumeName) {
+			fmt.Println("Error: " + volumeName + " is not a valid name")
+			os.Exit(1)
+		}
+		if !datalayer.VolumeExists(basePath, volumeName) {
+			fmt.Println("Error: volume " + volumeName + " does not exist")
+			os.Exit(1)
+		}
+		err := datalayer.RemoveVolume(basePath, volumeName)
+		if err != nil {
+			fmt.Println("Error removing volume")
+			os.Exit(1)
+		}
+		s := fmt.Sprintf("Deleting volume '%s'", volumeName)
+		fmt.Println(s)
+	},
+}
+
 func init() {
 	// cobra.OnInitialize(initConfig)
 	// TODO support: dvol -p <custom_path> init <volume_name>
 	RootCmd.AddCommand(cmdInit)
+	RootCmd.AddCommand(cmdRm)
+	cmdRm.Flags().BoolVarP(&forceRemoveVolume, "force", "f", false, "Force remove")
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
