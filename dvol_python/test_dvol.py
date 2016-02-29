@@ -13,6 +13,7 @@ from twisted.python.usage import UsageError
 from unittest import skipIf
 import subprocess
 import os
+import json
 
 TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
@@ -102,11 +103,19 @@ class VoluminousTests(TestCase):
     def setUp(self):
         self.tmpdir = FilePath(self.mktemp())
         self.tmpdir.makedirs()
+    
+    def _active_volume(self):
+        # TODO: In the Go version this could be a function in the Data Layer
+        active_volume = json.loads(
+            self.tmpdir.child("current_volume.json").open()
+        )['current_volume']
+        return active_volume
 
     def test_create_volume(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         self.assertTrue(self.tmpdir.child("foo").exists())
+        self.assertEqual(self._active_volume(), "foo")
         self.assertTrue(self.tmpdir.child("foo").child("branches")
                 .child("master").exists())
         self.assertEqual(dvol.voluminous.getOutput()[-1],
