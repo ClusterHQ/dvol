@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -21,10 +22,29 @@ func VolumeExists(basePath string, volumeName string) bool {
 	return err == nil
 }
 
+func setActiveVolume(basePath, volumeName string) error {
+	currentVolumeJsonPath := filepath.FromSlash(basePath + "/" + "current_volume.json")
+	currentVolumeContent := make(map[string]string)
+	currentVolumeContent["current_volume"] = volumeName
+	// Create or update this file
+	file, err := os.Create(currentVolumeJsonPath)
+	if err != nil {
+		return err
+	}
+	encoder := json.NewEncoder(file)
+	encoder.Encode(currentVolumeContent)
+	file.Sync()
+	return nil
+}
+
 func CreateVolume(basePath string, volumeName string) error {
 	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
 	// TODO Factor this into a data layer object.
 	os.MkdirAll(volumePath, 0777) // XXX SEC
+	err := setActiveVolume(basePath, volumeName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func CreateVariant(basePath, volumeName, variantName string) error {
