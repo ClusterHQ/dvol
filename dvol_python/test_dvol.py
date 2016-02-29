@@ -478,7 +478,6 @@ class VoluminousTests(TestCase):
         self.assertIn("Volume 'foo' does not exist, cannot remove it", output)
         self.assertFalse(self.tmpdir.child("foo").exists())
 
-    @skip_if_go_version
     def test_remove_volume_path_separator(self):
         dvol = VoluminousOptions()
         try:
