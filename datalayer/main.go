@@ -24,8 +24,9 @@ func VolumeExists(basePath string, volumeName string) bool {
 
 func setActiveVolume(basePath, volumeName string) error {
 	currentVolumeJsonPath := filepath.FromSlash(basePath + "/" + "current_volume.json")
-	currentVolumeContent := make(map[string]string)
-	currentVolumeContent["current_volume"] = volumeName
+	currentVolumeContent := map[string]string{
+		"current_volume": volumeName,
+	}
 	// Create or update this file
 	file, err := os.Create(currentVolumeJsonPath)
 	if err != nil {
