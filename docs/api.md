@@ -58,12 +58,13 @@ response:
 ```
 
 a Volume object has:
-    * id, string: GUID
-    * name, string: user-provided name matching regex in datalayer/main.go
-    * active, bool: global state which can be used by consumers of the API to reduce the amount of typing users have to do, has no impact on behaviour of API
-    * branch, string: currently active branch, any running containers will be using this branch
-    * branches: list of strings, available branches
-    * dockercontainers: list of ``inspect`` responses from Docker for containers that were using the volume at time of query
+
+* id, string: GUID
+* name, string: user-provided name matching regex in datalayer/main.go
+* active, bool: global state which can be used by consumers of the API to reduce the amount of typing users have to do, has no impact on behaviour of API
+* branch, string: currently active branch, any running containers will be using this branch
+* branches: list of strings, available branches
+* dockercontainers: list of ``inspect`` responses from Docker for containers that were using the volume at time of query
 
 # POST /v1/volumes
 
