@@ -189,8 +189,10 @@ Axes for consideration:
 
 * Jean-Paul & Luke's best guess (a2 & c3 now [milestone 1], a1 & c4 later [milestone 2]) b2x
 
-b2x. Set up aliases in the clone (or init) command
-**************************************************
+b2x. Set local names in the clone command
+*****************************************
+
+Note: ``init`` always sets a local name.
 
 transcript::
 
@@ -208,7 +210,7 @@ milestone 1: pull entire volume all the time
 
 ``dvol pull`` option:
 
-c3. All of one owner's volume's branchs (All of one volume)
+c3. All of one owner's volume's branches (All of one volume)
 
 a2. Download metadata and data together
 ***************************************
@@ -221,12 +223,13 @@ transcript::
     % dvol list
     VOLUME
     project_b/mysql
-    % dvol list-branches
+    % dvol branch
     BRANCH                                            DATA LOCAL
     jean-paul@clusterhq.com/project_b/mysql/master    yes
     jean-paul@clusterhq.com/project_b/mysql/testing   yes
     $
 
+Note: UI may not need to have "DATA LOCAL" column until it's possible to have metadata for data which isn't local.
 
 milestone 2: clone copies metadata, then user can choose what data to actually pull
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -246,7 +249,7 @@ transcript::
     % dvol list
     VOLUME
     project_b/mysql
-    % dvol list-branches
+    % dvol branch
     BRANCH                                            DATA LOCAL
     jean-paul@clusterhq.com/project_b/mysql/master    no
     jean-paul@clusterhq.com/project_b/mysql/testing   yes
@@ -360,7 +363,7 @@ a. transript::
 
 b. alternative, guide the user in using git style commands to resolve conflict::
 
-    $ dvol push my_authn_db
+    $ dvol pull my_authn_db
     Unable to push, your local tree has diverged from the remote.
     There are 3 local commits and 2 remote commits.
     You can resolve this by "renaming" your current branch:
