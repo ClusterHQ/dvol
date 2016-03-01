@@ -45,7 +45,7 @@ func CreateVolume(basePath string, volumeName string) error {
 	if err != nil {
 		return err
 	}
-	err := setActiveVolume(basePath, volumeName)
+	err = setActiveVolume(basePath, volumeName)
 	if err != nil {
 		return err
 	}
