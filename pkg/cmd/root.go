@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
 	"github.com/spf13/cobra"
@@ -77,14 +78,34 @@ var cmdRm = &cobra.Command{
 			fmt.Println(msg)
 			os.Exit(1)
 		}
-		err := datalayer.RemoveVolume(basePath, volumeName)
-		if err != nil {
-			fmt.Println("Error removing volume")
-			os.Exit(1)
+		if forceRemoveVolume || userIsSure("This will remove all containers using the volume") {
+			s := fmt.Sprintf("Deleting volume '%s'", volumeName)
+			fmt.Println(s)
+			err := datalayer.RemoveVolume(basePath, volumeName)
+			if err != nil {
+				fmt.Println("Error removing volume")
+				os.Exit(1)
+			}
+		} else {
+			fmt.Println("Aborting.")
 		}
-		s := fmt.Sprintf("Deleting volume '%s'", volumeName)
-		fmt.Println(s)
 	},
+}
+
+func userIsSure(extraMessage string) bool {
+	message := fmt.Sprintf("Are you sure? %s (y/n): ", extraMessage)
+	fmt.Print(message)
+	var response string
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		fmt.Println("Error reading response.")
+		return false
+	}
+	response = strings.ToLower(response)
+	if response == "y" || response == "yes" {
+		return true
+	}
+	return false
 }
 
 func init() {
