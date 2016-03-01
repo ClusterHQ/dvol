@@ -41,7 +41,10 @@ func setActiveVolume(basePath, volumeName string) error {
 func CreateVolume(basePath string, volumeName string) error {
 	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
 	// TODO Factor this into a data layer object.
-	os.MkdirAll(volumePath, 0777) // XXX SEC
+	err := os.MkdirAll(volumePath, 0777) // XXX SEC
+	if err != nil {
+		return err
+	}
 	err := setActiveVolume(basePath, volumeName)
 	if err != nil {
 		return err
