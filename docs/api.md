@@ -128,6 +128,7 @@ response:
         "active": true
     }
 ]
+```
 
 # GET /v1/volumes/1bcdef/branches/3bcdef/commits
 
