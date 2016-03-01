@@ -233,9 +233,11 @@ any uncommitted changes in the working copy are also discarded.
 
 request:
 
+```
 {
-    "resetTo": "4bcdef",
+    "resetTo": "4bcdef"
 }
+```
 
 responses:
 
