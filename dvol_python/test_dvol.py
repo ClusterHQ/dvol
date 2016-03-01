@@ -177,6 +177,18 @@ class VoluminousTests(TestCase):
         except CalledProcessErrorWithOutput, error:
             self.assertEqual(error.original.output.rstrip(), "Error: bar does not exist")
 
+    def test_created_volume_active_after_switch(self)
+        """
+        After we have used ``dvol switch`` to switch volume, ``dvol init``
+        should be able to set the active volume to the one just created.
+        """ 
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "baz"])
+        # TODO: assert active volume is baz
+
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
