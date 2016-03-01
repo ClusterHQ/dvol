@@ -22,6 +22,22 @@ func VolumeExists(basePath string, volumeName string) bool {
 	return err == nil
 }
 
+func ActiveVolume(basePath string) (string, error) {
+	currentVolumeJsonPath := filepath.FromSlash(basePath + "/" + "current_volume.json")
+	file, err := os.Open(currentVolumeJsonPath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	var store map[string]interface{}
+	err = decoder.Decode(&store)
+	if err != nil {
+		return "", err
+	}
+	return store["current_volume"].(string), nil
+}
+
 func setActiveVolume(basePath, volumeName string) error {
 	currentVolumeJsonPath := filepath.FromSlash(basePath + "/" + "current_volume.json")
 	currentVolumeContent := map[string]string{

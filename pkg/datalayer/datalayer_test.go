@@ -20,3 +20,19 @@ func TestValidVolumeName(t *testing.T) {
 		}
 	}
 }
+
+func TestSwitchVolume(t *testing.T) {
+	currentVolume := "foo"
+	basePath := "somethingtemporary"
+	err := SwitchVolume(basePath, currentVolume)
+	if err != nil {
+		t.Error("SwitchVolume failed: %s\n", err)
+	}
+	activeVolume, err := ActiveVolume()
+	if err != nil {
+		t.Error("Could not find ActiveVolume")
+	}
+	if activeVolume != "foo" {
+		t.Error(activeVolume + " is not equal to 'foo'")
+	}
+}
