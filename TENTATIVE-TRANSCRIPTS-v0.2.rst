@@ -382,6 +382,14 @@ b. alternative, guide the user in using git style commands to resolve conflict::
    No one has proposed supporting a ``dvol push --force`` so if you ever use ``dvol reset --hard HEAD^`` then you're not likely to be able to push.
    The only case where this **could** work as specified is if you haven't pushed the thing you're resetting yet.
 
+   (Luke)
+   In the current model, you're right: you'd never be able to push a branch which had diverged from the hub.
+   For this iteration however I believe that having to rename your local branch before pushing is sufficient.
+   Resolving conflicts locally in this way is probably fine.
+   The system should be smart enough not to have to re-upload all the common commits.
+   IMO, we don't know enough about how people are going to use branches and commits for data management to know if this *isn't* going to be sufficient.
+   I don't want to support ``dvol push --force`` yet because it forces a problem on all other pullers of the branch.
+
 
 pull with divergence in a working copy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
