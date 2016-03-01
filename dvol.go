@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/ClusterHQ/dvol/cmd"
 	"os"
-	//    "github.com/ClusterHQ/dvol/dockercontainers"
-	//    "github.com/ClusterHQ/dvol/plugin"
+
+	"github.com/ClusterHQ/dvol/pkg/cmd"
 )
 
 func main() {

@@ -48,11 +48,11 @@ func CreateVolume(basePath string, volumeName string) error {
 	}
 	return nil
 }
+
 func CreateVariant(basePath, volumeName, variantName string) error {
 	// XXX Variants are meant to be tagged commits???
 	variantPath := filepath.FromSlash(basePath + "/" + volumeName + "/branches/master")
-	os.MkdirAll(variantPath, 0777) // XXX SEC
-	return nil
+	return os.MkdirAll(variantPath, 0777) // XXX SEC
 }
 
 func SwitchVolume(basePath, volumeName string) error {

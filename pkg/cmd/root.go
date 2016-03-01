@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ClusterHQ/dvol/datalayer"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/spf13/cobra"
 )
 
 var basePath string
