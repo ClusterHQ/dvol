@@ -34,7 +34,7 @@ given that docker volume plugins API is synchronous, this is in tension with "fu
 
 # GET /v1/volumes
 
-enough to generate output for ``dvol list``
+enough to generate output for `dvol list`
 
 response:
 ```
@@ -64,9 +64,11 @@ a Volume object has:
 * active, bool: global state which can be used by consumers of the API to reduce the amount of typing users have to do, has no impact on behaviour of API
 * branch, string: currently active branch, any running containers will be using this branch
 * branches: list of strings, available branches
-* dockercontainers: list of ``inspect`` responses from Docker for containers that were using the volume at time of query
+* dockercontainers: list of `inspect` responses from Docker for containers that were using the volume at time of query
 
 # POST /v1/volumes
+
+sufficient for `dvol init`.
 
 create a new volume, and its default master branch, and set it to be the currently active volume.
 
@@ -97,7 +99,7 @@ response:
 # POST /v1/volumes/1bcdef/activate
 
 set this to be the current active volume, for presentational purposes only
-sufficient for ``dvol switch``
+sufficient for `dvol switch`
 
 response:
 ```
@@ -115,7 +117,7 @@ response:
 
 # GET /v1/volumes/1bcdef/branches
 
-sufficient for ``dvol branch`` output
+sufficient for `dvol branch` output
 
 response:
 ```
@@ -129,7 +131,7 @@ response:
 
 # GET /v1/volumes/1bcdef/branches/3bcdef/commits
 
-sufficient for ``dvol log`` output.
+sufficient for `dvol log` output.
 
 response:
 
@@ -160,7 +162,7 @@ response:
 
 # POST /v1/volumes/1bcdef/branches/3bcdef/commits
 
-sufficient for ``dvol commit`` command.
+sufficient for `dvol commit` command.
 
 create a new commit from a given branch's current working copy
 
@@ -179,7 +181,7 @@ request:
 
 # DELETE /v1/volumes/1bcdef
 
-sufficient for ``dvol rm`` command.
+sufficient for `dvol rm` command.
 
 delete a volume, along with all its branches and commits.
 only works if there are no containers using the volume at time of query.
@@ -190,7 +192,7 @@ response:
 
 # POST /v1/volumes/1bcdef/branches
 
-sufficient for ``dvol checkout -b` command.
+sufficient for `dvol checkout -b` command.
 
 create a new branch from an (optional) given commit
 
@@ -221,7 +223,7 @@ if fromCommit is null then the working copy is created empty, otherwise, it is c
 
 # POST /v1/volumes/1bcdef/branches/3bcdef/reset
 
-sufficient for ``dvol reset`` command.
+sufficient for `dvol reset` command.
 
 reset a branch and its working copy to a given commit.
 
