@@ -98,6 +98,11 @@ skip_if_go_version = skipIf(
     "Not expected to work in go version"
 )
 
+skip_if_python_version = skipIf(
+    not TEST_DVOL_BINARY,
+    "Not expected to work in Python version"
+)
+
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -156,9 +161,6 @@ class VoluminousTests(TestCase):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
-        header, rest = self._parse_list_output(dvol)
-        self.assertEqual(sorted(rest), sorted([["foo", "master"], ["*", "bar", "master"]]))
         self.assertEqual(
             json.loads(self.tmpdir.child("current_volume.json").getContent()),
             dict(current_volume="bar")
@@ -168,12 +170,8 @@ class VoluminousTests(TestCase):
             json.loads(self.tmpdir.child("current_volume.json").getContent()),
             dict(current_volume="foo")
         )
-        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
-        header, rest = self._parse_list_output(dvol)
-        self.assertEqual(sorted(rest), sorted([["*", "foo", "master"], ["bar", "master"]]))
-    if TEST_DVOL_BINARY:
-        test_switch_active_volume.todo = "not expected to work in go version"
 
+    @skip_if_python_version
     def test_switch_volume_does_not_exist(self):
         """
         ``dvol switch`` should give a meaningful error message if the
@@ -196,7 +194,10 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "foo"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "baz"])
-        # TODO: assert active volume is baz
+        self.assertEqual(
+            json.loads(self.tmpdir.child("current_volume.json").getContent()),
+            dict(current_volume="baz")
+        )
 
     @skip_if_go_version
     def test_commit_no_message_raises_error(self):
