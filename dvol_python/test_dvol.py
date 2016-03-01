@@ -123,7 +123,7 @@ class VoluminousTests(TestCase):
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
         except CalledProcessErrorWithOutput, error:
-            self.assertTrue(error.original.output, expected_output)
+            self.assertTrue(error.original.output.rstrip(), expected_output)
             self.assertTrue(error.original.returncode != 0)
 
     def _parse_list_output(self, dvol):
@@ -162,6 +162,20 @@ class VoluminousTests(TestCase):
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
         header, rest = self._parse_list_output(dvol)
         self.assertEqual(sorted(rest), sorted([["*", "foo", "master"], ["bar", "master"]]))
+    if TEST_DVOL_BINARY:
+        test_switch_active_volume.todo = "not expected to work in go version"
+
+    def test_switch_volume_does_not_exist(self):
+        """
+        ``dvol switch`` should give a meaningful error message if the
+        volume we try to switch to doesn't exist.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "bar"]) 
+        except CalledProcessErrorWithOutput, error:
+            self.assertEqual(error.original.output.rstrip(), "Error: bar does not exist")
 
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
