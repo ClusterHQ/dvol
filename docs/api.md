@@ -189,7 +189,8 @@ only works if there are no containers using the volume at time of query.
 
 response:
 
-200 OK
+* 400 not found
+* 200 OK
 
 # POST /v1/volumes/1bcdef/branches
 
@@ -213,8 +214,8 @@ or
 
 responses:
 
-400 commit does not exist in this volume
-200 OK
+* 400 commit does not exist in this volume
+* 200 OK
 
 a writeable working copy is created for the branch.
 
@@ -241,6 +242,6 @@ request:
 
 responses:
 
-400 commit not found
-400 commit does not belong to this branch
-200 OK
+* 400 commit not found
+* 400 commit does not belong to this branch
+* 200 OK
