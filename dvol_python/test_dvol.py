@@ -184,7 +184,7 @@ class VoluminousTests(TestCase):
         except CalledProcessErrorWithOutput, error:
             self.assertEqual(error.original.output.rstrip(), "Error: bar does not exist")
 
-    def test_created_volume_active_after_switch(self)
+    def test_created_volume_active_after_switch(self):
         """
         After we have used ``dvol switch`` to switch volume, ``dvol init``
         should be able to set the active volume to the one just created.
