@@ -32,9 +32,9 @@ func setActiveVolume(basePath, volumeName string) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.Encode(currentVolumeContent)
-	file.Sync()
 	return nil
 }
 
