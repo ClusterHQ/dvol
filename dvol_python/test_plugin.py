@@ -14,12 +14,6 @@ expected output:
     dvol volume is created on-demand
 
 command:
-    dvol init hello2
-expected output:
-    Created volume hello2
-    Created branch hello2/master
-
-command:
     dvol commit ...
 expected behaviour:
     a container which only persists its in-memory state to disk occasionally (e.g. on shutdown) has correctly written out its state
