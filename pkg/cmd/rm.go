@@ -60,13 +60,13 @@ func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	}
 	if forceRemoveVolume || userIsSure("This will remove all containers using the volume") {
 		s := fmt.Sprintf("Deleting volume '%s'", volumeName)
-		fmt.Println(out, s)
+		fmt.Fprintln(out, s)
 		err := datalayer.RemoveVolume(basePath, volumeName)
 		if err != nil {
 			return fmt.Errorf("Error removing volume")
 		}
 	} else {
-		fmt.Println(out, "Aborting.")
+		fmt.Fprintln(out, "Aborting.")
 	}
 	return nil
 }

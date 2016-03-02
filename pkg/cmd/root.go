@@ -57,7 +57,7 @@ func init() {
 	// cobra.OnInitialize(initConfig)
 	// TODO support: dvol -p <custom_path> init <volume_name>
 	RootCmd.AddCommand(NewCmdInit())
-	RootCmd.AddCommand(NewCmdRm(os.Stdin))
+	RootCmd.AddCommand(NewCmdRm(os.Stdout))
 	RootCmd.AddCommand(cmdSwitch)
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
