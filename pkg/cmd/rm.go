@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -27,39 +28,45 @@ func userIsSure(extraMessage string) bool {
 	return false
 }
 
-func NewCmdRm() *cobra.Command {
+func NewCmdRm(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		// TODO: Improve the usage string to include a volume name to remove
 		Use:   "rm",
 		Short: "Destroy a dvol volume",
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				fmt.Println("Please specify a volume name.")
+			err := removeVolume(cmd, args, out)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)
-			}
-			volumeName := args[0]
-			if !datalayer.ValidVolumeName(volumeName) {
-				fmt.Println("Error: " + volumeName + " is not a valid name")
-				os.Exit(1)
-			}
-			if !datalayer.VolumeExists(basePath, volumeName) {
-				msg := fmt.Sprintf("Volume '%s' does not exist, cannot remove it", volumeName)
-				fmt.Println(msg)
-				os.Exit(1)
-			}
-			if forceRemoveVolume || userIsSure("This will remove all containers using the volume") {
-				s := fmt.Sprintf("Deleting volume '%s'", volumeName)
-				fmt.Println(s)
-				err := datalayer.RemoveVolume(basePath, volumeName)
-				if err != nil {
-					fmt.Println("Error removing volume")
-					os.Exit(1)
-				}
-			} else {
-				fmt.Println("Aborting.")
 			}
 		},
 	}
 	cmd.Flags().BoolVarP(&forceRemoveVolume, "force", "f", false, "Force remove")
 	return cmd
+}
+
+func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
+
+	if len(args) == 0 {
+		return fmt.Errorf("Please specify a volume name.")
+	}
+	volumeName := args[0]
+	if !datalayer.ValidVolumeName(volumeName) {
+		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
+	}
+	if !datalayer.VolumeExists(basePath, volumeName) {
+		msg := fmt.Sprintf("Volume '%s' does not exist, cannot remove it", volumeName)
+		return fmt.Errorf(msg)
+	}
+	if forceRemoveVolume || userIsSure("This will remove all containers using the volume") {
+		s := fmt.Sprintf("Deleting volume '%s'", volumeName)
+		fmt.Println(out, s)
+		err := datalayer.RemoveVolume(basePath, volumeName)
+		if err != nil {
+			return fmt.Errorf("Error removing volume")
+		}
+	} else {
+		fmt.Println(out, "Aborting.")
+	}
+	return nil
 }

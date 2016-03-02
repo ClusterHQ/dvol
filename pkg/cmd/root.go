@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +26,7 @@ func init() {
 	// cobra.OnInitialize(initConfig)
 	// TODO support: dvol -p <custom_path> init <volume_name>
 	RootCmd.AddCommand(NewCmdInit())
-	RootCmd.AddCommand(NewCmdRm())
+	RootCmd.AddCommand(NewCmdRm(os.Stdin))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
