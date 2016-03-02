@@ -46,3 +46,10 @@ python-bootstrap: venv
 
 venv:
 	test -d venv || virtualenv venv
+
+memorydiskserverdockerimage:
+	mkdir -p memorydiskserver-build
+	go build memorydiskserver.go
+	mv memorydiskserver memorydiskserver-build/
+	cp Dockerfile.memorydiskserver memorydiskserver-build/Dockerfile
+	cd memorydiskserver-build && docker build -t clusterhq/memorydiskserver .
