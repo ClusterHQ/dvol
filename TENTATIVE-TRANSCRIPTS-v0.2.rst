@@ -403,7 +403,7 @@ pull with divergence in a working copy
 .. note::
 
     (Luke) This needs more thought.
-    Currently there's no way to detect whether a working copy has diverged or not, because we never actually look at the data.
+    Currently there's no way to detect whether a working copy has diverged or not (XXX Yes there is.  -Jean-Paul), because we never actually look at the data.
     I suggest the behaviour could be that pulls always clobber local changes, with appropriate warning/prompts.
     Alternatively, we could mark a volume as "dirty" if a container is ever started on it.
     Then we could only warn/prompt users in that case.
