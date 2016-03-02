@@ -17,3 +17,34 @@ package main
 //
 // this application can be built and copied into a docker image "FROM scratch"
 // (which involves no network operation)
+
+import (
+    "fmt"
+    "net/http"
+)
+
+func getHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+}
+
+//func setHandler(w http.ResponseWriter, r *http.Request) {
+//    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+//}
+
+//func signalHandler(chan c) {
+//    // block until we receive a SIGTERM
+//    s := <-c
+//    writeIntegerToDisk()
+//    os.Exit(0)
+//}
+
+func main() {
+    http.HandleFunc("/get", getHandler)
+    //http.HandleFunc("/set", setHandler)
+
+//    c := make(chan os.Signal, 1)
+//    signal.Notify(c, os.Interrupt)
+//    go signalHandler(c)
+
+    http.ListenAndServe(":8080", nil)
+}
