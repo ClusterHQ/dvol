@@ -189,8 +189,10 @@ Axes for consideration:
 
 * Jean-Paul & Luke's best guess (a2 & c3 now [milestone 1], a1 & c4 later [milestone 2]) b2x
 
-b2x. Set up aliases in the clone (or init) command
-**************************************************
+b2x. Set local names in the clone command
+*****************************************
+
+Note: ``init`` always sets a local name.
 
 transcript::
 
@@ -208,7 +210,7 @@ milestone 1: pull entire volume all the time
 
 ``dvol pull`` option:
 
-c3. All of one owner's volume's branchs (All of one volume)
+c3. All of one owner's volume's branches (All of one volume)
 
 a2. Download metadata and data together
 ***************************************
@@ -221,12 +223,13 @@ transcript::
     % dvol list
     VOLUME
     project_b/mysql
-    % dvol list-branches
+    % dvol branch
     BRANCH                                            DATA LOCAL
     jean-paul@clusterhq.com/project_b/mysql/master    yes
     jean-paul@clusterhq.com/project_b/mysql/testing   yes
     $
 
+Note: UI may not need to have "DATA LOCAL" column until it's possible to have metadata for data which isn't local.
 
 milestone 2: clone copies metadata, then user can choose what data to actually pull
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -241,15 +244,21 @@ a1. Download metadata by itself
 transcript::
 
     % dvol login
-    $ dvol get-metadata jean-paul@clusterhq.com/project_b/mysql
+    $ dvol clone jean-paul@clusterhq.com/project_b/mysql
     <completes quickly>
     % dvol list
     VOLUME
     project_b/mysql
-    % dvol list-branches
+    % dvol branch
     BRANCH                                            DATA LOCAL
     jean-paul@clusterhq.com/project_b/mysql/master    no
-    jean-paul@clusterhq.com/project_b/mysql/testing   yes
+    jean-paul@clusterhq.com/project_b/mysql/testing   no
+    % dvol pull jean-paul@clusterhq.com/project_b/master
+    <completes somewhat slowly>
+    % dvol branch
+    BRANCH                                            DATA LOCAL
+    jean-paul@clusterhq.com/project_b/mysql/master    yes
+    jean-paul@clusterhq.com/project_b/mysql/testing   no
     $
 
 
@@ -360,7 +369,7 @@ a. transript::
 
 b. alternative, guide the user in using git style commands to resolve conflict::
 
-    $ dvol push my_authn_db
+    $ dvol pull my_authn_db
     Unable to push, your local tree has diverged from the remote.
     There are 3 local commits and 2 remote commits.
     You can resolve this by "renaming" your current branch:
@@ -378,6 +387,14 @@ b. alternative, guide the user in using git style commands to resolve conflict::
    At best, you have to use ``push --force`` and everyone else has to sort out the resulting problems individually.
    No one has proposed supporting a ``dvol push --force`` so if you ever use ``dvol reset --hard HEAD^`` then you're not likely to be able to push.
    The only case where this **could** work as specified is if you haven't pushed the thing you're resetting yet.
+
+   (Luke)
+   In the current model, you're right: you'd never be able to push a branch which had diverged from the hub.
+   For this iteration however I believe that having to rename your local branch before pushing is sufficient.
+   Resolving conflicts locally in this way is probably fine.
+   The system should be smart enough not to have to re-upload all the common commits.
+   IMO, we don't know enough about how people are going to use branches and commits for data management to know if this *isn't* going to be sufficient.
+   I don't want to support ``dvol push --force`` yet because it forces a problem on all other pullers of the branch.
 
 
 pull with divergence in a working copy
