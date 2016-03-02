@@ -10,6 +10,9 @@ language: go
 go: 1.6
 sudo: required
 
+services:
+  - docker
+
 cache:
   directories:
     # Cache the pip downloads to try to speed up installation.  There might be
@@ -17,6 +20,8 @@ cache:
     - "$HOME/.cache/pip"
 
 before_install:
+  # Preinstall a docker image which is used in the integration tests.
+  - "docker pull busybox"
   # Get packaging tools that can use and cache wheels.
   - "pip install --user `whoami` --upgrade pip>=7"
   - "pip install --user `whoami` wheel"
