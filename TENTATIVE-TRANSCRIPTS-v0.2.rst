@@ -406,8 +406,8 @@ transcript::
     No new commits on remote, doing nothing.
     $
 
-new commits on remote
-^^^^^^^^^^^^^^^^^^^^^
+new commits on remote cause local data to be discarded
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 a. always warn::
 
@@ -424,6 +424,28 @@ b. warn if dirty::
     Working copy clean (no containers started).
     Pulling... done.
     $
+
+c. create a new volume to hold the locally diverged state::
+
+   $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+   Local changes in working tree saved in new working tree "imaginary/pgsql_authn-20160302T162113.0".
+   Pulling... done.
+   $
+
+d. create a new commit in a new variant to hold the locally diverged state::
+
+   $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+   Local changes in working tree saved in new variant "testing-workingtree-20160302T162113.0".
+   Pulling... done.
+   $
+
+e. merge above::
+
+   $ dvol pull jean-paul.calderone@clusterhq.com/imaginary/pgsql_authn
+   Working tree contains modifications.
+   Pull anyway ((n)o, (d)estroy modifications, save in new (v)olume, save in new (c)ommit)?
+   ...
+
 
 submit feedback
 ~~~~~~~~~~~~~~~
