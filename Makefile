@@ -48,8 +48,9 @@ venv:
 	test -d venv || virtualenv venv
 
 memorydiskserverdockerimage:
+	# XXX only works on Linux 64bit host
 	mkdir -p memorydiskserver-build
-	go build memorydiskserver.go
+	CGO_ENABLED=0 go build -a -ldflags '-s' memorydiskserver.go
 	mv memorydiskserver memorydiskserver-build/
 	cp Dockerfile.memorydiskserver memorydiskserver-build/Dockerfile
 	cd memorydiskserver-build && docker build -t clusterhq/memorydiskserver .
