@@ -20,6 +20,7 @@ cache:
     - "$HOME/.cache/pip"
 
 before_install:
+  - "docker version"
   # Get packaging tools that can use and cache wheels.
   - "pip install --user `whoami` --upgrade pip>=7"
   - "pip install --user `whoami` wheel"
