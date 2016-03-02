@@ -20,10 +20,6 @@ cache:
     - "$HOME/.cache/pip"
 
 before_install:
-  # Preinstall a docker image which is used in the integration tests.
-  # TODO: Put the image as a blob in the repo, so that we don't depend on
-  # docker hub being up in our tests.
-  - "docker pull busybox"
   # Get packaging tools that can use and cache wheels.
   - "pip install --user `whoami` --upgrade pip>=7"
   - "pip install --user `whoami` wheel"
