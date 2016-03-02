@@ -1,4 +1,3 @@
-
 PHONY: build test verify bootstrap go-bootstrap python-bootstrap
 
 build:
