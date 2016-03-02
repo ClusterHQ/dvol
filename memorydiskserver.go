@@ -46,5 +46,5 @@ func main() {
 //    signal.Notify(c, os.Interrupt)
 //    go signalHandler(c)
 
-    http.ListenAndServe(":8080", nil)
+    http.ListenAndServe(":80", nil)
 }

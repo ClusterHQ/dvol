@@ -20,7 +20,6 @@ cache:
     - "$HOME/.cache/pip"
 
 before_install:
-  - "docker version"
   # Get packaging tools that can use and cache wheels.
   - "pip install --user `whoami` --upgrade pip>=7"
   - "pip install --user `whoami` wheel"
@@ -29,7 +28,14 @@ install:
   - "pip install --user `whoami` ."
   - "make bootstrap"
 
+env:
+  # Each of the following results in a separate build run
+  # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
+  - "RUN_TESTS=test" # ie, unit tests only
+  - "RUN_TESTS=test-dvol-python-acceptance"
+  - "RUN_TESTS=test-dvol-golang-acceptance"
+
 script:
   - "make verify"
   - "make build"
-  - "make test"
+  - "make $RUN_TESTS"

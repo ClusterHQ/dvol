@@ -18,7 +18,7 @@ RUN         apt-get -qy update && \
 RUN         pip install docker-py
 
 ADD         setup.py README.md /app/
-ADD         dvol/* /app/dvol/
+ADD         dvol_python/* /app/dvol_python/
 
 WORKDIR     /app
 
