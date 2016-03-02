@@ -391,6 +391,12 @@ pull with divergence in a working copy
     Alternatively, we could mark a volume as "dirty" if a container is ever started on it.
     Then we could only warn/prompt users in that case.
 
+    (Jean-Paul & Itamar)
+    How many databases generate writes immediately upon startup, even with no application-level changes?
+    Does this mean there will _always_ apparently be divergences in a working copy, but the diverged local state will frequently be irrelevant?
+    How frequently?
+    Does this make a difference to how we design the model or the UI?
+
 no update
 ^^^^^^^^^
 
