@@ -28,11 +28,11 @@ func TestSwitchVolume(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create TempDir: %s\n", err)
 	}
-	err := SwitchVolume(basePath, currentVolume)
+	err = SwitchVolume(basePath, currentVolume)
 	if err != nil {
 		t.Errorf("SwitchVolume failed: %s\n", err)
 	}
-	activeVolume, err := ActiveVolume()
+	activeVolume, err := ActiveVolume(basePath)
 	if err != nil {
 		t.Error("Could not find ActiveVolume")
 	}
