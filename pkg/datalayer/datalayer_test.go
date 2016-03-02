@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	"io/ioutil"
 	"testing"
 )
 
@@ -18,5 +19,24 @@ func TestValidVolumeName(t *testing.T) {
 		if !ValidVolumeName(good) {
 			t.Error(good + " is a valid volume name, but it failed ValidVolumeName")
 		}
+	}
+}
+
+func TestSwitchVolume(t *testing.T) {
+	currentVolume := "foo"
+	basePath, err := ioutil.TempDir("", "switch")
+	if err != nil {
+		t.Errorf("Could not create TempDir: %s\n", err)
+	}
+	err = SwitchVolume(basePath, currentVolume)
+	if err != nil {
+		t.Errorf("SwitchVolume failed: %s\n", err)
+	}
+	activeVolume, err := ActiveVolume(basePath)
+	if err != nil {
+		t.Error("Could not find ActiveVolume")
+	}
+	if activeVolume != "foo" {
+		t.Errorf("%s is not equal to 'foo'", activeVolume)
 	}
 }
