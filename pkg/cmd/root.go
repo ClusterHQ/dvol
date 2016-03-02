@@ -65,6 +65,10 @@ var cmdSwitch = &cobra.Command{
 			fmt.Println("Please specify a volume name.")
 			os.Exit(1)
 		}
+		if len(args) > 1 {
+			fmt.Println("Wrong number of arguments.")
+			os.Exit(1)
+		}
 		volumeName := args[0]
 		if !datalayer.ValidVolumeName(volumeName) {
 			fmt.Println("Error: " + volumeName + " is not a valid name")

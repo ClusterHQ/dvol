@@ -151,11 +151,11 @@ class VoluminousTests(TestCase):
 
     def test_switch_active_volume(self):
         """
-        ``dvol switch`` should switch the currently active volume displayed
-        with a ``*`` in ``dvol list`` output.
+        ``dvol switch`` should switch the currently active volume
+        stored in the current_volume.json file.
 
-        Assert both blackboxy and whiteboxy things about the implementation,
-        because we care about upgradeability (wrt on-disk format) between
+        Assert whiteboxy things about the implementation, because 
+        we care about upgradeability (wrt on-disk format) between
         different implementations.
         """
         dvol = VoluminousOptions()

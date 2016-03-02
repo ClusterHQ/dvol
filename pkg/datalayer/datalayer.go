@@ -23,7 +23,7 @@ func VolumeExists(basePath string, volumeName string) bool {
 }
 
 func ActiveVolume(basePath string) (string, error) {
-	currentVolumeJsonPath := filepath.FromSlash(basePath + "/" + "current_volume.json")
+	currentVolumeJsonPath := filepath.FromSlash(basePath + "/current_volume.json")
 	file, err := os.Open(currentVolumeJsonPath)
 	if err != nil {
 		return "", err
@@ -39,7 +39,7 @@ func ActiveVolume(basePath string) (string, error) {
 }
 
 func setActiveVolume(basePath, volumeName string) error {
-	currentVolumeJsonPath := filepath.FromSlash(basePath + "/" + "current_volume.json")
+	currentVolumeJsonPath := filepath.FromSlash(basePath + "/current_volume.json")
 	currentVolumeContent := map[string]string{
 		"current_volume": volumeName,
 	}
@@ -61,11 +61,7 @@ func CreateVolume(basePath string, volumeName string) error {
 	if err != nil {
 		return err
 	}
-	err = setActiveVolume(basePath, volumeName)
-	if err != nil {
-		return err
-	}
-	return nil
+	return setActiveVolume(basePath, volumeName)
 }
 
 func CreateVariant(basePath, volumeName, variantName string) error {
