@@ -244,7 +244,7 @@ a1. Download metadata by itself
 transcript::
 
     % dvol login
-    $ dvol get-metadata jean-paul@clusterhq.com/project_b/mysql
+    $ dvol clone jean-paul@clusterhq.com/project_b/mysql
     <completes quickly>
     % dvol list
     VOLUME
@@ -252,7 +252,13 @@ transcript::
     % dvol branch
     BRANCH                                            DATA LOCAL
     jean-paul@clusterhq.com/project_b/mysql/master    no
-    jean-paul@clusterhq.com/project_b/mysql/testing   yes
+    jean-paul@clusterhq.com/project_b/mysql/testing   no
+    % dvol pull jean-paul@clusterhq.com/project_b/master
+    <completes somewhat slowly>
+    % dvol branch
+    BRANCH                                            DATA LOCAL
+    jean-paul@clusterhq.com/project_b/mysql/master    yes
+    jean-paul@clusterhq.com/project_b/mysql/testing   no
     $
 
 
