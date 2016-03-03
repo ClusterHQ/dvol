@@ -4,29 +4,12 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
 	"github.com/spf13/cobra"
 )
 
 var forceRemoveVolume bool
-
-func userIsSure(extraMessage string) bool {
-	message := fmt.Sprintf("Are you sure? %s (y/n): ", extraMessage)
-	fmt.Print(message)
-	var response string
-	_, err := fmt.Scanln(&response)
-	if err != nil {
-		fmt.Println("Error reading response.")
-		return false
-	}
-	response = strings.ToLower(response)
-	if response == "y" || response == "yes" {
-		return true
-	}
-	return false
-}
 
 func NewCmdRm(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -47,11 +30,9 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 
 func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 
-	if len(args) == 0 {
-		return fmt.Errorf("Please specify a volume name.")
-	}
-	if len(args) > 1 {
-		return fmt.Errorf("Wrong number of arguments.")
+	err := checkVolumeArgs(args)
+	if err != nil {
+		return err
 	}
 	volumeName := args[0]
 	if !datalayer.ValidVolumeName(volumeName) {
@@ -64,7 +45,7 @@ func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	if forceRemoveVolume || userIsSure("This will remove all containers using the volume") {
 		s := fmt.Sprintf("Deleting volume '%s'", volumeName)
 		fmt.Fprintln(out, s)
-		err := datalayer.RemoveVolume(basePath, volumeName)
+		err = datalayer.RemoveVolume(basePath, volumeName)
 		if err != nil {
 			return fmt.Errorf("Error removing volume")
 		}

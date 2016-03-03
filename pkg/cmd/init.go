@@ -25,8 +25,9 @@ func NewCmdInit(out io.Writer) *cobra.Command {
 }
 
 func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
-	if len(args) == 0 {
-		return fmt.Errorf("Please specify a volume name.")
+	err := checkVolumeArgs(args)
+	if err != nil {
+		return err
 	}
 	volumeName := args[0]
 	if !datalayer.ValidVolumeName(volumeName) {
@@ -35,7 +36,7 @@ func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	if datalayer.VolumeExists(basePath, volumeName) {
 		return fmt.Errorf("Error: volume " + volumeName + " already exists")
 	}
-	err := datalayer.CreateVolume(basePath, volumeName)
+	err = datalayer.CreateVolume(basePath, volumeName)
 	if err != nil {
 		return fmt.Errorf("Error creating volume")
 	}

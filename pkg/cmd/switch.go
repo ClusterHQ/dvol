@@ -26,11 +26,9 @@ func NewCmdSwitch(out io.Writer) *cobra.Command {
 
 func switchVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 
-	if len(args) == 0 {
-		return fmt.Errorf("Please specify a volume name.")
-	}
-	if len(args) > 1 {
-		return fmt.Errorf("Wrong number of arguments.")
+	err := checkVolumeArgs(args)
+	if err != nil {
+		return err
 	}
 	volumeName := args[0]
 	if !datalayer.ValidVolumeName(volumeName) {
@@ -39,7 +37,7 @@ func switchVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	if !datalayer.VolumeExists(basePath, volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " does not exist")
 	}
-	err := datalayer.SwitchVolume(basePath, volumeName)
+	err = datalayer.SwitchVolume(basePath, volumeName)
 	if err != nil {
 		return fmt.Errorf("Error switching volume")
 	}
