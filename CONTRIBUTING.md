@@ -1,18 +1,20 @@
-Developing DVOL
+Developing dvol
 ---------------
 
-If you wish to work on DVOL, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.6+ is *required*).
+If you wish to work on dvol, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.6+ is *required*).
 
-For local dev first make sure Go is properly installed, including setting up a [GOPATH](http://golang.org/doc/code.html#GOPATH). You will also need to add `$GOPATH/bin` to your `$PATH`.
+For local dev, firstly make sure Go is properly installed, including setting up a [GOPATH](http://golang.org/doc/code.html#GOPATH).
+You will also need to add `$GOPATH/bin` to your `$PATH`.
 
-
-Next, using [Git](https://git-scm.com/), clone this repository into `$GOPATH/src/github.com/ClusterHQ/dvol`. All the necessary Golang dependencies are vendored, however you will need to install some Python dependancies and Golang tools -
+Next, clone this repository using [Git](https://git-scm.com/), into `$GOPATH/src/github.com/ClusterHQ/dvol`.
+All the necessary Golang dependencies are vendored. 
+However, you will need to install some Python dependancies and Golang tools -
 
 ```sh
 $ make bootstrap
 ```
 
-To compile DVOL -
+To compile dvol -
 
 ```sh
 $ make build
@@ -26,17 +28,19 @@ $ make test
 
 ### Dependencies
 
-Dvol stores its dependencies under `vendor/`, which [Go 1.6+ will automatically recognize and load](https://golang.org/cmd/go/#hdr-Vendor_Directories). We use [`godep`](https://github.com/tools/godep) to manage the vendored dependencies.
+Dvol stores its dependencies under `vendor/`, which [Go 1.6+ will automatically recognize and load](https://golang.org/cmd/go/#hdr-Vendor_Directories).
+We use [`godep`](https://github.com/tools/godep) to manage the vendored dependencies.
 
-If you're developing DVOL, there are a few tasks you might need to perform.
+If you're developing dvol, there are a few tasks you might need to perform.
 
 #### Adding a dependency
 
-If you're adding a dependency. You'll need to vendor it in the same Pull Request as the code that depends on it. You should do this in a separate commit from your code, as makes PR review easier and Git history simpler to read in the future.
+If you're adding a dependency, you'll need to vendor it in the same Pull Request as the code that depends on it.
+You should do this in a separate commit from your code, as it makes PR review easier and Git history simpler to read in the future.
 
 Because godep captures new dependencies from the local `$GOPATH`, you first need to `godep restore` from the master branch to ensure that the only diff is your new dependency.
 
-Assuming your work is on a branch called `my-feature-branch`, the steps look like this:
+Assuming your work is on a branch called `my-feature-branch`, the steps will look like this:
 
 ```bash
 # Get latest master branch's dependencies staged in local $GOPATH
