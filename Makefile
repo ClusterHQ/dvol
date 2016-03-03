@@ -47,17 +47,16 @@ venv:
 	test -d venv || virtualenv venv
 
 memorydiskserver-docker-image:
-	# XXX only generates viable image on Linux 64bit host
 	mkdir -p memorydiskserver-build
-	CGO_ENABLED=0 go build -a -ldflags '-s' memorydiskserver.go
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' memorydiskserver.go
 	mv memorydiskserver memorydiskserver-build/
 	cp Dockerfile.memorydiskserver memorydiskserver-build/Dockerfile
 	cd memorydiskserver-build && docker build -t clusterhq/memorydiskserver .
 
 dvol-golang-docker-image:
 	mkdir -p dvol-build
-	CGO_ENABLED=0 go build -a -ldflags '-s' dvol.go
-	CGO_ENABLED=0 go build -a -ldflags '-s' dvol-docker-plugin.go
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' dvol.go
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' dvol-docker-plugin.go
 	mv dvol dvol-build/
 	mv dvol-docker-plugin dvol-build/
 	cp Dockerfile.dvol-golang dvol-build/Dockerfile

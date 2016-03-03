@@ -1,0 +1,6 @@
+FROM scratch
+ADD dvol /
+ADD dvol-docker-plugin /
+ENV PATH /
+CMD ["/dvol-docker-plugin"]
+VOLUME ["/var/lib/dvol"]
