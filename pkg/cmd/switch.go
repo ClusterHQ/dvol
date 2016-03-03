@@ -9,12 +9,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmdSwitch() *cobra.Command {
+func NewCmdSwitch(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "switch",
 		Short: "Switch active volume for commands below (commit, log etc)",
 		Run: func(cmd *cobra.Command, args []string) {
-			switchVolume(cmd, args, os.Stdout)
+			err := switchVolume(cmd, args, out)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err.Error())
+				os.Exit(1)
+			}
 		},
 	}
 	return cmd
@@ -23,26 +27,21 @@ func NewCmdSwitch() *cobra.Command {
 func switchVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 
 	if len(args) == 0 {
-		fmt.Println("Please specify a volume name.")
-		os.Exit(1)
+		return fmt.Errorf("Please specify a volume name.")
 	}
 	if len(args) > 1 {
-		fmt.Println("Wrong number of arguments.")
-		os.Exit(1)
+		return fmt.Errorf("Wrong number of arguments.")
 	}
 	volumeName := args[0]
 	if !datalayer.ValidVolumeName(volumeName) {
-		fmt.Println("Error: " + volumeName + " is not a valid name")
-		os.Exit(1)
+		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
 	}
 	if !datalayer.VolumeExists(basePath, volumeName) {
-		fmt.Println("Error: " + volumeName + " does not exist")
-		os.Exit(1)
+		return fmt.Errorf("Error: " + volumeName + " does not exist")
 	}
 	err := datalayer.SwitchVolume(basePath, volumeName)
 	if err != nil {
-		fmt.Println("Error switching volume")
-		os.Exit(1)
+		return fmt.Errorf("Error switching volume")
 	}
 	return nil
 }
