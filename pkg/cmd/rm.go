@@ -50,6 +50,9 @@ func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	if len(args) == 0 {
 		return fmt.Errorf("Please specify a volume name.")
 	}
+	if len(args) > 1 {
+		return fmt.Errorf("Wrong number of arguments.")
+	}
 	volumeName := args[0]
 	if !datalayer.ValidVolumeName(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
