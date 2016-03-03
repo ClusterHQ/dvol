@@ -523,3 +523,31 @@ class VoluminousTests(TestCase):
         # new still exists because it's referenced in another branch
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertTrue(volume.child("commits").child(newCommit).exists())
+
+    def test_remove_volume(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+            "Deleting volume 'foo'")
+        self.assertFalse(self.tmpdir.child("foo").exists())
+
+    def test_remove_volume_does_not_exist(self):
+        dvol = VoluminousOptions()
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
+        self.assertIn("Volume 'foo' does not exist, cannot remove it", output)
+        self.assertFalse(self.tmpdir.child("foo").exists())
+
+    def test_remove_volume_path_separator(self):
+        dvol = VoluminousOptions()
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo/bar"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
+        self.assertIn("Error", output)
+        self.assertIn("foo/bar", output)

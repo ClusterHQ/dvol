@@ -64,6 +64,11 @@ func CreateVolume(basePath string, volumeName string) error {
 	return setActiveVolume(basePath, volumeName)
 }
 
+func RemoveVolume(basePath string, volumeName string) error {
+	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
+	return os.RemoveAll(volumePath)
+}
+
 func CreateVariant(basePath, volumeName, variantName string) error {
 	// XXX Variants are meant to be tagged commits???
 	variantPath := filepath.FromSlash(basePath + "/" + volumeName + "/branches/master")
