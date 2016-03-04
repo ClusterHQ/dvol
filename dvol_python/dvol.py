@@ -61,6 +61,8 @@ class EmptyContainers(object):
     def get_related_containers(self, volume):
         return []
 
+    def remove_related_containers(self, volume):
+        pass
 
 class NullLock(object):
     containers = EmptyContainers()
@@ -197,15 +199,20 @@ class Voluminous(object):
         self.output("Created volume %s" % (name,))
         self.createBranch(name, DEFAULT_BRANCH)
 
-    def removeVolume(self, volume):
-        if not self._directory.child(volume).exists():
-            raise UsageError("Volume %r does not exist, cannot remove it" %
-                    (volume,))
+    def removeVolume(self, volume, force=False):
+        try:
+            if not self._directory.child(volume).exists():
+                self.output("Volume %r does not exist, cannot remove it" %
+                        (volume,))
+                return
+        except InsecurePath:
+            self.output("Error: %s is not a valid name" % (volume,))
+            return
         containers = self.lock.containers.get_related_containers(volume)
         if containers:
             raise UsageError("Cannot remove %r while it is in use by '%s'" %
                     (volume, (",".join(c['Name'] for c in containers))))
-        if self._userIsSure("This will remove all containers using the volume"):
+        if force or self._userIsSure("This will remove all containers using the volume"):
             self.output("Deleting volume %r" % (volume,))
             # Remove related containers
             self.lock.containers.remove_related_containers(volume)
@@ -568,11 +575,17 @@ class RemoveOptions(Options):
     """
     Entirely destroy a volume.
     """
+    optFlags = [
+        ["force", "f", "Force remove"],
+        ]
+
+    synopsis = "<force>"
+    
     def parseArgs(self, volume):
         self.volume = volume
 
     def run(self, voluminous):
-        voluminous.removeVolume(self.volume)
+        voluminous.removeVolume(self.volume, force=self["force"])
 
 class VoluminousOptions(Options):
     """
