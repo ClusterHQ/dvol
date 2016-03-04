@@ -56,7 +56,7 @@ godep save ./...
 # and changes in Godeps/Godeps.json with metadata for your dependency.
 
 # Make a commit with your new dependencies added
-git add -A
+git add {new files in my vendor folder}
 git commit -m "vendor: Capture new dependency upstream-pkg"
 
 # Push to your branch (may need -f if you rebased)
