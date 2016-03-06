@@ -23,8 +23,10 @@ import (
     "net/http"
 )
 
+var theValue string
+
 func getHandler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+    fmt.Fprintf(w, "Value: %s", theValue)
 }
 
 //func setHandler(w http.ResponseWriter, r *http.Request) {

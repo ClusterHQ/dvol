@@ -21,6 +21,12 @@ from os import environ
 
 DVOL = "/usr/local/bin/dvol"
 
+def get(*args, **kw):
+    response = requests.get(*args, **kw)
+    if response.status_code != 200:
+        raise Exception("Not 200: %s" % (response,))
+    return response
+
 def docker_host():
     return environ.get("DOCKER_HOST").split("://")[1].split(":")[0]
 
@@ -83,9 +89,9 @@ class VoluminousTests(TestCase):
             "-p", "8080:80", "clusterhq/memorydiskserver"
         ])
         wait_for_server = try_until(
-            lambda: requests.get("http://" + docker_host() + ":8080/get")
+            lambda: get("http://" + docker_host() + ":8080/get")
         )
-        self.assertEqual(wait_for_server.content, "Hi there, I love get!")
+        self.assertEqual(wait_for_server.content, "Value: ")
         cleanup()
 
     def test_docker_run_dvol_creates_volumes(self):
@@ -161,6 +167,31 @@ class VoluminousTests(TestCase):
         try_until(dvol_list_includes_container_names)
         cleanup()
 
+    def test_docker_run_roundtrip_value(self):
+        def cleanup():
+            run(["docker", "rm", "-f", "memorydiskserver"])
+        try:
+            cleanup()
+        except:
+            pass
+        run([
+            "docker", "run", "--name", "memorydiskserver", "-d",
+            "-p", "8080:80", "clusterhq/memorydiskserver"
+        ])
+        for value in ("10", "20"):
+            # Running test with multiple values forces container to persist it
+            # in memory (rather than hard-coding the response to make the test
+            # pass).
+            try_until(
+                lambda: get(
+                    "http://" + docker_host() + ":8080/set?value=%s" % (value,)
+                )
+            )
+            getting_value = try_until(
+                lambda: get("http://" + docker_host() + ":8080/get")
+            )
+            self.assertEqual(getting_value.content, "Value: %s" % (value,))
+        cleanup()
 """
 log of integration tests to write:
 
