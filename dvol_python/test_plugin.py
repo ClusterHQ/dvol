@@ -9,6 +9,7 @@ Assumes that:
 * we have access to ports on the machine
 * it's totally cool to destroy dvol volumes with certain names (including but
   not limited to memorydiskserver)
+* there are no dvol volumes on the machine
 """
 
 from twisted.trial.unittest import TestCase
@@ -23,7 +24,7 @@ DVOL = "/usr/local/bin/dvol"
 def docker_host():
     return environ.get("DOCKER_HOST").split("://")[1].split(":")[0]
 
-def retry(f, attempts=5, backoff=0.1, attempt=1):
+def try_until(f, attempts=5, backoff=0.1, attempt=1):
     """
     Synchronously, retry ``f`` every ``backoff`` * (2 ^ ``attempt``) seconds
     until it doesn't raise an exception, or we've tried ``attempts`` many
@@ -36,7 +37,7 @@ def retry(f, attempts=5, backoff=0.1, attempt=1):
         if attempt > attempts:
             raise
         time.sleep(backoff * (2 ** attempt))
-        return retry(
+        return try_until(
                 f, attempts=attempts, backoff=backoff, attempt=attempt + 1)
 
 
@@ -81,7 +82,7 @@ class VoluminousTests(TestCase):
             "docker", "run", "--name", "memorydiskserver", "-d",
             "-p", "8080:80", "clusterhq/memorydiskserver"
         ])
-        wait_for_server = retry(
+        wait_for_server = try_until(
             lambda: requests.get("http://" + docker_host() + ":8080/get")
         )
         self.assertEqual(wait_for_server.content, "Hi there, I love get!")
@@ -104,7 +105,7 @@ class VoluminousTests(TestCase):
             result = run([DVOL, "list"])
             if "memorydiskserver" not in result:
                 raise Exception("volume never showed up in result %s" % (result,))
-        retry(dvol_list_includes_memorydiskserver)
+        try_until(dvol_list_includes_memorydiskserver)
         cleanup()
 
     def test_docker_run_dvol_container_show_up_in_list_output(self):
@@ -121,11 +122,11 @@ class VoluminousTests(TestCase):
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
             "clusterhq/memorydiskserver"
         ])
-        def dvol_list_includes_memorydiskserver():
+        def dvol_list_includes_container_name():
             result = run([DVOL, "list"])
             if "/" + container not in result:
                 raise Exception("container never showed up in result %s" % (result,))
-        retry(dvol_list_includes_memorydiskserver)
+        try_until(dvol_list_includes_container_name)
         cleanup()
 
     def test_docker_run_dvol_multiple_containers_shows_up_in_list_output(self):
@@ -149,7 +150,7 @@ class VoluminousTests(TestCase):
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
             "clusterhq/memorydiskserver"
         ])
-        def dvol_list_includes_memorydiskserver():
+        def dvol_list_includes_container_names():
             result = run([DVOL, "list"])
             # Either way round is OK
             if (("/" + container1 + ",/" + container2 not in result) and
@@ -157,7 +158,7 @@ class VoluminousTests(TestCase):
                 raise Exception(
                         "containers never showed up in result %s" % (result,)
                 )
-        retry(dvol_list_includes_memorydiskserver)
+        try_until(dvol_list_includes_container_names)
         cleanup()
 
 """
