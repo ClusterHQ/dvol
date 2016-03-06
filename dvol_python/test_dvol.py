@@ -1,5 +1,5 @@
 """
-Tests for the Voluminous CLI.
+Tests for the dvol CLI.
 """
 
 from string import letters
