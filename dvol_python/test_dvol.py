@@ -238,7 +238,6 @@ class VoluminousTests(TestCase):
             "  VOLUME   BRANCH   CONTAINERS"
         )
 
-    @skip_if_go_version
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())

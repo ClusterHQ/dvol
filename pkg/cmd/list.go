@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/ClusterHQ/dvol/pkg/datalayer"
 	"github.com/spf13/cobra"
 )
 
@@ -34,9 +35,32 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 
 	// These numbers have been picked to make the tests pass and will probably need
 	// to be changed.
-	writer := tabwriter.NewWriter(out, 8, 0, 3, ' ', 0)
+	writer := tabwriter.NewWriter(out, 2, 4, 3, ' ', 0)
 	if _, err := fmt.Fprintf(writer, "%s\n", strings.Join(headers, "\t")); err != nil {
 		return err
+	}
+
+	volumes, err := datalayer.AllVolumes(basePath)
+	if err != nil {
+		return err
+	}
+
+	for _, volume := range volumes {
+		activeVolume, err := datalayer.ActiveVolume(basePath)
+		if err != nil {
+			return err
+		}
+		prefix := "  "
+		if activeVolume == volume {
+			prefix = "* "
+		}
+		variant, err := datalayer.VolumeVariant(basePath, volume)
+		if err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t\n", prefix, volume, variant); err != nil {
+			return err
+		}
 	}
 	writer.Flush()
 	return nil
