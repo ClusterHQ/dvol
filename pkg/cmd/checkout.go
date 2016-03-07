@@ -1,5 +1,14 @@
 package cmd
 
+import (
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/spf13/cobra"
+)
+
 func NewCmdCheckout(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkout",
@@ -25,5 +34,5 @@ func checkoutBranch(cmd *cobra.Command, args []string, out io.Writer) error {
 	if !datalayer.ValidName(branchName) {
 		return fmt.Errorf("Error: " + branchName + " is not a valid name")
 	}
-	return nil
+	return datalayer.CheckoutBranch(branchName)
 }

@@ -78,3 +78,7 @@ func CreateVariant(basePath, volumeName, variantName string) error {
 func SwitchVolume(basePath, volumeName string) error {
 	return setActiveVolume(basePath, volumeName)
 }
+
+func CheckoutBranch(basePath, branchName string) error {
+	return nil
+}
