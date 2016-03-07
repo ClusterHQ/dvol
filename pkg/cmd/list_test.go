@@ -2,17 +2,26 @@ package cmd
 
 import (
 	"bytes"
-	//	"io/ioutil"
+	"io/ioutil"
 	"testing"
 )
 
 func TestListNoArgs(t *testing.T) {
+	// Setup
+	originalBasePath := basePath
+	dir, _ := ioutil.TempDir("", "test")
+	basePath = dir
+
+	// Test
 	buf := bytes.NewBuffer([]byte{})
 	cmd := NewCmdList(buf)
 	err := listVolumes(cmd, []string{}, buf)
 	if err != nil {
 		t.Error("Unexpected error result with no arguments")
 	}
+
+	// Teardown
+	basePath = originalBasePath
 }
 
 func TestListWrongNumberArgs(t *testing.T) {
