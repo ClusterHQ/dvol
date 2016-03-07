@@ -7,23 +7,27 @@ import (
 	"regexp"
 )
 
-const MAX_VOLUME_NAME_LENGTH int = 40
+const MAX_NAME_LENGTH int = 40
 
 // ClusterHQ data layer, naive vfs (directory-based) implementation
 
-func ValidVolumeName(volumeName string) bool {
-	var validVolumeRegex = regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9-]*$`)
-	return validVolumeRegex.MatchString(volumeName) && len(volumeName) <= MAX_VOLUME_NAME_LENGTH
+func ValidName(name string) bool {
+	var validNameRegex = regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9-]*$`)
+	return validNameRegex.MatchString(name) && len(name) <= MAX_NAME_LENGTH
 }
 
-func VolumeExists(basePath string, volumeName string) bool {
-	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
+type DataLayer struct {
+	BasePath string
+}
+
+func (dl *DataLayer) VolumeExists(volumeName string) bool {
+	volumePath := filepath.FromSlash(dl.BasePath + "/" + volumeName)
 	_, err := os.Stat(volumePath)
 	return err == nil
 }
 
-func ActiveVolume(basePath string) (string, error) {
-	currentVolumeJsonPath := filepath.FromSlash(basePath + "/current_volume.json")
+func (dl *DataLayer) ActiveVolume() (string, error) {
+	currentVolumeJsonPath := filepath.FromSlash(dl.BasePath + "/current_volume.json")
 	file, err := os.Open(currentVolumeJsonPath)
 	if err != nil {
 		return "", err
@@ -38,8 +42,8 @@ func ActiveVolume(basePath string) (string, error) {
 	return store["current_volume"].(string), nil
 }
 
-func setActiveVolume(basePath, volumeName string) error {
-	currentVolumeJsonPath := filepath.FromSlash(basePath + "/current_volume.json")
+func (dl *DataLayer) setActiveVolume(volumeName string) error {
+	currentVolumeJsonPath := filepath.FromSlash(dl.BasePath + "/current_volume.json")
 	currentVolumeContent := map[string]string{
 		"current_volume": volumeName,
 	}
@@ -54,31 +58,31 @@ func setActiveVolume(basePath, volumeName string) error {
 	return nil
 }
 
-func CreateVolume(basePath string, volumeName string) error {
-	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
+func (dl *DataLayer) CreateVolume(volumeName string) error {
+	volumePath := filepath.FromSlash(dl.BasePath + "/" + volumeName)
 	// TODO Factor this into a data layer object.
 	err := os.MkdirAll(volumePath, 0777) // XXX SEC
 	if err != nil {
 		return err
 	}
-	return setActiveVolume(basePath, volumeName)
+	return dl.setActiveVolume(volumeName)
 }
 
-func RemoveVolume(basePath string, volumeName string) error {
-	volumePath := filepath.FromSlash(basePath + "/" + volumeName)
+func (dl *DataLayer) RemoveVolume(volumeName string) error {
+	volumePath := filepath.FromSlash(dl.BasePath + "/" + volumeName)
 	return os.RemoveAll(volumePath)
 }
 
-func CreateVariant(basePath, volumeName, variantName string) error {
+func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	// XXX Variants are meant to be tagged commits???
-	variantPath := filepath.FromSlash(basePath + "/" + volumeName + "/branches/master")
+	variantPath := filepath.FromSlash(dl.BasePath + "/" + volumeName + "/branches/master")
 	return os.MkdirAll(variantPath, 0777) // XXX SEC
 }
 
-func SwitchVolume(basePath, volumeName string) error {
-	return setActiveVolume(basePath, volumeName)
+func (dl *DataLayer) SwitchVolume(volumeName string) error {
+	return dl.setActiveVolume(volumeName)
 }
 
-func CheckoutBranch(basePath, branchName string) error {
+func (dl *DataLayer) CheckoutBranch(branchName string) error {
 	return nil
 }

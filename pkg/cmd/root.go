@@ -3,10 +3,11 @@ package cmd
 import (
 	"os"
 
+	"github.com/ClusterHQ/dvol/pkg/datalayer"
 	"github.com/spf13/cobra"
 )
 
-var basePath string
+var dl *datalayer.DataLayer
 var echoTimes int
 var disableDockerIntegration bool
 
@@ -30,8 +31,10 @@ func init() {
 	RootCmd.AddCommand(NewCmdSwitch(os.Stdout))
 	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
 
+	var basePath string
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
+	dl = &datalayer.DataLayer{BasePath: basePath}
 	RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")

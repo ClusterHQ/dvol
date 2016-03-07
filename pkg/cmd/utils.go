@@ -15,6 +15,16 @@ func checkVolumeArgs(args []string) error {
 	return nil
 }
 
+func checkBranchArgs(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("Please specify a volume name.")
+	}
+	if len(args) > 1 {
+		return fmt.Errorf("Wrong number of arguments.")
+	}
+	return nil
+}
+
 func userIsSure(extraMessage string) bool {
 	message := fmt.Sprintf("Are you sure? %s (y/n): ", extraMessage)
 	fmt.Print(message)

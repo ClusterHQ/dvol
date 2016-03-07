@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var createBranch bool
+
 func NewCmdCheckout(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkout",
@@ -34,5 +36,5 @@ func checkoutBranch(cmd *cobra.Command, args []string, out io.Writer) error {
 	if !datalayer.ValidName(branchName) {
 		return fmt.Errorf("Error: " + branchName + " is not a valid name")
 	}
-	return datalayer.CheckoutBranch(branchName)
+	return dl.CheckoutBranch(branchName)
 }

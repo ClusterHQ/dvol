@@ -30,19 +30,19 @@ func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 		return err
 	}
 	volumeName := args[0]
-	if !datalayer.ValidVolumeName(volumeName) {
+	if !datalayer.ValidName(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
 	}
-	if datalayer.VolumeExists(basePath, volumeName) {
+	if dl.VolumeExists(volumeName) {
 		return fmt.Errorf("Error: volume " + volumeName + " already exists")
 	}
-	err = datalayer.CreateVolume(basePath, volumeName)
+	err = dl.CreateVolume(volumeName)
 	if err != nil {
 		return fmt.Errorf("Error creating volume")
 	}
 	fmt.Fprintln(out, "Created volume", volumeName)
 
-	err = datalayer.CreateVariant(basePath, volumeName, "master")
+	err = dl.CreateVariant(volumeName, "master")
 	if err != nil {
 		return fmt.Errorf("Error creating branch")
 	}

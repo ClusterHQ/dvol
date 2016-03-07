@@ -30,13 +30,13 @@ func switchVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 		return err
 	}
 	volumeName := args[0]
-	if !datalayer.ValidVolumeName(volumeName) {
+	if !datalayer.ValidName(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
 	}
-	if !datalayer.VolumeExists(basePath, volumeName) {
+	if !dl.VolumeExists(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " does not exist")
 	}
-	err = datalayer.SwitchVolume(basePath, volumeName)
+	err = dl.SwitchVolume(volumeName)
 	if err != nil {
 		return fmt.Errorf("Error switching volume")
 	}
