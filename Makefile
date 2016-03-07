@@ -71,12 +71,12 @@ dvol-python-docker-image:
 # globally (in /usr/local/bin) on the system, which is OK because Travis-CI
 # gives us a whole new VM for each build.
 
-test-dvol-python-acceptance: dvol-python-docker-image
+test-dvol-python-acceptance: dvol-python-docker-image memorydiskserver-docker-image
 	./install.sh # will reuse built clusterhq/dvol:latest
 	. venv/bin/activate \
 	&& trial dvol_python.test_plugin
 
-test-dvol-golang-acceptance: dvol-golang-docker-image
+test-dvol-golang-acceptance: dvol-golang-docker-image memorydiskserver-docker-image
 	./install.sh golang # will reuse built clusterhq/dvol:golang
 	. venv/bin/activate \
 	&& trial dvol_python.test_plugin

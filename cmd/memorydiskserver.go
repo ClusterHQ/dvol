@@ -29,6 +29,10 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Value: %s", theValue)
 }
 
+func setHandler(w http.ResponseWriter, r *http.Request) {
+    theValue = r.URL.Query()["value"][0]
+}
+
 //func setHandler(w http.ResponseWriter, r *http.Request) {
 //    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
 //}
@@ -42,7 +46,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     http.HandleFunc("/get", getHandler)
-    //http.HandleFunc("/set", setHandler)
+    http.HandleFunc("/set", setHandler)
 
 //    c := make(chan os.Signal, 1)
 //    signal.Notify(c, os.Interrupt)
