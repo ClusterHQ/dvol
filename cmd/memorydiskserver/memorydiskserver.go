@@ -40,7 +40,7 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 //func signalHandler(chan c) {
 //    // block until we receive a SIGTERM
 //    s := <-c
-//    writeIntegerToDisk()
+//    writeValueToDisk()
 //    os.Exit(0)
 //}
 
