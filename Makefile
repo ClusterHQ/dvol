@@ -48,15 +48,15 @@ venv:
 
 memorydiskserver-docker-image:
 	mkdir -p memorydiskserver-build
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' cmd/memorydiskserver.go
+	CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' cmd/memorydiskserver.go
 	mv memorydiskserver memorydiskserver-build/
 	cp Dockerfile.memorydiskserver memorydiskserver-build/Dockerfile
 	cd memorydiskserver-build && docker build -t clusterhq/memorydiskserver .
 
 dvol-golang-docker-image:
 	mkdir -p dvol-build
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' dvol.go
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' dvol-docker-plugin.go
+	CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' dvol.go
+	CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' cmd/dvol-docker-plugin.go
 	mv dvol dvol-build/
 	mv dvol-docker-plugin dvol-build/
 	cp Dockerfile.dvol-golang dvol-build/Dockerfile
