@@ -48,7 +48,7 @@ venv:
 
 memorydiskserver-docker-image:
 	mkdir -p memorydiskserver-build
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' memorydiskserver.go
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s' cmd/memorydiskserver.go
 	mv memorydiskserver memorydiskserver-build/
 	cp Dockerfile.memorydiskserver memorydiskserver-build/Dockerfile
 	cd memorydiskserver-build && docker build -t clusterhq/memorydiskserver .
