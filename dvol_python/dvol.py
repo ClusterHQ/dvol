@@ -104,7 +104,7 @@ class JsonCommitDatabase(object):
 
 
 class Voluminous(object):
-    def __init__(self, directory, lockFactory):
+    def __init__(self, directory, lockFactory=DockerLock):
         self._directory = FilePath(directory)
         self._output = []
         self.lock = lockFactory()
