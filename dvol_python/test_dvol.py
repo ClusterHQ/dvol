@@ -233,8 +233,12 @@ class VoluminousTests(TestCase):
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
+        self.assertIn(
+            dvol.voluminous.getOutput()[-1].strip(),
+            "  VOLUME   BRANCH   CONTAINERS"
+        )
 
+    @skip_if_go_version
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
