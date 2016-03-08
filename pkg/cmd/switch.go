@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -30,13 +30,13 @@ func switchVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 		return err
 	}
 	volumeName := args[0]
-	if !datalayer.ValidName(volumeName) {
+	if !api.ValidName(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
 	}
-	if !dl.VolumeExists(volumeName) {
+	if !dvol.VolumeExists(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " does not exist")
 	}
-	err = dl.SwitchVolume(volumeName)
+	err = dvol.SwitchVolume(volumeName)
 	if err != nil {
 		return fmt.Errorf("Error switching volume")
 	}

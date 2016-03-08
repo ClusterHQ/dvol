@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -33,8 +33,10 @@ func checkoutBranch(cmd *cobra.Command, args []string, out io.Writer) error {
 		return err
 	}
 	branchName := args[0]
-	if !datalayer.ValidName(branchName) {
+	if !api.ValidName(branchName) {
 		return fmt.Errorf("Error: " + branchName + " is not a valid name")
 	}
-	return dl.CheckoutBranch(branchName)
+	err = dvol.CheckoutBranch(branchName)
+	fmt.Printf("%s: %s\n", branchName, err)
+	return dvol.CheckoutBranch(branchName)
 }

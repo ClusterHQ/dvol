@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -30,19 +30,19 @@ func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 		return err
 	}
 	volumeName := args[0]
-	if !datalayer.ValidName(volumeName) {
+	if !api.ValidName(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
 	}
-	if dl.VolumeExists(volumeName) {
+	if dvol.VolumeExists(volumeName) {
 		return fmt.Errorf("Error: volume " + volumeName + " already exists")
 	}
-	err = dl.CreateVolume(volumeName)
+	err = dvol.CreateVolume(volumeName)
 	if err != nil {
 		return fmt.Errorf("Error creating volume")
 	}
 	fmt.Fprintln(out, "Created volume", volumeName)
 
-	err = dl.CreateVariant(volumeName, "master")
+	err = dvol.CreateVariant(volumeName, "master")
 	if err != nil {
 		return fmt.Errorf("Error creating branch")
 	}
