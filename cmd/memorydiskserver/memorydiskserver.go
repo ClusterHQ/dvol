@@ -9,11 +9,27 @@ package main
 // * has an endpoint to read the integer from memory
 //
 // this allows us to test the following cases:
-// * that docker containers stopped and started cleanly around a snapshot operation
+// * that docker containers stopped and started cleanly around a commit operation
 // * that switching branches results in container being stopped and started
 //   with new on-disk state
 // * that resetting results in container being stopped and started with new
 //   on-disk state
+
+/*
+
+$ curl -sSL http://localhost/set?value=10
+$ curl -sSL http://localhost/get
+10
+$ dvol commit -m "value=10"
+$ curl -sSL http://localhost/set?value=20
+$ curl -sSL http://localhost/get
+20
+$ dvol reset --hard HEAD
+$ curl -sSL http://localhost/get
+10
+
+*/
+
 //
 // this application can be built and copied into a docker image "FROM scratch"
 // (which involves no network operation)
