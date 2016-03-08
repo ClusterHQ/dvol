@@ -5,20 +5,27 @@ import (
     "log"
     "net"
     "net/http"
+    "os"
 )
+
+const DVOL_SOCKET = "/run/docker/plugins/dvol.sock"
 
 type ResponseImplements struct {
     Implements string
 }
 
 func main () {
-    listener, err := net.Listen("unix", "/run/docker/plugins/dvol.sock")
+    if _, err := os.Stat(DVOL_SOCKET); err == nil {
+        if err = os.Remove(DVOL_SOCKET); err == nil {
+            log.Fatalf("Could not clean up existing socket at %s", DVOL_SOCKET)
+        }
+    }
+    listener, err := net.Listen("unix", DVOL_SOCKET)
     if err != nil {
-        log.Fatal("Could not listen on /run/docker/plugins/dvol.sock")
+        log.Fatalf("Could not listen on %s", DVOL_SOCKET)
     }
 
     http.HandleFunc("/Plugin.Activate", func(w http.ResponseWriter, r *http.Request) {
-        // stuff
         log.Print("<= /Plugin.Activate")
         responseJSON, _ := json.Marshal(&ResponseImplements{
             Implements: "VolumeDriver",
