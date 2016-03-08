@@ -7,9 +7,12 @@ import (
     "net/http"
     "os"
     "ioutil"
+
+	"github.com/ClusterHQ/dvol/pkg/api"
 )
 
 const DVOL_SOCKET = "/run/docker/plugins/dvol.sock"
+const DVOL_BASE_DIR = "/var/run/dvol"
 
 type ResponseImplements struct {
     Implements []string
@@ -47,6 +50,10 @@ func main () {
         requestJSON := new(RequestCreate)
         json.Unmarshal(contents, requestJSON)
         name := requestJSON["Name"]
+        dvol := NewDvolAPI(DVOL_BASE_DIR)
+        if !dvol.VolumeExists(name) {
+            dvol.CreateVolume(name)
+        }
     })
 
     http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {

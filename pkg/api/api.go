@@ -62,6 +62,7 @@ func (dvol *DvolAPI) RemoveVolume(volumeName string) error {
 	return dvol.dl.RemoveVolume(volumeName)
 }
 
+// XXX Rename to CreateBranch
 func (dvol *DvolAPI) CreateVariant(volumeName, variantName string) error {
 	return dvol.dl.CreateVariant(volumeName, variantName)
 }
