@@ -8,15 +8,15 @@ import requests
 import subprocess
 import time
 
-TEST_DVOL_BINARY = environ.get("TEST_DVOL_BINARY", False)
+TEST_GOLANG_VERSION = environ.get("TEST_GOLANG_VERSION", False)
 
 skip_if_go_version = skipIf(
-    TEST_DVOL_BINARY,
+    TEST_GOLANG_VERSION,
     "Not expected to work in go version"
 )
 
 skip_if_python_version = skipIf(
-    not TEST_DVOL_BINARY,
+    not TEST_GOLANG_VERSION,
     "Not expected to work in Python version"
 )
 

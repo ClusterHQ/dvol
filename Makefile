@@ -7,7 +7,7 @@ build:
 test: build
 	. venv/bin/activate \
 	&& HYPOTHESIS_PROFILE=ci trial dvol_python.test_dvol \
-	&& HYPOTHESIS_PROFILE=ci TEST_DVOL_BINARY=1 DVOL_BINARY=$(PWD)/dvol trial dvol_python.test_dvol \
+	&& HYPOTHESIS_PROFILE=ci TEST_GOLANG_VERSION=1 DVOL_BINARY=$(PWD)/dvol trial dvol_python.test_dvol \
 	&& scripts/verify-tests.sh
 
 # 'verify' ensures your golang code passes 'the basics'
@@ -79,5 +79,4 @@ test-dvol-python-acceptance: dvol-python-docker-image memorydiskserver-docker-im
 test-dvol-golang-acceptance: dvol-golang-docker-image memorydiskserver-docker-image
 	./install.sh golang # will reuse built clusterhq/dvol:golang
 	. venv/bin/activate \
-	&& TEST_DVOL_BINARY=1 trial dvol_python.test_plugin
-	# TEST_DVOL_BINARY just means "you are testing the golang version"
+	&& TEST_GOLANG_VERSION=1 trial dvol_python.test_plugin

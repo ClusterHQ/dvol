@@ -15,14 +15,14 @@ import os
 import json
 
 from testtools import (
-    CalledProcessErrorWithOutput, TEST_DVOL_BINARY, skip_if_go_version,
+    CalledProcessErrorWithOutput, TEST_GOLANG_VERSION, skip_if_go_version,
     skip_if_python_version
 )
 
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
 ARGS = ["--disable-docker-integration"]
 
-if TEST_DVOL_BINARY:
+if TEST_GOLANG_VERSION:
     # Test an alternative implementation of dvol, such as one available as a
     # binary rather than an importable Python implementation.
     class FakeVoluminous(object):
