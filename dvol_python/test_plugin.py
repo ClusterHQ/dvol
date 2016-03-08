@@ -42,7 +42,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(wait_for_server.content, "Value: ")
         cleanup()
 
-    @skip_if_go_version
     def test_docker_run_dvol_creates_volumes(self):
         def cleanup():
             run(["docker", "rm", "-f", "memorydiskserver"])
