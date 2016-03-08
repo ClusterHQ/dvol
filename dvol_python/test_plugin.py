@@ -14,65 +14,11 @@ Assumes that:
 
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
-import subprocess
-import requests
-import time
-from os import environ
+from testtools import (
+    get, docker_host, try_until, run, skip_if_go_version
+)
 
 DVOL = "/usr/local/bin/dvol"
-
-def get(*args, **kw):
-    response = requests.get(*args, **kw)
-    if response.status_code != 200:
-        raise Exception("Not 200: %s" % (response,))
-    return response
-
-def docker_host():
-    if "DOCKER_HOST" not in environ:
-        return "localhost"
-    return environ.get("DOCKER_HOST").split("://")[1].split(":")[0]
-
-def try_until(f, attempts=5, backoff=0.1, attempt=1):
-    """
-    Synchronously, retry ``f`` every ``backoff`` * (2 ^ ``attempt``) seconds
-    until it doesn't raise an exception, or we've tried ``attempts`` many
-    times. Return the result of running ``f`` successfully, or raise the last
-    exception it raised when attempted.
-    """
-    try:
-        return f()
-    except:
-        if attempt > attempts:
-            raise
-        time.sleep(backoff * (2 ** attempt))
-        return try_until(
-                f, attempts=attempts, backoff=backoff, attempt=attempt + 1)
-
-
-class CalledProcessErrorWithOutput(Exception):
-    pass
-
-def run(cmd):
-    """
-    Run cmd (list of bytes), e.g. ["ls", "/"] and return the result, raising
-    CalledProcessErrorWithOutput if return code is non-zero.
-    """
-    try:
-        result = subprocess.check_output(
-            cmd,
-            stderr=subprocess.STDOUT
-        )
-    except subprocess.CalledProcessError, error:
-        exc = CalledProcessErrorWithOutput(
-            "\n>> command:\n%(command)s"
-            "\n>> returncode\n%(returncode)d"
-            "\n>> output:\n%(output)s" %
-            dict(command=" ".join(cmd),
-                 returncode=error.returncode,
-                 output=error.output))
-        exc.original = error
-        raise exc
-    return result
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -96,6 +42,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(wait_for_server.content, "Value: ")
         cleanup()
 
+    @skip_if_go_version
     def test_docker_run_dvol_creates_volumes(self):
         def cleanup():
             run(["docker", "rm", "-f", "memorydiskserver"])
@@ -116,6 +63,7 @@ class VoluminousTests(TestCase):
         try_until(dvol_list_includes_memorydiskserver)
         cleanup()
 
+    @skip_if_go_version
     def test_docker_run_dvol_container_show_up_in_list_output(self):
         container = "fancy"
         def cleanup():
@@ -137,6 +85,7 @@ class VoluminousTests(TestCase):
         try_until(dvol_list_includes_container_name)
         cleanup()
 
+    @skip_if_go_version
     def test_docker_run_dvol_multiple_containers_shows_up_in_list_output(self):
         container1 = "fancy"
         container2 = "fancier"
