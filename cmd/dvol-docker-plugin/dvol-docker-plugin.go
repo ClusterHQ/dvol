@@ -33,5 +33,20 @@ func main () {
         w.Write(responseJSON)
     })
 
+    http.HandleFunc("/VolumeDriver.Create", func(w http.ResponseWriter, r *http.Request) {
+    })
+
+    http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {
+    })
+
+    http.HandleFunc("/VolumeDriver.Path", func(w http.ResponseWriter, r *http.Request) {
+    })
+
+    http.HandleFunc("/VolumeDriver.Mount", func(w http.ResponseWriter, r *http.Request) {
+    })
+
+    http.HandleFunc("/VolumeDriver.Unmount", func(w http.ResponseWriter, r *http.Request) {
+    })
+
     http.Serve(listener, nil)
 }
