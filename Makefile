@@ -79,4 +79,5 @@ test-dvol-python-acceptance: dvol-python-docker-image memorydiskserver-docker-im
 test-dvol-golang-acceptance: dvol-golang-docker-image memorydiskserver-docker-image
 	./install.sh golang # will reuse built clusterhq/dvol:golang
 	. venv/bin/activate \
-	&& trial dvol_python.test_plugin
+	# TEST_DVOL_BINARY just means "you are testing the golang version"
+	&& TEST_DVOL_BINARY=1 trial dvol_python.test_plugin
