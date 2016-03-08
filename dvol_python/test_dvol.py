@@ -142,7 +142,7 @@ class VoluminousTests(TestCase):
         ``dvol switch`` should switch the currently active volume
         stored in the current_volume.json file.
 
-        Assert whiteboxy things about the implementation, because 
+        Assert whiteboxy things about the implementation, because
         we care about upgradeability (wrt on-disk format) between
         different implementations.
         """
@@ -168,7 +168,7 @@ class VoluminousTests(TestCase):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         try:
-            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "bar"]) 
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "bar"])
         except CalledProcessErrorWithOutput, error:
             self.assertEqual(error.original.output.rstrip(), "Error: bar does not exist")
 
@@ -176,7 +176,7 @@ class VoluminousTests(TestCase):
         """
         After we have used ``dvol switch`` to switch volume, ``dvol init``
         should be able to set the active volume to the one just created.
-        """ 
+        """
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
@@ -218,13 +218,14 @@ class VoluminousTests(TestCase):
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
 
-    @skip_if_go_version
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
+        self.assertIn(
+            dvol.voluminous.getOutput()[-1].strip(),
+            "  VOLUME   BRANCH   CONTAINERS"
+        )
 
-    @skip_if_go_version
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
@@ -511,3 +512,31 @@ class VoluminousTests(TestCase):
         # new still exists because it's referenced in another branch
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertTrue(volume.child("commits").child(newCommit).exists())
+
+    def test_remove_volume(self):
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+            "Deleting volume 'foo'")
+        self.assertFalse(self.tmpdir.child("foo").exists())
+
+    def test_remove_volume_does_not_exist(self):
+        dvol = VoluminousOptions()
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
+        self.assertIn("Volume 'foo' does not exist, cannot remove it", output)
+        self.assertFalse(self.tmpdir.child("foo").exists())
+
+    def test_remove_volume_path_separator(self):
+        dvol = VoluminousOptions()
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "foo/bar"])
+            output = dvol.voluminous.getOutput()[-1]
+        except CalledProcessErrorWithOutput, error:
+            output = error.original.output
+        self.assertIn("Error", output)
+        self.assertIn("foo/bar", output)
