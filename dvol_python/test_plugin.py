@@ -28,6 +28,8 @@ def get(*args, **kw):
     return response
 
 def docker_host():
+    if "DOCKER_HOST" not in environ:
+        return "localhost"
     return environ.get("DOCKER_HOST").split("://")[1].split(":")[0]
 
 def try_until(f, attempts=5, backoff=0.1, attempt=1):
