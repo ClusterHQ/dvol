@@ -86,10 +86,6 @@ func (dvol *DvolAPI) setActiveVariant(volumeName, variantName string) error {
 	return nil
 }
 
-func (dvol *DvolAPI) CheckoutBranch(branchName string) error {
-	return nil
-}
-
 func (dvol *DvolAPI) ActiveVolume() (string, error) {
 	currentVolumeJsonPath := filepath.FromSlash(dvol.basePath + "/current_volume.json")
 	file, err := os.Open(currentVolumeJsonPath)
