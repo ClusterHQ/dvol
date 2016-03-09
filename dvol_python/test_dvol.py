@@ -259,6 +259,24 @@ class VoluminousTests(TestCase):
             sorted(rest),
         )
 
+    def test_list_current_volume_deleted(self):
+        """
+        If the currently selected volume has been deleted, `list`
+        displays all remaining volumes and no volume is marked with '*'
+        indicating that it is the currently selected volume.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "bar"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [["foo", "master"]]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
+        )
+
     @skip_if_go_version
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
