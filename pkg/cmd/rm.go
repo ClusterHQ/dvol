@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -29,22 +29,23 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 }
 
 func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
+	dvol := api.NewDvolAPI(basePath)
 	err := checkVolumeArgs(args)
 	if err != nil {
 		return err
 	}
 	volumeName := args[0]
-	if !datalayer.ValidVolumeName(volumeName) {
+	if !api.ValidName(volumeName) {
 		return fmt.Errorf("Error: " + volumeName + " is not a valid name")
 	}
-	if !datalayer.VolumeExists(basePath, volumeName) {
+	if !dvol.VolumeExists(volumeName) {
 		msg := fmt.Sprintf("Volume '%s' does not exist, cannot remove it", volumeName)
 		return fmt.Errorf(msg)
 	}
 	if forceRemoveVolume || userIsSure("This will remove all containers using the volume") {
 		s := fmt.Sprintf("Deleting volume '%s'", volumeName)
 		fmt.Fprintln(out, s)
-		err = datalayer.RemoveVolume(basePath, volumeName)
+		err = dvol.RemoveVolume(volumeName)
 		if err != nil {
 			return fmt.Errorf("Error removing volume")
 		}
