@@ -62,6 +62,8 @@ func main () {
         }
     }
     if _, err := os.Stat(VOL_DIR); err != nil {
+        // FIXME: We should not have to do this here. It should be done by
+        // the `dvol` command: https://clusterhq.atlassian.net/browse/VOL-81
         if err := os.MkdirAll(VOL_DIR, 0700); err != nil {
             log.Fatalf("Could not make volumes directory %s: %v", VOL_DIR, err)
         }
