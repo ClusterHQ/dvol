@@ -28,6 +28,7 @@ func NewCmdCheckout(out io.Writer) *cobra.Command {
 }
 
 func checkoutBranch(cmd *cobra.Command, args []string, out io.Writer) error {
+	dvol := api.NewDvolAPI(basePath)
 	err := checkBranchArgs(args)
 	if err != nil {
 		return err
