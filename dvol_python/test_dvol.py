@@ -117,6 +117,14 @@ class VoluminousTests(TestCase):
                 .child("master").exists())
         self.assertEqual(dvol.voluminous.getOutput()[-1],
                 "Created volume foo\nCreated branch foo/master")
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [["*", "foo", "master"]]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
+        )
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
@@ -170,6 +178,14 @@ class VoluminousTests(TestCase):
             json.loads(self.tmpdir.child("current_volume.json").getContent()),
             dict(current_volume="foo")
         )
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [["*", "foo", "master"], ["bar", "master"]]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
+        )
 
     @skip_if_python_version
     def test_switch_volume_does_not_exist(self):
@@ -197,6 +213,16 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             json.loads(self.tmpdir.child("current_volume.json").getContent()),
             dict(current_volume="baz")
+        )
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [
+            ["foo", "master"], ["bar", "master"], ["*", "baz", "master"]
+        ]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
         )
 
     @skip_if_go_version
@@ -550,6 +576,10 @@ class VoluminousTests(TestCase):
         self.assertEqual(dvol.voluminous.getOutput()[-1],
             "Deleting volume 'foo'")
         self.assertFalse(self.tmpdir.child("foo").exists())
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        self.assertEqual(len(rest), 0)
 
     def test_remove_volume_does_not_exist(self):
         dvol = VoluminousOptions()
