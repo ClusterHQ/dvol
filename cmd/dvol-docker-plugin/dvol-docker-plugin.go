@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "encoding/json"
     "log"
     "net"
@@ -15,12 +16,30 @@ const DVOL_SOCKET = "/run/docker/plugins/dvol.sock"
 const DVOL_BASE_DIR = "/var/run/dvol"
 
 type ResponseImplements struct {
+    // A response to the Plugin.Activate request
     Implements []string
 }
 
 type RequestCreate struct {
+    // A request to create a volume for Docker
     Name string
     Opts map[string]string
+}
+
+type RequestMount struct {
+    // A request to mount a volume for Docker
+    Name string
+}
+
+type ResponseSimple struct {
+    // A response which only indicates if there was an error or not
+    Err string
+}
+
+type ResponseMount struct {
+    // A response to the VolumeDriver.Mount request
+    Mountpoint string
+    Err string
 }
 
 func main () {
@@ -43,17 +62,20 @@ func main () {
     })
 
     http.HandleFunc("/VolumeDriver.Create", func(w http.ResponseWriter, r *http.Request) {
-        contents, err := ioutil.ReadAll(response.Body)
+        log.Print("<= /VolumeDriver.Create")
+        requestJSON, err := ioutil.ReadAll(r.Body)
         if err != nil {
             log.Fatalf("Unable to read response body %s", err)
         }
-        requestJSON := new(RequestCreate)
-        json.Unmarshal(contents, requestJSON)
-        name := requestJSON["Name"]
-        dvol := NewDvolAPI(DVOL_BASE_DIR)
+        request := new(RequestCreate)
+        json.Unmarshal(requestJSON, request)
+        name := request.Name
+        dvol := api.NewDvolAPI(DVOL_BASE_DIR)
         if !dvol.VolumeExists(name) {
+            // TODO error handling
             dvol.CreateVolume(name)
         }
+        WriteResponseOK(w)
     })
 
     http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +85,25 @@ func main () {
     })
 
     http.HandleFunc("/VolumeDriver.Mount", func(w http.ResponseWriter, r *http.Request) {
+        log.Print("<= /VolumeDriver.Mount")
+        requestJSON, err := ioutil.ReadAll(r.Body)
+        if err != nil {
+            log.Fatalf("Unable to read response body %s", err)
+        }
+        request := new(RequestMount)
+        json.Unmarshal(requestJSON, request)
+        name := request.Name
+        dvol := api.NewDvolAPI(DVOL_BASE_DIR)
+        if dvol.VolumeExists(name) {
+            // TODO error handling
+            mountpoint := dvol.MountVolume(name)
+        }
+
+        responseJSON := json.Marshal(&ResponseMount{
+            Mountpoint: mountpoint,
+            Err: "",
+        })
+        w.Write(responseJSON)
     })
 
     http.HandleFunc("/VolumeDriver.Unmount", func(w http.ResponseWriter, r *http.Request) {
@@ -73,3 +114,17 @@ func main () {
 
     http.Serve(listener, nil)
 }
+
+func WriteResponseOK (w http.ResponseWriter) {
+    // A shortcut to writing a ResponseOK to w
+    responseJSON, _ := json.Marshal(&ResponseSimple{Err: ""})
+    w.Write(responseJSON)
+}
+
+func WriteResponseErr (err error, w http.ResponseWriter) {
+    // A shortcut to responding with an error
+    errString := fmt.Sprintln(err)
+    responseJSON, _ := json.Marshal(&ResponseSimple{Err: errString})
+    w.Write(responseJSON)
+}
+
