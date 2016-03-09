@@ -13,8 +13,9 @@ import (
 
 func NewCmdList(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List all dvol volumes",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all dvol volumes",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := listVolumes(cmd, args, out)
 			if err != nil {
