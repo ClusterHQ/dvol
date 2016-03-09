@@ -20,7 +20,7 @@ CLI
 internal API
  | "create variant from snapshot at tip of volume bar"
  v
-DataLayer
+DataLayer (swappable for another implementation)
 
 */
 
