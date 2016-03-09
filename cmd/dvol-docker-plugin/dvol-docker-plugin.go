@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "encoding/json"
+    "errors"
     "log"
     "net"
     "net/http"
@@ -93,13 +94,27 @@ func main () {
         request := new(RequestMount)
         json.Unmarshal(requestJSON, request)
         name := request.Name
+
         dvol := api.NewDvolAPI(DVOL_BASE_DIR)
+        var mountpoint string
+
         if dvol.VolumeExists(name) {
-            // TODO error handling
-            mountpoint := dvol.MountVolume(name)
+            err := dvol.SwitchVolume(name)
+            if err != nil {
+                WriteResponseErr(err, w)
+                return
+            }
+            mountpoint, err = dvol.ActiveVolume()
+            if err != nil {
+                WriteResponseErr(err, w)
+                return
+            }
+        } else {
+            WriteResponseErr(errors.New("Requested to mount unknown volume " + name), w)
+            return
         }
 
-        responseJSON := json.Marshal(&ResponseMount{
+        responseJSON, _ := json.Marshal(&ResponseMount{
             Mountpoint: mountpoint,
             Err: "",
         })
@@ -122,8 +137,9 @@ func WriteResponseOK (w http.ResponseWriter) {
 }
 
 func WriteResponseErr (err error, w http.ResponseWriter) {
-    // A shortcut to responding with an error
+    // A shortcut to responding with an error, and then log the error
     errString := fmt.Sprintln(err)
+    log.Printf("Error: %v", err)
     responseJSON, _ := json.Marshal(&ResponseSimple{Err: errString})
     w.Write(responseJSON)
 }
