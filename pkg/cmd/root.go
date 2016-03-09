@@ -3,11 +3,10 @@ package cmd
 import (
 	"os"
 
-	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
-var dvol *api.DvolAPI
+var basePath string
 var disableDockerIntegration bool
 
 const DEFAULT_BRANCH string = "master"
@@ -29,12 +28,9 @@ func init() {
 	RootCmd.AddCommand(NewCmdRm(os.Stdout))
 	RootCmd.AddCommand(NewCmdSwitch(os.Stdout))
 	RootCmd.AddCommand(NewCmdList(os.Stdout))
-	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
 
-	var basePath string
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
-	dvol = api.NewDvolAPI(basePath)
 	RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")

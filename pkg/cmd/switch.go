@@ -25,6 +25,7 @@ func NewCmdSwitch(out io.Writer) *cobra.Command {
 }
 
 func switchVolume(cmd *cobra.Command, args []string, out io.Writer) error {
+	dvol := api.NewDvolAPI(basePath)
 	err := checkVolumeArgs(args)
 	if err != nil {
 		return err

@@ -34,7 +34,7 @@ func TestRmInvalidVolumeName(t *testing.T) {
 
 func TestRmVolumeDoesNotExist(t *testing.T) {
 	// Setup
-	originalBasePath := basePath
+	originalBasepath := basePath
 	dir, _ := ioutil.TempDir("", "test")
 	basePath = dir
 
@@ -52,5 +52,5 @@ func TestRmVolumeDoesNotExist(t *testing.T) {
 	}
 
 	// Teardown
-	basePath = originalBasePath
+	basePath = originalBasepath
 }

@@ -7,14 +7,15 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
 func NewCmdList(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List all dvol volumes",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all dvol volumes",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := listVolumes(cmd, args, out)
 			if err != nil {
@@ -27,6 +28,7 @@ func NewCmdList(out io.Writer) *cobra.Command {
 }
 
 func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
+	dvol := api.NewDvolAPI(basePath)
 	if len(args) > 0 {
 		return fmt.Errorf("Wrong number of arguments.")
 	}
@@ -40,13 +42,13 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 		return err
 	}
 
-	volumes, err := datalayer.AllVolumes(basePath)
+	volumes, err := dvol.AllVolumes()
 	if err != nil {
 		return err
 	}
 
 	for _, volume := range volumes {
-		activeVolume, err := datalayer.ActiveVolume(basePath)
+		activeVolume, err := dvol.ActiveVolume()
 		if err != nil {
 			return err
 		}
@@ -54,11 +56,11 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 		if activeVolume == volume {
 			prefix = "* "
 		}
-		variant, err := datalayer.VolumeVariant(basePath, volume)
+		branch, err := dvol.CurrentBranch(volume)
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t\n", prefix, volume, variant); err != nil {
+		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t\n", prefix, volume, branch); err != nil {
 			return err
 		}
 	}
