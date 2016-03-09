@@ -16,7 +16,6 @@ import (
 const PLUGINS_DIR = "/run/docker/plugins"
 const DVOL_SOCKET = PLUGINS_DIR + "/dvol.sock"
 const VOL_DIR = "/var/lib/dvol/volumes"
-const DVOL_BASE_DIR = "/var/run/dvol"
 
 type ResponseImplements struct {
     // A response to the Plugin.Activate request
@@ -62,8 +61,6 @@ func main () {
         }
     }
     if _, err := os.Stat(VOL_DIR); err != nil {
-        // FIXME: We should not have to do this here. It should be done by
-        // the `dvol` command: https://clusterhq.atlassian.net/browse/VOL-81
         if err := os.MkdirAll(VOL_DIR, 0700); err != nil {
             log.Fatalf("Could not make volumes directory %s: %v", VOL_DIR, err)
         }
@@ -92,9 +89,9 @@ func main () {
         request := new(RequestCreate)
         json.Unmarshal(requestJSON, request)
         name := request.Name
-        dvol := api.NewDvolAPI(DVOL_BASE_DIR)
+        dvol := api.NewDvolAPI(VOL_DIR)
         if !dvol.VolumeExists(name) {
-            // TODO error handling
+            log.Print("Creating volume", name, " which doesn't exist")
             err := dvol.CreateVolume(name)
             if err != nil {
                 WriteResponseErr(err, w)
@@ -121,7 +118,7 @@ func main () {
         json.Unmarshal(requestJSON, request)
         name := request.Name
 
-        dvol := api.NewDvolAPI(DVOL_BASE_DIR)
+        dvol := api.NewDvolAPI(VOL_DIR)
 
         if dvol.VolumeExists(name) {
             err := dvol.SwitchVolume(name)
