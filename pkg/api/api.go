@@ -34,6 +34,26 @@ A dvol volume is:
 
 A data layer volume is what we call a writeable working copy.
 
+current directory structure
+---------------------------
+
+What should go where?
+
+STRUCTURE                                   WHAT
+------------------------------------------------
+current_volume.json                         dvol
+volumes/
+  foo/
+    current_branch.json                     dvol
+	running_point -> branches/bar           dvol (docker integration)
+	commits/                                data layer commits
+	  deadbeefdeadbeef/
+	    <copy of data>
+	branches/
+	  bar/                                  data layer volume (one per branch), writeable working copy
+	    <writeable data>
+	  bar.json                              data layer commit metadata database (currently per branch, should be migrated into commits eventually, but not yet)
+
 */
 
 const MAX_NAME_LENGTH int = 40
