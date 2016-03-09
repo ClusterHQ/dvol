@@ -95,32 +95,17 @@ func main () {
         dvol := api.NewDvolAPI(DVOL_BASE_DIR)
         if !dvol.VolumeExists(name) {
             // TODO error handling
-            dvol.CreateVolume(name)
+            err := dvol.CreateVolume(name)
+            if err != nil {
+                WriteResponseErr(err, w)
+                return
+            }
         }
         WriteResponseOK(w)
     })
 
     http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {
-        log.Print("<= /VolumeDriver.Remove")
-        requestJSON, err := ioutil.ReadAll(r.Body)
-        if err != nil {
-            log.Fatalf("Unable to read response body %s", err)
-        }
-        request := new(RequestRemove)
-        json.Unmarshal(requestJSON, request)
-        name := request.Name
-        dvol := api.NewDvolAPI(DVOL_BASE_DIR)
-        if dvol.VolumeExists(name) {
-            err = dvol.RemoveVolume(name)
-            if err != nil {
-                WriteResponseErr(err, w)
-            } else {
-                WriteResponseOK(w)
-            }
-        } else {
-            log.Printf("Requested to remove unknown volume %s", name)
-            WriteResponseErr(errors.New("Requested to remove unknown volume " + name), w)
-        }
+        WriteResponseOK(w)
     })
 
     http.HandleFunc("/VolumeDriver.Path", func(w http.ResponseWriter, r *http.Request) {
@@ -160,6 +145,7 @@ func main () {
     })
 
     http.HandleFunc("/VolumeDriver.Unmount", func(w http.ResponseWriter, r *http.Request) {
+        WriteResponseOK(w)
     })
 
     http.HandleFunc("/VolumeDriver.List", func(w http.ResponseWriter, r *http.Request) {
