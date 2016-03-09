@@ -62,8 +62,28 @@ func (dvol *DvolAPI) RemoveVolume(volumeName string) error {
 	return dvol.dl.RemoveVolume(volumeName)
 }
 
+func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
+	currentVolumeJsonPath := filepath.FromSlash(dvol.basePath + "/current_volume.json")
+	currentVolumeContent := map[string]string{
+		"current_volume": volumeName,
+	}
+	// Create or update this file
+	file, err := os.Create(currentVolumeJsonPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	encoder.Encode(currentVolumeContent)
+	return nil
+}
+
 func (dvol *DvolAPI) CreateVariant(volumeName, variantName string) error {
 	return dvol.dl.CreateVariant(volumeName, variantName)
+}
+
+func (dvol *DvolAPI) setActiveVariant(volumeName, variantName string) error {
+	return nil
 }
 
 func (dvol *DvolAPI) CheckoutBranch(branchName string) error {
@@ -84,22 +104,6 @@ func (dvol *DvolAPI) ActiveVolume() (string, error) {
 		return "", err
 	}
 	return store["current_volume"].(string), nil
-}
-
-func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
-	currentVolumeJsonPath := filepath.FromSlash(dvol.basePath + "/current_volume.json")
-	currentVolumeContent := map[string]string{
-		"current_volume": volumeName,
-	}
-	// Create or update this file
-	file, err := os.Create(currentVolumeJsonPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	encoder := json.NewEncoder(file)
-	encoder.Encode(currentVolumeContent)
-	return nil
 }
 
 func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
