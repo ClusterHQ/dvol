@@ -117,6 +117,14 @@ class VoluminousTests(TestCase):
                 .child("master").exists())
         self.assertEqual(dvol.voluminous.getOutput()[-1],
                 "Created volume foo\nCreated branch foo/master")
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [["*", "foo", "master"]]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
+        )
 
     def test_create_volume_already_exists(self):
         dvol = VoluminousOptions()
@@ -154,7 +162,7 @@ class VoluminousTests(TestCase):
         ``dvol switch`` should switch the currently active volume
         stored in the current_volume.json file.
 
-        Assert whiteboxy things about the implementation, because 
+        Assert whiteboxy things about the implementation, because
         we care about upgradeability (wrt on-disk format) between
         different implementations.
         """
@@ -170,6 +178,14 @@ class VoluminousTests(TestCase):
             json.loads(self.tmpdir.child("current_volume.json").getContent()),
             dict(current_volume="foo")
         )
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [["*", "foo", "master"], ["bar", "master"]]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
+        )
 
     @skip_if_python_version
     def test_switch_volume_does_not_exist(self):
@@ -180,7 +196,7 @@ class VoluminousTests(TestCase):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         try:
-            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "bar"]) 
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "switch", "bar"])
         except CalledProcessErrorWithOutput, error:
             self.assertEqual(error.original.output.rstrip(), "Error: bar does not exist")
 
@@ -188,7 +204,7 @@ class VoluminousTests(TestCase):
         """
         After we have used ``dvol switch`` to switch volume, ``dvol init``
         should be able to set the active volume to the one just created.
-        """ 
+        """
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
@@ -197,6 +213,16 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             json.loads(self.tmpdir.child("current_volume.json").getContent()),
             dict(current_volume="baz")
+        )
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [
+            ["foo", "master"], ["bar", "master"], ["*", "baz", "master"]
+        ]
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
         )
 
     @skip_if_go_version
@@ -230,13 +256,14 @@ class VoluminousTests(TestCase):
         self.assertTrue(commit.child("file.txt").exists())
         self.assertEqual(commit.child("file.txt").getContent(), "hello!")
 
-    @skip_if_go_version
     def test_list_empty_volumes(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
-        self.assertEqual(dvol.voluminous.getOutput(), ["  VOLUME   BRANCH   CONTAINERS "])
+        self.assertIn(
+            dvol.voluminous.getOutput()[-1].strip(),
+            "  VOLUME   BRANCH   CONTAINERS"
+        )
 
-    @skip_if_go_version
     @given(volumes=sets(volume_names(), min_size=1, average_size=10).map(list))
     def test_list_multi_volumes(self, volumes):
         tmpdir = FilePath(self.mktemp())
@@ -253,6 +280,24 @@ class VoluminousTests(TestCase):
         # active one.
         expected_volumes[-1] = ['*', expected_volumes[-1][0], expected_volumes[-1][1]]
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header)
+        self.assertEqual(
+            sorted(expected_volumes),
+            sorted(rest),
+        )
+
+    def test_list_current_volume_deleted(self):
+        """
+        If the currently selected volume has been deleted, `list`
+        displays all remaining volumes and no volume is marked with '*'
+        indicating that it is the currently selected volume.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "bar"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "rm", "-f", "bar"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        expected_volumes = [["foo", "master"]]
         self.assertEqual(
             sorted(expected_volumes),
             sorted(rest),
@@ -531,6 +576,10 @@ class VoluminousTests(TestCase):
         self.assertEqual(dvol.voluminous.getOutput()[-1],
             "Deleting volume 'foo'")
         self.assertFalse(self.tmpdir.child("foo").exists())
+        # Verify operation with `list`
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "list"])
+        header, rest = self._parse_list_output(dvol)
+        self.assertEqual(len(rest), 0)
 
     def test_remove_volume_does_not_exist(self):
         dvol = VoluminousOptions()
