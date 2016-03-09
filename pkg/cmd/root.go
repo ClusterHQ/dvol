@@ -7,7 +7,6 @@ import (
 )
 
 var basePath string
-var echoTimes int
 var disableDockerIntegration bool
 
 const DEFAULT_BRANCH string = "master"
