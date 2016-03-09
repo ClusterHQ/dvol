@@ -6,7 +6,7 @@ import (
     "net"
     "net/http"
     "os"
-    "ioutil"
+    "io/ioutil"
 
 	"github.com/ClusterHQ/dvol/pkg/api"
 )
