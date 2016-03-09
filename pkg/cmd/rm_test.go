@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"io/ioutil"
 	"testing"
+
+	"github.com/ClusterHQ/dvol/pkg/api"
 )
 
 func TestRmNoArgs(t *testing.T) {
@@ -34,9 +36,9 @@ func TestRmInvalidVolumeName(t *testing.T) {
 
 func TestRmVolumeDoesNotExist(t *testing.T) {
 	// Setup
-	originalBasePath := basePath
+	originalDvol := dvol
 	dir, _ := ioutil.TempDir("", "test")
-	basePath = dir
+	dvol = api.NewDvolAPI(dir)
 
 	// Test
 	buf := bytes.NewBuffer([]byte{})
@@ -52,5 +54,5 @@ func TestRmVolumeDoesNotExist(t *testing.T) {
 	}
 
 	// Teardown
-	basePath = originalBasePath
+	dvol = originalDvol
 }
