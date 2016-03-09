@@ -41,11 +41,11 @@ What should go where?
 
 STRUCTURE                                   WHAT
 ------------------------------------------------
-current_volume.json                         dvol
+current_volume.json                         dvol api
 volumes/
   foo/
-    current_branch.json                     dvol
-	running_point -> branches/bar           dvol (docker integration)
+    current_branch.json                     dvol api
+	running_point -> branches/bar           dvol docker integration
 	commits/                                data layer commits
 	  deadbeefdeadbeef/
 	    <copy of data>
