@@ -70,11 +70,11 @@ class VoluminousTests(TestCase):
                 raise Exception("volume never showed up in result %s" % (result,))
         try_until(dvol_list_includes_memorydiskserver)
 
-    @skip_if_go_version
     def test_docker_run_dvol_container_show_up_in_list_output(self):
         container = "fancy"
         def cleanup():
             run(["docker", "rm", "-f", container])
+            run(["docker", "volume", "rm", "memorydiskserver"])
             run([DVOL, "rm", "-f", "memorydiskserver"])
         try:
             cleanup()

@@ -84,7 +84,7 @@ func main() {
 		request := new(RequestCreate)
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
-		dvol := api.NewDvolAPI(VOL_DIR)
+		dvol := api.NewDvolAPI(VOL_DIR, false)
 		if dvol.VolumeExists(name) {
 			log.Print("Volume already exists", name)
 		} else {
@@ -114,7 +114,7 @@ func main() {
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
 
-		dvol := api.NewDvolAPI(VOL_DIR)
+		dvol := api.NewDvolAPI(VOL_DIR, false)
 
 		if dvol.VolumeExists(name) {
 			err := dvol.SwitchVolume(name)

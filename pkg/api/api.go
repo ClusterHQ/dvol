@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/ClusterHQ/dvol/pkg/containers"
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/fsouza/go-dockerclient"
 )
 
 /*
@@ -44,13 +46,21 @@ func ValidName(name string) bool {
 }
 
 type DvolAPI struct {
-	basePath string
-	dl       *datalayer.DataLayer
+	basePath   string
+	dl         *datalayer.DataLayer
+	Containers containers.Containers
 }
 
-func NewDvolAPI(basePath string) *DvolAPI {
+func NewDvolAPI(basePath string, disableDockerIntegration bool) *DvolAPI {
 	dl := &datalayer.DataLayer{BasePath: basePath}
-	return &DvolAPI{basePath, dl}
+	var c containers.Containers
+	if !disableDockerIntegration {
+		client, _ := docker.NewClientFromEnv()
+		c = containers.DockerRuntime{client}
+	} else {
+		c = containers.NoneRuntime{}
+	}
+	return &DvolAPI{basePath, dl, c}
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
