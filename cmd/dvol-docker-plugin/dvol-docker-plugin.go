@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -50,6 +49,8 @@ type ResponseMount struct {
 }
 
 func main() {
+	log.Print("Starting dvol plugin")
+
 	if _, err := os.Stat(PLUGINS_DIR); err != nil {
 		if err := os.MkdirAll(PLUGINS_DIR, 0700); err != nil {
 			log.Fatalf("Could not make plugin directory %s: %v", PLUGINS_DIR, err)
@@ -64,10 +65,6 @@ func main() {
 		if err := os.MkdirAll(VOL_DIR, 0700); err != nil {
 			log.Fatalf("Could not make volumes directory %s: %v", VOL_DIR, err)
 		}
-	}
-
-	if err != nil {
-		log.Fatalf("Could not listen on %s: %v", DVOL_SOCKET, err)
 	}
 
 	http.HandleFunc("/Plugin.Activate", func(w http.ResponseWriter, r *http.Request) {
@@ -88,11 +85,12 @@ func main() {
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
 		dvol := api.NewDvolAPI(VOL_DIR)
-		if !dvol.VolumeExists(name) {
-			log.Print("Creating volume", name, " which doesn't exist")
+		if dvol.VolumeExists(name) {
+			log.Print("Volume already exists: %s", name)
+		} else {
 			err := dvol.CreateVolume(name)
 			if err != nil {
-				WriteResponseErr(err, w)
+				WriteResponseErr(fmt.Errorf("Could not create volume %s: %v", name, err), w)
 				return
 			}
 		}
@@ -135,7 +133,7 @@ func main() {
 			})
 			w.Write(responseJSON)
 		} else {
-			WriteResponseErr(errors.New("Requested to mount unknown volume "+name), w)
+			WriteResponseErr(fmt.Errorf("Requested to mount unknown volume %s", name), w)
 		}
 	})
 
@@ -147,6 +145,10 @@ func main() {
 	})
 
 	listener, err := net.Listen("unix", DVOL_SOCKET)
+	if err != nil {
+		log.Fatalf("Could not listen on %s: %v", DVOL_SOCKET, err)
+	}
+
 	http.Serve(listener, nil)
 }
 
@@ -163,3 +165,5 @@ func WriteResponseErr(err error, w http.ResponseWriter) {
 	responseJSON, _ := json.Marshal(&ResponseSimple{Err: errString})
 	w.Write(responseJSON)
 }
+
+// vim: ts=4 sts=4 sw=4 noexpandtab:

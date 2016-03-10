@@ -44,12 +44,21 @@ class VoluminousTests(TestCase):
 
     def test_docker_run_dvol_creates_volumes(self):
         def cleanup():
-            run(["docker", "rm", "-f", "memorydiskserver"])
-            run([DVOL, "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+            try:
+                run(["docker", "rm", "-f", "memorydiskserver"])
+            except:
+                pass
+            try:
+                run(["docker", "volume", "rm", "memorydiskserver"])
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "-f", "memorydiskserver"])
+            except:
+                pass
+        cleanup()
+        self.addCleanup(cleanup)
+
         run([
             "docker", "run", "--name", "memorydiskserver", "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
@@ -60,7 +69,6 @@ class VoluminousTests(TestCase):
             if "memorydiskserver" not in result:
                 raise Exception("volume never showed up in result %s" % (result,))
         try_until(dvol_list_includes_memorydiskserver)
-        cleanup()
 
     @skip_if_go_version
     def test_docker_run_dvol_container_show_up_in_list_output(self):
