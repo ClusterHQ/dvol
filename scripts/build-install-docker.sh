@@ -22,6 +22,9 @@ if [ $DOCKER_VERSION = "experimental" ]; then
   # to the apt-get install in the following call
   sudo apt-get --force-yes -y -q remove docker-engine
 
+  # Remove the config file
+  sudo rm /etc/default/docker
+
   # Install the 'experimental' build from Docker
   curl -sSL https://experimental.docker.com/ | sudo sh
 else
