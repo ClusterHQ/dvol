@@ -9,7 +9,7 @@
 #   	--binaries "dvol dvol-docker-plugin" \
 #   	--tag "golang"
 
-set -e
+set -xe
 
 # TODO Make this actually do proper argument parsing.
 PROJECT=$2
@@ -24,6 +24,7 @@ for SOURCE_FILE in $SOURCE_FILES; do
     CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' ${SOURCE_FILE}
 done
 
+mkdir -p ${PROJECT}-build
 # Copy them into the build directory
 for BINARY in $BINARIES; do
     mv ${PROJECT} ${PROJECT}-build/
@@ -33,7 +34,6 @@ done
 cp Dockerfile.${PROJECT} ${PROJECT}-build/Dockerfile
 
 # Build the docker image in a constrained context.
-mkdir -p ${PROJECT}-build
 cd ${PROJECT}-build
 docker build -t clusterhq/${PROJECT}:${TAG} .
 cd ..
