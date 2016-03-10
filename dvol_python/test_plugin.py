@@ -15,7 +15,8 @@ Assumes that:
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
-    get, docker_host, try_until, run, skip_if_go_version
+    get, docker_host, try_until, run, skip_if_go_version,
+    CalledProcessErrorWithOutput
 )
 
 DVOL = "/usr/local/bin/dvol"
@@ -202,17 +203,41 @@ class VoluminousTests(TestCase):
         """
         When a dvol volume is removed, the corresponding Docker volume is also removed.
         """
-        self.cleanup_memorydiskserver()
-        self.start_memorydiskserver()
+        def cleanup():
+            try:
+                run(["docker", "rm", "-fv", "volume_remove_test"])
+            except:
+                pass
+            try:
+                run(["docker", "rm", "-fv", "volume_remove_test_error"])
+            except:
+                pass
+            try:
+                run(["docker", "volume", "rm", "volume_remove_test"])
+                pass
+            except:
+                pass
+        cleanup()
+        self.addCleanup(cleanup)
 
-        run(["docker", "rm", "-f", "memorydiskserver"])
+        # Start a new container
+        run(["docker", "run", "--name", "volume_remove_test", "-v",
+            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "busybox", "true"])
 
-        docker_output = run(["docker", "volume", "ls"])
-        self.assertSubstring("memorydiskserver", docker_output)
+        # Remove the volume
+        run([DVOL, "rm", "-f", "volume_remove_test"])
 
-        run([DVOL, "rm", "-f", "memorydiskserver"])
-        docker_output = run(["docker", "volume", "ls"])
-        self.assertNotSubstring("memorydiskserver", docker_output)
+        # Start a new container on the same volume and expect an error
+        try:
+            run(["docker", "run", "--name", "volume_remove_test_error", "-v",
+                "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+                "busybox", "true"])
+            self.fail("No exception raised when starting a container which "
+                    "re-uses the same volume name.")
+        except CalledProcessErrorWithOutput, e:
+            if e.original.returncode != 125:
+                raise
 
 
 """
