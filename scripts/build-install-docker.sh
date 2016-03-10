@@ -1,18 +1,25 @@
 #!/bin/sh
 
 # Installs either a known version of Docker or the 'experimental' build.
+# Usage example:
+#
+# $ scripts/build-install-docker.sh 1.10.2
+# or
+# $ scripts/build-install-docker.sh experimental
 
 set -xe
 
-# exit if DOCKER_VERSION is not set
-if [ -z "$DOCKER_VERSION" ]; then
+# Exit early if a 'Docker Version' is not set
+if[ $# -eq 0 ]; then
   exit 0
 fi
 
+DOCKER_VERSION=$1
+
 if [ $DOCKER_VERSION = "experimental" ]; then
+  # Install the 'experimental' build from Docker
+  sudo sh -c 'curl -sSL https://experimental.docker.com/'
+else
   # 'upgrade' docker-engine to specific version
   sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes docker-engine=${DOCKER_VERSION}-0~trusty
-else
-  # install the 'experimental' build from Docker
-  sudo sh -c 'curl -sSL https://experimental.docker.com/'
 fi
