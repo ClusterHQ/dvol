@@ -90,15 +90,15 @@ func main() {
 		} else {
 			err := dvol.CreateVolume(name)
 			if err != nil {
-				WriteResponseErr(fmt.Errorf("Could not create volume %s: %v", name, err), w)
+				writeResponseErr(fmt.Errorf("Could not create volume %s: %v", name, err), w)
 				return
 			}
 		}
-		WriteResponseOK(w)
+		writeResponseOK(w)
 	})
 
 	http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {
-		WriteResponseOK(w)
+		writeResponseOK(w)
 	})
 
 	http.HandleFunc("/VolumeDriver.Path", func(w http.ResponseWriter, r *http.Request) {
@@ -119,11 +119,11 @@ func main() {
 		if dvol.VolumeExists(name) {
 			err := dvol.SwitchVolume(name)
 			if err != nil {
-				WriteResponseErr(err, w)
+				writeResponseErr(err, w)
 			}
 			_, err = dvol.ActiveVolume()
 			if err != nil {
-				WriteResponseErr(err, w)
+				writeResponseErr(err, w)
 			}
 			// mountpoint should be:
 			// /var/lib/docker/volumes/<volumename>/running_point
@@ -133,12 +133,12 @@ func main() {
 			})
 			w.Write(responseJSON)
 		} else {
-			WriteResponseErr(fmt.Errorf("Requested to mount unknown volume %s", name), w)
+			writeResponseErr(fmt.Errorf("Requested to mount unknown volume %s", name), w)
 		}
 	})
 
 	http.HandleFunc("/VolumeDriver.Unmount", func(w http.ResponseWriter, r *http.Request) {
-		WriteResponseOK(w)
+		writeResponseOK(w)
 	})
 
 	http.HandleFunc("/VolumeDriver.List", func(w http.ResponseWriter, r *http.Request) {
@@ -152,13 +152,13 @@ func main() {
 	http.Serve(listener, nil)
 }
 
-func WriteResponseOK(w http.ResponseWriter) {
+func writeResponseOK(w http.ResponseWriter) {
 	// A shortcut to writing a ResponseOK to w
 	responseJSON, _ := json.Marshal(&ResponseSimple{Err: ""})
 	w.Write(responseJSON)
 }
 
-func WriteResponseErr(err error, w http.ResponseWriter) {
+func writeResponseErr(err error, w http.ResponseWriter) {
 	// A shortcut to responding with an error, and then log the error
 	errString := fmt.Sprintln(err)
 	log.Printf("Error: %v", err)
