@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/nu7hatch/gouuid"
 )
@@ -12,7 +13,7 @@ import (
 // ClusterHQ data layer, naive vfs (directory-based) implementation
 
 type DataLayer struct {
-	BasePath string
+	basePath string
 }
 
 type CommitId string
@@ -23,16 +24,20 @@ type Commit struct {
 	Message CommitMessage
 }
 
+func NewDataLayer(basePath string) *DataLayer {
+	return &DataLayer{basePath}
+}
+
 func (dl *DataLayer) volumePath(volumeName string) string {
-	return filepath.FromSlash(dl.BasePath + "/" + volumeName)
+	return filepath.FromSlash(dl.basePath + "/" + volumeName)
 }
 
 func (dl *DataLayer) branchPath(volumeName, branchName string) string {
-	return filepath.FromSlash(dl.BasePath + "/" + volumeName + "/branches/" + branchName)
+	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + branchName)
 }
 
 func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) string {
-	return filepath.FromSlash(dl.BasePath + "/" + volumeName + "/commits/" + string(commitId))
+	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/commits/" + string(commitId))
 }
 
 func (dl *DataLayer) CreateVolume(volumeName string) error {
@@ -41,18 +46,50 @@ func (dl *DataLayer) CreateVolume(volumeName string) error {
 }
 
 func (dl *DataLayer) RemoveVolume(volumeName string) error {
-	volumePath := filepath.FromSlash(dl.BasePath + "/" + volumeName)
+	volumePath := filepath.FromSlash(dl.basePath + "/" + volumeName)
 	return os.RemoveAll(volumePath)
 }
 
 func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	// XXX Variants are meant to be tagged commits???
-	variantPath := filepath.FromSlash(dl.BasePath + "/" + volumeName + "/branches/" + variantName)
+	variantPath := filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + variantName)
 	return os.MkdirAll(variantPath, 0777)
 }
 
-func (dl *DataLayer) copyFiles(from, to) {
-	// ...
+func (dl *DataLayer) sanitizePath(path) error {
+	// Calculate that dl.basePath is a strict prefix of filepath.Clean(path)
+	if !strings.HasPrefix(filePath.Clean(path), dl.basePath) {
+		return fmt.Errorf("%s is not a prefix of %s", filepath.Clean(path), dl.basePath)
+	}
+	return nil
+}
+
+func (dl *DataLayer) copyFiles(from, to) error {
+	if err := dl.sanitizePath(from); err != nil {
+		return err
+	}
+	if err := dl.sanitizePath(to); err != nil {
+		return err
+	}
+
+	// check that ``from`` exists
+	sourceFile, err := os.Stat(from)
+	if err != nil {
+		return err
+	}
+	if !sourceFile.Mode().IsDir() {
+		return fmt.Errorf("%s is not a directory", from)
+	}
+	// check that ``to`` does not exist
+	_, err := os.Stat(to)
+	if err == nil {
+		return fmt.Errorf("%s already exists", to)
+	}
+	cp, lookErr := exec.LookPath("cp")
+	if lookErr != nil {
+		panic(lookErr)
+	}
+	return syscall.Exec(cp, []string{"cp", "-a", from, to})
 }
 
 func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (CommitId, error) {
@@ -71,7 +108,6 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 		return CommitId(), fmt.Errorf("UUID collision. Please step out of the infinite improbability drive.")
 	}
 	// TODO acquire lock
-	// TODO check if commitPath exists, bail if not
 	dl.copyFiles(branchPath, commitPath)
 	// TODO release lock
 	return commitId, nil

@@ -71,7 +71,7 @@ type DvolAPI struct {
 }
 
 func NewDvolAPI(basePath string) *DvolAPI {
-	dl := &datalayer.DataLayer{BasePath: basePath}
+	dl := datalayer.NewDataLayer(basePath)
 	return &DvolAPI{basePath, dl}
 }
 
