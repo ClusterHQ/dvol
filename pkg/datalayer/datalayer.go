@@ -1,8 +1,11 @@
 package datalayer
 
 import (
-	//"encoding/json"
+	"encoding/json"
+	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -20,8 +23,8 @@ type CommitId string
 type CommitMessage string
 
 type Commit struct {
-	Id      CommitId
-	Message CommitMessage
+	Id      CommitId      `json:"id"`
+	Message CommitMessage `json:"message"`
 }
 
 func NewDataLayer(basePath string) *DataLayer {
@@ -32,8 +35,8 @@ func (dl *DataLayer) volumePath(volumeName string) string {
 	return filepath.FromSlash(dl.basePath + "/" + volumeName)
 }
 
-func (dl *DataLayer) branchPath(volumeName, branchName string) string {
-	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + branchName)
+func (dl *DataLayer) variantPath(volumeName, variantName string) string {
+	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + variantName)
 }
 
 func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) string {
@@ -56,15 +59,16 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	return os.MkdirAll(variantPath, 0777)
 }
 
-func (dl *DataLayer) sanitizePath(path) error {
+func (dl *DataLayer) sanitizePath(path string) error {
 	// Calculate that dl.basePath is a strict prefix of filepath.Clean(path)
-	if !strings.HasPrefix(filePath.Clean(path), dl.basePath) {
+	if !strings.HasPrefix(filepath.Clean(path), dl.basePath) {
 		return fmt.Errorf("%s is not a prefix of %s", filepath.Clean(path), dl.basePath)
 	}
 	return nil
 }
 
-func (dl *DataLayer) copyFiles(from, to) error {
+func (dl *DataLayer) copyFiles(from, to string) error {
+	log.Print("copying", from, " to", to)
 	if err := dl.sanitizePath(from); err != nil {
 		return err
 	}
@@ -81,7 +85,7 @@ func (dl *DataLayer) copyFiles(from, to) error {
 		return fmt.Errorf("%s is not a directory", from)
 	}
 	// check that ``to`` does not exist
-	_, err := os.Stat(to)
+	_, err = os.Stat(to)
 	if err == nil {
 		return fmt.Errorf("%s already exists", to)
 	}
@@ -89,7 +93,8 @@ func (dl *DataLayer) copyFiles(from, to) error {
 	if lookErr != nil {
 		panic(lookErr)
 	}
-	return syscall.Exec(cp, []string{"cp", "-a", from, to})
+	log.Print("running", "cp", "-a", from, " ", to)
+	return syscall.Exec(cp, []string{"cp", "-a", from, to}, []string{})
 }
 
 func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (CommitId, error) {
@@ -101,22 +106,71 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	if err != nil {
 		return CommitId(""), err
 	}
-	commitId := CommitId(strings.Replace("-", "", string(uuid1[:])+string(uuid2[:]), -1)[:40])
-	branchPath := dl.branchPath(volumeName, variantName)
+	bigUUID := uuid1.String() + uuid2.String()
+	// XXX why the hell isn't this working?
+	bigUUID = strings.Replace("-", "", bigUUID, -1)
+	commitId := CommitId(bigUUID[:40])
+	log.Print("commit id is...", commitId)
+	variantPath := dl.variantPath(volumeName, variantName)
 	commitPath := dl.commitPath(volumeName, commitId)
 	if _, err := os.Stat(commitPath); err == nil {
-		return CommitId(), fmt.Errorf("UUID collision. Please step out of the infinite improbability drive.")
+		return CommitId(""), fmt.Errorf("UUID collision. Please step out of the infinite improbability drive.")
+	}
+	commitsDir, _ := filepath.Split(commitPath)
+	if err := os.MkdirAll(commitsDir, 0777); err != nil {
+		return CommitId(""), err
 	}
 	// TODO acquire lock
-	dl.copyFiles(branchPath, commitPath)
+	dl.copyFiles(variantPath, commitPath)
 	// TODO release lock
+	if err := dl.recordCommit(volumeName, variantName, commitMessage, commitId); err != nil {
+		return CommitId(""), err
+	}
 	return commitId, nil
 }
 
-/*
-func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Commit, error) {
+func (dl *DataLayer) recordCommit(volumeName, variantName, message string, commitId CommitId) error {
+	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
+	if err != nil {
+		return err
+	}
+	commits = append(commits, Commit{Id: commitId, Message: CommitMessage(message)})
+	return dl.WriteCommitsForBranch(volumeName, variantName, commits)
 }
 
-func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commits []Commit) {
+func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Commit, error) {
+	branchDB := dl.variantPath(volumeName, variantName) + ".json"
+	log.Print("Going to stat", branchDB)
+	_, err := os.Stat(branchDB)
+	if err == nil {
+		// File doesn't exist, so it's an empty database.
+		return []Commit{}, nil
+	}
+	log.Print("err was nil")
+	// TODO factor this out
+	file, err := os.Open(branchDB)
+	if err != nil {
+		return []Commit{}, err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	var store []Commit
+	err = decoder.Decode(&store)
+	if err != nil {
+		return []Commit{}, err
+	}
+	return store, nil
 }
-*/
+
+func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commits []Commit) error {
+	branchDB := dl.variantPath(volumeName, variantName) + ".json"
+	file, err := os.Create(branchDB)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	encoder.Encode(commits)
+	return nil
+}
