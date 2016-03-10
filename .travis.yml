@@ -19,17 +19,18 @@ env:
     - GO15VENDOREXPERIMENT=1
   # Each of the following results in a separate build run
   # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
-  # unit tests only
-  - "RUN_TESTS=test"
-  # acceptance tests
-  - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-python-acceptance"
-  - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-golang-acceptance"
-  - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-python-acceptance"
-  - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-golang-acceptance"
-  - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-python-acceptance"
-  - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-golang-acceptance"
-  - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-python-acceptance"
-  - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-golang-acceptance"
+  matrix:
+    # unit tests only
+    - "RUN_TESTS=test"
+    # acceptance tests
+    - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-golang-acceptance"
 
 services:
   - docker
