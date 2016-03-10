@@ -86,7 +86,7 @@ func main() {
 		name := request.Name
 		dvol := api.NewDvolAPI(VOL_DIR)
 		if dvol.VolumeExists(name) {
-			log.Print("Volume already exists: %s", name)
+			log.Print("Volume already exists", name)
 		} else {
 			err := dvol.CreateVolume(name)
 			if err != nil {
