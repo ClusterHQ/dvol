@@ -36,6 +36,6 @@ env:
   - "RUN_TESTS=test-dvol-golang-acceptance"
 
 script:
-  - "make verify"
-  - "make build"
-  - "make $RUN_TESTS"
+  - "GO15VENDOREXPERIMENT=1 make verify"
+  - "GO15VENDOREXPERIMENT=1 make build"
+  - "GO15VENDOREXPERIMENT=1 make $RUN_TESTS"
