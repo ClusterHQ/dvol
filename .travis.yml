@@ -6,13 +6,30 @@ notifications:
     # See Travis in the Slack App directory for details.
     secure: "IuMdO5YgVlYdq12I8PbrnjgQo2mpW53LoABUHoHFnaczpXmOD0cbgSX4YRRqGPTkBj3iMqOYtGbOtcyIRwLB9SVbr2xeDpvRYC8auX/jGMbQmaQMhG4kZOpVA9FKt+XcJFj6lsihT50tx2uJ4zn85KjOy1ZJQjgpka+vsKJbvGAg65AvCovlB/l1fyd8eaRZxDXyvapD7I39R7ij22r/QfnJ0t2JT0PKS0SR+gPemnjMhGkW0n3dyoOOkhqVAEyevt6f+s8NNnSioCuJy6X9R6eIXOeJYXHMvigxpZ7nEnrWik3IgQ9+rqJjjqzb9paxU+1+aQP0gb+r1M+hfbGyWQp1k6KCNb1IljCtjNccWxlajkooLJS1haRKiyV96U+DiDybpVIbEdtNMBQrRN+6lCbU8OduHxluH5WnAdZEUGz6pQLt7fxCazKzib/vxnUlSgvRnKzweYd21zj3c4w6aPLdCaI2eQM036Zwt/9ltWbk5I8sjAWfCgvWqxD+MaOT2vAog8T7B8WoyRjhbChtMNNHtw64a9W402WADrQO1jTU4tGsKwDbjXb4j2GtvhKahrGGigFYBfPLgOi8mzzwaJh7uBo/S8evAG/K/abc2hhhLBGWlSiA252hbNcgjGk8QuwKFhaA1DenAXZTf8GcwYC+ZlmKOczIujamQKfAvjM="
 
+sudo: required
 language: go
 # Build against Go 1.5 in travis environment because docker version is < 1.9
 # where docker doesn't send valid host headers. Building our web server (volume
 # plugin) against go 1.6 causes it to be strict about accepting Host headers,
 # causing incompatibility with older versions of docker that we care about.
 go: 1.5
-sudo: required
+
+env:
+  global:
+    - GO15VENDOREXPERIMENT=1
+  # Each of the following results in a separate build run
+  # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
+  # unit tests only
+  - "RUN_TESTS=test"
+  # acceptance tests
+  - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-python-acceptance"
+  - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-golang-acceptance"
+  - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-python-acceptance"
+  - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-golang-acceptance"
+  - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-python-acceptance"
+  - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-golang-acceptance"
+  - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-python-acceptance"
+  - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-golang-acceptance"
 
 services:
   - docker
@@ -27,19 +44,17 @@ before_install:
   # Get packaging tools that can use and cache wheels.
   - "pip install --user `whoami` --upgrade pip>=7"
   - "pip install --user `whoami` wheel"
+  # list docker-engine versions
+  - apt-cache madison docker-engine
+  # upgrade docker-engine to specific version
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine=${DOCKER_VERSION}.1-0~trusty
+
 
 install:
   - "pip install --user `whoami` ."
   - "make bootstrap"
 
-env:
-  # Each of the following results in a separate build run
-  # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
-  - "RUN_TESTS=test" # ie, unit tests only
-  - "RUN_TESTS=test-dvol-python-acceptance"
-  - "RUN_TESTS=test-dvol-golang-acceptance"
-
 script:
-  - "GO15VENDOREXPERIMENT=1 make verify"
-  - "GO15VENDOREXPERIMENT=1 make build"
-  - "GO15VENDOREXPERIMENT=1 make $RUN_TESTS"
+  - "make verify"
+  - "make build"
+  - "make $RUN_TESTS"
