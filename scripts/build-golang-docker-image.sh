@@ -8,10 +8,12 @@
 #   	--source-files "dvol.go cmd/dvol-docker-plugin/dvol-docker-plugin.go" \
 #   	--binaries "dvol dvol-docker-plugin" \
 #   	--tag "golang"
+#
+# XXX: Currently you have to specify the arguments in exactly this order.
+# TODO: Make this actually do proper argument parsing.
 
 set -xe
 
-# TODO Make this actually do proper argument parsing.
 PROJECT=$2
 SOURCE_FILES=$4
 BINARIES=$6
@@ -27,7 +29,7 @@ done
 mkdir -p ${PROJECT}-build
 # Copy them into the build directory
 for BINARY in $BINARIES; do
-    mv ${PROJECT} ${PROJECT}-build/
+    mv ${BINARY} ${PROJECT}-build/
 done
 
 # Copy the dockerfile
@@ -40,3 +42,6 @@ cd ..
 
 # Clean up
 rm -rf ${PROJECT}-build/
+for BINARY in $BINARIES; do
+    rm ${BINARY}
+done
