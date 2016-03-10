@@ -62,7 +62,7 @@ dvol-golang-docker-image:
 	scripts/build-golang-docker-image.sh \
 		--project "dvol" \
 		--source-files "dvol.go cmd/dvol-docker-plugin/dvol-docker-plugin.go" \
-		--binaries "dvol dvol-docker-plugin" \
+		--binaries "dvol dvol-docker-plugin bin/cp" \
 		--tag "golang"
 
 dvol-python-docker-image:
