@@ -21,16 +21,14 @@ env:
   # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
   matrix:
     # unit tests only
-    - "RUN_TESTS=test"
+    - "DOCKER_VERSION=1.10.2 RUN_TESTS=test"
     # acceptance tests
-    - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-python-acceptance"
-    - "DOCKER_VERSION=1.8 RUN_TESTS=test-dvol-golang-acceptance"
-    - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-python-acceptance"
-    - "DOCKER_VERSION=1.9 RUN_TESTS=test-dvol-golang-acceptance"
-    - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-python-acceptance"
-    - "DOCKER_VERSION=1.10 RUN_TESTS=test-dvol-golang-acceptance"
-    - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-python-acceptance"
-    - "DOCKER_VERSION=1.11 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.8.3 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.8.3 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.9.1 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.9.1 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.10.2 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.10.2 RUN_TESTS=test-dvol-golang-acceptance"
 
 services:
   - docker
@@ -48,7 +46,7 @@ before_install:
   # list docker-engine versions
   - apt-cache madison docker-engine
   # upgrade docker-engine to specific version
-  - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine=${DOCKER_VERSION}.1-0~trusty
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes docker-engine=${DOCKER_VERSION}-0~trusty
 
 
 install:
