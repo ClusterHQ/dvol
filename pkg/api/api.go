@@ -2,10 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	//	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+	//	"strings"
 
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
 )
@@ -101,15 +103,15 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 	return nil
 }
 
-func (dvol *DvolAPI) CreateVariant(volumeName, variantName string) error {
-	return dvol.dl.CreateVariant(volumeName, variantName)
+func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
+	return dvol.dl.CreateVariant(volumeName, branchName)
 }
 
-func (dvol *DvolAPI) SwitchVariant(volumeName, variantName string) error {
+func (dvol *DvolAPI) SwitchBranch(volumeName, branchName string) error {
 	return nil
 }
 
-func (dvol *DvolAPI) CheckoutVariant(volumeName, variantName string, create bool) error {
+func (dvol *DvolAPI) CheckoutBranch(volumeName, branchName string, create bool) error {
 	// Get the path to the volume and the branch
 	// If we were asked to create it:
 	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
@@ -178,28 +180,35 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 	return volumes, nil
 }
 
+/*
 func (dvol *DvolAPI) resolveNamedCommitOnCurrentBranch(commit, volumeName string) (error, string) {
 	// Get the active branch on the specified volume
 	// Get the commit offset, returning an error if the commit name isn't correctly formed
-	// Read the commit database
 	// Return the commit ID from the database
-	currentBranch := dvol.CurrentBranch(volumeName)
+	currentBranch, err := dvol.CurrentBranch(volumeName)
+	if err != nil {
+		return err, ""
+	}
 	remainder := commit[len("HEAD"):]
-	if remainder == string.Repeat('^', len(remainder)) {
+	if remainder == strings.Repeat("^", len(remainder)) {
 		offset := len(remainder)
 	} else {
+		return fmt.Errorf("Malformed commit identifier %s", commit), ""
 	}
-	return nil, ""
+	// Read the commit database
+	return nil, "" //commitId
 }
-
-func (dvol *DvolAPI) CreateVariantFromVariant(volumeName, variantName string) error {
+*/
+/*
+func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error {
 	// Get the path to the volume and the branch
 	// If we were asked to create it:
 	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
 	// 	Get the HEAD, return an error regarding needing to commit if the HEAD doesn't exist yet
 	// 	Copy the metadata from the active branch to the new branch
 	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
-	variantPath := filepath.FromSlash(dvol.BasePath + "/" + volumeName + "/branches/" + variantName)
+	branchPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/branches/" + branchName)
 	err, head := dvol.resolveNamedCommitOnCurrentBranch("HEAD", volumeName)
 	return err
 }
+*/

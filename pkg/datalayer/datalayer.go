@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	//"encoding/json"
 	"os"
 	"path/filepath"
 )
@@ -9,6 +10,14 @@ import (
 
 type DataLayer struct {
 	BasePath string
+}
+
+type CommitId string
+type CommitMessage string
+
+type Commit struct {
+	Id      CommitId
+	Message CommitMessage
 }
 
 func (dl *DataLayer) CreateVolume(volumeName string) error {
@@ -26,3 +35,11 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	variantPath := filepath.FromSlash(dl.BasePath + "/" + volumeName + "/branches/" + variantName)
 	return os.MkdirAll(variantPath, 0777)
 }
+
+/*
+func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Commit, error) {
+}
+
+func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commits []Commit) {
+}
+*/
