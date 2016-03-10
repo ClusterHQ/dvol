@@ -51,6 +51,10 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	return os.MkdirAll(variantPath, 0777)
 }
 
+func (dl *DataLayer) copyFiles(from, to) {
+	// ...
+}
+
 func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (CommitId, error) {
 	uuid1, err := uuid.NewV4()
 	if err != nil {
@@ -61,11 +65,14 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 		return CommitId(""), err
 	}
 	commitId := CommitId(strings.Replace("-", "", string(uuid1[:])+string(uuid2[:]), -1)[:40])
-	//branchPath := dl.branchPath(volumeName, variantName)
-	//commitPath := dl.commitPath(volumeName, commitId)
+	branchPath := dl.branchPath(volumeName, variantName)
+	commitPath := dl.commitPath(volumeName, commitId)
+	if _, err := os.Stat(commitPath); err == nil {
+		return CommitId(), fmt.Errorf("UUID collision. Please step out of the infinite improbability drive.")
+	}
 	// TODO acquire lock
 	// TODO check if commitPath exists, bail if not
-	//dl.copyFiles(branchPath, commitPath)
+	dl.copyFiles(branchPath, commitPath)
 	// TODO release lock
 	return commitId, nil
 }
