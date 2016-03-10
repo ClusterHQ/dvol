@@ -25,24 +25,7 @@ class VoluminousTests(TestCase):
         self.tmpdir = FilePath(self.mktemp())
         self.tmpdir.makedirs()
 
-    def test_docker_run_test_container(self):
-        def cleanup():
-            run(["docker", "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
-        run([
-            "docker", "run", "--name", "memorydiskserver", "-d",
-            "-p", "8080:80", "clusterhq/memorydiskserver"
-        ])
-        wait_for_server = try_until(
-            lambda: get("http://" + docker_host() + ":8080/get")
-        )
-        self.assertEqual(wait_for_server.content, "Value: ")
-        cleanup()
-
-    def test_docker_run_dvol_creates_volumes(self):
+    def cleanup_memorydiskserver(self):
         def cleanup():
             try:
                 run(["docker", "rm", "-f", "memorydiskserver"])
@@ -58,6 +41,21 @@ class VoluminousTests(TestCase):
                 pass
         cleanup()
         self.addCleanup(cleanup)
+
+    def test_docker_run_test_container(self):
+        self.cleanup_memorydiskserver()
+
+        run([
+            "docker", "run", "--name", "memorydiskserver", "-d",
+            "-p", "8080:80", "clusterhq/memorydiskserver"
+        ])
+        wait_for_server = try_until(
+            lambda: get("http://" + docker_host() + ":8080/get")
+        )
+        self.assertEqual(wait_for_server.content, "Value: ")
+
+    def test_docker_run_dvol_creates_volumes(self):
+        self.cleanup_memorydiskserver()
 
         run([
             "docker", "run", "--name", "memorydiskserver", "-d",
@@ -126,12 +124,8 @@ class VoluminousTests(TestCase):
         cleanup()
 
     def test_docker_run_roundtrip_value(self):
-        def cleanup():
-            run(["docker", "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+        self.cleanup_memorydiskserver()
+
         run([
             "docker", "run", "--name", "memorydiskserver", "-d",
             "-p", "8080:80", "clusterhq/memorydiskserver"
@@ -149,7 +143,6 @@ class VoluminousTests(TestCase):
                 lambda: get("http://" + docker_host() + ":8080/get")
             )
             self.assertEqual(getting_value.content, "Value: %s" % (value,))
-        cleanup()
 """
 log of integration tests to write:
 
