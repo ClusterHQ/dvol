@@ -2,6 +2,8 @@ package datalayer
 
 import (
 	//"encoding/json"
+	"github.com/nu7hatch/gouuid"
+
 	"os"
 	"path/filepath"
 )
@@ -34,6 +36,15 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	// XXX Variants are meant to be tagged commits???
 	variantPath := filepath.FromSlash(dl.BasePath + "/" + volumeName + "/branches/" + variantName)
 	return os.MkdirAll(variantPath, 0777)
+}
+
+func foo() {
+	u4, err := uuid.NewV4()
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+	fmt.Println(u4)
 }
 
 /*
