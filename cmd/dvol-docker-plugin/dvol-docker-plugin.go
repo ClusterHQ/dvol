@@ -16,42 +16,36 @@ const PLUGINS_DIR = "/run/docker/plugins"
 const DVOL_SOCKET = PLUGINS_DIR + "/dvol.sock"
 const VOL_DIR = "/var/lib/dvol/volumes"
 
-type DockerVolumePluginType string
-type VolumeName string
-type OptKey string
-type OptValue string
-type ErrResponse string
-
 type ResponseImplements struct {
 	// A response to the Plugin.Activate request
-	Implements []DockerVolumePluginType
+	Implements []string
 }
 
 type RequestCreate struct {
 	// A request to create a volume for Docker
-	Name VolumeName
-	Opts map[OptKey]OptValue
+	Name string
+	Opts map[string]string
 }
 
 type RequestMount struct {
 	// A request to mount a volume for Docker
-	Name VolumeName
+	Name string
 }
 
 type RequestRemove struct {
 	// A request to remove a volume for Docker
-	Name VolumeName
+	Name string
 }
 
 type ResponseSimple struct {
 	// A response which only indicates if there was an error or not
-	Err ErrResponse
+	Err string
 }
 
 type ResponseMount struct {
 	// A response to the VolumeDriver.Mount request
-	Mountpoint MountPath
-	Err        ErrResponse
+	Mountpoint string
+	Err        string
 }
 
 func main() {
