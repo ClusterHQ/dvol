@@ -37,9 +37,13 @@ $ curl -sSL http://localhost/get
 */
 
 import (
-	"fmt"
 	"net/http"
+	"fmt"
+	"io/ioutil"
+	"os"
 )
+
+const STORE = "/data/memorydiskserver.dat"
 
 var theValue string
 
@@ -49,6 +53,14 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 
 func setHandler(w http.ResponseWriter, r *http.Request) {
 	theValue = r.URL.Query()["value"][0]
+	err := writeValueToDisk()
+	if err != nil {
+		http.Error(w, fmt.Sprintln(err), 500)
+	}
+}
+
+func writeValueToDisk() error {
+	return ioutil.WriteFile(STORE, []byte(theValue), 0600)
 }
 
 //func setHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +75,15 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 //}
 
 func main() {
+	// Read the starting value
+	dat, err := ioutil.ReadFile(STORE)
+	if err != nil {
+		f, _ := os.Create(STORE)
+		f.Close()
+		dat, _ = ioutil.ReadFile(STORE)
+	}
+	theValue = string(dat)
+
 	http.HandleFunc("/get", getHandler)
 	http.HandleFunc("/set", setHandler)
 

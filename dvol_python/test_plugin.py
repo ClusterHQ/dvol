@@ -154,6 +154,46 @@ class VoluminousTests(TestCase):
                 lambda: get("http://" + docker_host() + ":8080/get")
             )
             self.assertEqual(getting_value.content, "Value: %s" % (value,))
+
+    def try_set_memorydiskserver_value(self, value):
+        """
+        Set a memorydiskserver value and wait for it to complete.
+        """
+        try_until(lambda: get(
+            "http://%s:8080/set?value=%s" % (docker_host(), value,)
+        ))
+
+    def try_get_memorydiskserver_value(self):
+        """
+        Get a memorydiskserver value and wait for it to return.
+        """
+        return try_until(lambda: get(
+            "http://%s:8080/get" % (docker_host(),)
+        )).content
+
+    def test_switch_branches_restarts_containers(self):
+        """
+        Docker containers are restarted when switching branches.
+        """
+        self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
+
+        run([DVOL, "branch", "alpha"])
+        self.try_set_memorydiskserver_value("alpha")
+        run([DVOL, "commit", "-m", "alpha"])
+
+        run([DVOL, "branch", "beta"])
+        self.try_set_memorydiskserver_value("beta")
+        run([DVOL, "commit", "-m", "beta"])
+
+        current_value = self.try_get_memorydiskserver_value()
+        self.assertEqual(current_value, "Value: beta")
+
+        run([DVOL, "checkout", "alpha"])
+        current_value = self.try_get_memorydiskserver_value()
+        self.assertEqual(current_value, "Value: alpha")
+
+
 """
 log of integration tests to write:
 
