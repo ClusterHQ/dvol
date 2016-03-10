@@ -37,18 +37,18 @@ $ curl -sSL http://localhost/get
 */
 
 import (
-    "fmt"
-    "net/http"
+	"fmt"
+	"net/http"
 )
 
 var theValue string
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Value: %s", theValue)
+	fmt.Fprintf(w, "Value: %s", theValue)
 }
 
 func setHandler(w http.ResponseWriter, r *http.Request) {
-    theValue = r.URL.Query()["value"][0]
+	theValue = r.URL.Query()["value"][0]
 }
 
 //func setHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +63,12 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 //}
 
 func main() {
-    http.HandleFunc("/get", getHandler)
-    http.HandleFunc("/set", setHandler)
+	http.HandleFunc("/get", getHandler)
+	http.HandleFunc("/set", setHandler)
 
-//    c := make(chan os.Signal, 1)
-//    signal.Notify(c, os.Interrupt)
-//    go signalHandler(c)
+	//    c := make(chan os.Signal, 1)
+	//    signal.Notify(c, os.Interrupt)
+	//    go signalHandler(c)
 
-    http.ListenAndServe(":80", nil)
+	http.ListenAndServe(":80", nil)
 }
