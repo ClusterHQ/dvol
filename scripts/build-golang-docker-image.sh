@@ -42,6 +42,3 @@ cd ..
 
 # Clean up
 rm -rf ${PROJECT}-build/
-for BINARY in $BINARIES; do
-    rm ${BINARY}
-done
