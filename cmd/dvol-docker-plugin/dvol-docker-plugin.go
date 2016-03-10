@@ -48,6 +48,17 @@ type ResponseMount struct {
 	Err        string
 }
 
+type ResponseListVolume struct {
+	// Used in the JSON representation of ResponseList
+	Name string
+	Mountpoint string
+}
+type ResponseList struct {
+	// A response which enumerates volumes for VolumeDriver.List
+	Volumes []ResponseListVolume
+	Err string
+}
+
 func main() {
 	log.Print("Starting dvol plugin")
 
@@ -156,18 +167,8 @@ func main() {
 	http.Serve(listener, nil)
 }
 
-type ResponseListVolume struct {
-	Name string
-	Mountpoint string
-}
-type ResponseList struct {
-	// A response which enumerates volumes for VolumeDriver.List
-	Volumes []ResponseListVolume
-	Err string
-}
-
 func volumeDriverList (w http.ResponseWriter, r *http.Request) {
-	log.Print("<= /VolumeDriver.Mount")
+	log.Print("<= /VolumeDriver.List")
 	dvol := api.NewDvolAPI(VOL_DIR)
 
 	allVolumes, err := dvol.AllVolumes()
