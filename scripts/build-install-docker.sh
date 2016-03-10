@@ -9,7 +9,7 @@
 
 set -xe
 
-# Exit early if a 'Docker Version' is not set
+# Exit early if a docker version is not supplied
 if [ $# -eq 0 ]; then
   exit 0
 fi

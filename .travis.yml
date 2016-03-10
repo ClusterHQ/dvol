@@ -32,9 +32,6 @@ env:
     - "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-python-acceptance"
     - "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-golang-acceptance"
 
-services:
-  - docker
-
 cache:
   directories:
     # Cache the pip downloads to try to speed up installation.  There might be
