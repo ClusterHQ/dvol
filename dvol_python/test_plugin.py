@@ -197,6 +197,23 @@ class VoluminousTests(TestCase):
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: alpha")
 
+    @skip_if_go_version
+    def test_docker_volumes_removed(self):
+        """
+        When a dvol volume is removed, the corresponding Docker volume is also removed.
+        """
+        self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
+
+        run(["docker", "rm", "-f", "memorydiskserver"])
+
+        docker_output = run(["docker", "volume", "ls"])
+        self.assertSubstring("memorydiskserver", docker_output)
+
+        run([DVOL, "rm", "-f", "memorydiskserver"])
+        docker_output = run(["docker", "volume", "ls"])
+        self.assertNotSubstring("memorydiskserver", docker_output)
+
 
 """
 log of integration tests to write:
