@@ -15,7 +15,7 @@ Assumes that:
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
-    get, docker_host, try_until, run, skip_if_go_version
+    get, docker_host, try_until, run, skip_if_go_version, skip_if_python_version
 )
 
 DVOL = "/usr/local/bin/dvol"
