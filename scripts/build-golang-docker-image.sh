@@ -1,13 +1,42 @@
 #!/bin/sh
-set -e
-PROJECT=$1
-CMD_PATH=$2
-TAG=$3
 
-mkdir -p ${PROJECT}-build
-# XXX Need to make sure this is go 1.5.
-CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' ${CMD_PATH}
-mv ${PROJECT} ${PROJECT}-build/
+# Build a "FROM scratch" docker image based on some
+# statically compiled binaries. Usage example:
+#
+# $ scripts/build-golang-docker-image.sh \
+#   	--project "dvol" \
+#   	--source-files "dvol.go cmd/dvol-docker-plugin/dvol-docker-plugin.go" \
+#   	--binaries "dvol dvol-docker-plugin" \
+#   	--tag "golang"
+
+set -e
+
+# TODO Make this actually do proper argument parsing.
+PROJECT=$2
+SOURCE_FILES=$4
+BINARIES=$6
+TAG=$8
+
+# Statically compile the binaries
+for SOURCE_FILE in $SOURCE_FILES; do
+    # XXX Need to make sure this is go 1.5 to avoid bug in
+    # older versions of docker.
+    CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' ${SOURCE_FILE}
+done
+
+# Copy them into the build directory
+for BINARY in $BINARIES; do
+    mv ${PROJECT} ${PROJECT}-build/
+done
+
+# Copy the dockerfile
 cp Dockerfile.${PROJECT} ${PROJECT}-build/Dockerfile
-cd ${PROJECT}-build && docker build -t clusterhq/${PROJECT}:${TAG} .
+
+# Build the docker image in a constrained context.
+mkdir -p ${PROJECT}-build
+cd ${PROJECT}-build
+docker build -t clusterhq/${PROJECT}:${TAG} .
+cd ..
+
+# Clean up
 rm -rf ${PROJECT}-build/
