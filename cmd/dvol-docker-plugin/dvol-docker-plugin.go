@@ -165,5 +165,3 @@ func writeResponseErr(err error, w http.ResponseWriter) {
 	responseJSON, _ := json.Marshal(&ResponseSimple{Err: errString})
 	w.Write(responseJSON)
 }
-
-// vim: ts=4 sts=4 sw=4 noexpandtab:
