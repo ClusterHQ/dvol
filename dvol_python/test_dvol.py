@@ -322,12 +322,15 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
-           commit_message=text(characters(min_codepoint=1, max_codepoint=127), min_size=1),
-           filename=path_segments(), content=binary())
-    def test_non_standard_branch(self, volume_name, branch_name, commit_message, filename,
-                                 content):
+           commit_message=text(characters(min_codepoint=1, max_codepoint=127),
+           min_size=1), filename=path_segments(), content=binary())
+    def test_non_standard_branch(self, volume_name, branch_name,
+            commit_message, filename, content):
+        """
+        Checking out a new branch results in it being the current active
+        branch.
+        """
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
