@@ -66,8 +66,6 @@ func main() {
 		}
 	}
 
-	listener, err := net.Listen("unix", DVOL_SOCKET)
-
 	if err != nil {
 		log.Fatalf("Could not listen on %s: %v", DVOL_SOCKET, err)
 	}
@@ -148,6 +146,7 @@ func main() {
 	http.HandleFunc("/VolumeDriver.List", func(w http.ResponseWriter, r *http.Request) {
 	})
 
+	listener, err := net.Listen("unix", DVOL_SOCKET)
 	http.Serve(listener, nil)
 }
 
