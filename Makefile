@@ -47,20 +47,18 @@ venv:
 	test -d venv || virtualenv venv
 
 memorydiskserver-docker-image:
-	mkdir -p memorydiskserver-build
-	CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' cmd/memorydiskserver/memorydiskserver.go
-	mv memorydiskserver memorydiskserver-build/
-	cp Dockerfile.memorydiskserver memorydiskserver-build/Dockerfile
-	cd memorydiskserver-build && docker build -t clusterhq/memorydiskserver .
+	scripts/build-golang-docker-image.sh \
+		--project "memorydiskserver" \
+		--source-files "cmd/memorydiskserver/memorydiskserver.go" \
+		--binaries "memorydiskserver" \
+		--tag "latest"
 
 dvol-golang-docker-image:
-	mkdir -p dvol-build
-	CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' dvol.go
-	CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' cmd/dvol-docker-plugin/dvol-docker-plugin.go
-	mv dvol dvol-build/
-	mv dvol-docker-plugin dvol-build/
-	cp Dockerfile.dvol-golang dvol-build/Dockerfile
-	cd dvol-build && docker build -t clusterhq/dvol:golang .
+	scripts/build-golang-docker-image.sh \
+		--project "dvol" \
+		--source-files "dvol.go cmd/dvol-docker-plugin/dvol-docker-plugin.go" \
+		--binaries "dvol dvol-docker-plugin" \
+		--tag "golang"
 
 dvol-python-docker-image:
 	# XXX depends on the network. but we're going to throw away the Python
