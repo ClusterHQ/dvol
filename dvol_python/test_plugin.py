@@ -26,6 +26,9 @@ class VoluminousTests(TestCase):
         self.tmpdir.makedirs()
 
     def cleanup_memorydiskserver(self):
+        """
+        Standard cleanup for memorydiskserver.
+        """
         def cleanup():
             try:
                 run(["docker", "rm", "-f", "memorydiskserver"])
@@ -42,13 +45,28 @@ class VoluminousTests(TestCase):
         cleanup()
         self.addCleanup(cleanup)
 
-    def test_docker_run_test_container(self):
-        self.cleanup_memorydiskserver()
+    def start_memorydiskserver(self):
+        """
+        Standard start for memorydiskserver.
+        """
+        run([
+            "docker", "run", "--name", "memorydiskserver", "-d",
+            "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
+            "-p", "8080:80", "clusterhq/memorydiskserver",
+        ])
 
+    def test_docker_run_test_container(self):
+        def cleanup():
+            run(["docker", "rm", "-f", "memorydiskserver"])
+        try:
+            cleanup()
+        except:
+            pass
         run([
             "docker", "run", "--name", "memorydiskserver", "-d",
             "-p", "8080:80", "clusterhq/memorydiskserver"
         ])
+
         wait_for_server = try_until(
             lambda: get("http://" + docker_host() + ":8080/get")
         )
@@ -56,12 +74,8 @@ class VoluminousTests(TestCase):
 
     def test_docker_run_dvol_creates_volumes(self):
         self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
 
-        run([
-            "docker", "run", "--name", "memorydiskserver", "-d",
-            "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
-            "clusterhq/memorydiskserver"
-        ])
         def dvol_list_includes_memorydiskserver():
             result = run([DVOL, "list"])
             if "memorydiskserver" not in result:
@@ -125,11 +139,8 @@ class VoluminousTests(TestCase):
 
     def test_docker_run_roundtrip_value(self):
         self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
 
-        run([
-            "docker", "run", "--name", "memorydiskserver", "-d",
-            "-p", "8080:80", "clusterhq/memorydiskserver"
-        ])
         for value in ("10", "20"):
             # Running test with multiple values forces container to persist it
             # in memory (rather than hard-coding the response to make the test
