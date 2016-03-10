@@ -146,8 +146,7 @@ func main() {
 		writeResponseOK(w)
 	})
 
-	http.HandleFunc("/VolumeDriver.List", func(w http.ResponseWriter, r *http.Request) {
-	})
+	http.HandleFunc("/VolumeDriver.List", volumeDriverList)
 
 	listener, err := net.Listen("unix", DVOL_SOCKET)
 	if err != nil {
@@ -155,6 +154,15 @@ func main() {
 	}
 
 	http.Serve(listener, nil)
+}
+
+func volumeDriverList (w http.ResponseWriter, r *http.Request) {
+	log.Print("<= /VolumeDriver.Mount")
+	dvol := api.NewDvolAPI(VOL_DIR)
+	allVolumes, err := dvol.AllVolumes()
+	if err != nil {
+		writeResponseErr(err)
+	}
 }
 
 func writeResponseOK(w http.ResponseWriter) {

@@ -48,9 +48,19 @@ type DvolAPI struct {
 	dl       *datalayer.DataLayer
 }
 
+type DvolVolume struct {
+    // Represents a dvol volume
+    Name        string
+    Mountpoint  string
+}
+
 func NewDvolAPI(basePath string) *DvolAPI {
 	dl := &datalayer.DataLayer{BasePath: basePath}
 	return &DvolAPI{basePath, dl}
+}
+
+func (dvol *DvolAPI) volumeMountpoint(volumeName string) string {
+	return filepath.FromSlash(dvol.basePath + "/" + volumeName)
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
@@ -102,7 +112,7 @@ func (dvol *DvolAPI) ActiveVolume() (string, error) {
 }
 
 func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
-	volumePath := filepath.FromSlash(dvol.basePath + "/" + volumeName)
+    volumePath := dvol.volumeMountpoint(volumeName)
 	_, err := os.Stat(volumePath)
 	return err == nil
 }
@@ -129,15 +139,18 @@ func (dvol *DvolAPI) CurrentBranch(volumeName string) (string, error) {
 	return store["current_branch"].(string), nil
 }
 
-func (dvol *DvolAPI) AllVolumes() ([]string, error) {
+func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 	files, err := ioutil.ReadDir(dvol.basePath)
 	if err != nil {
-		return []string{}, err
+		return []DvolVolume{}, err
 	}
-	volumes := make([]string, 0)
+	volumes := make([]DvolVolume, 0)
 	for _, file := range files {
 		if file.IsDir() {
-			volumes = append(volumes, file.Name())
+			volumes = append(volumes, DvolVolume{
+                Name: file.Name(),
+                Mountpoint: dvol.volumeMountpoint(file.Name()),
+            })
 		}
 	}
 	return volumes, nil

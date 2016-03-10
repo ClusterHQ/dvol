@@ -150,6 +150,35 @@ class VoluminousTests(TestCase):
             )
             self.assertEqual(getting_value.content, "Value: %s" % (value,))
         cleanup()
+
+    def test_dvol_volumes_listed_in_docker(self):
+        """
+        Volumes created with dvol an be listed in `docker volume ls`.
+        """
+        def cleanup():
+            try:
+                run(["docker", "volume", "rm", "docker_volume_list_test"])
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "docker_volume_list_test"])
+            except:
+                pass
+
+        cleanup()
+        self.addCleanup(cleanup)
+
+        run([DVOL, "init", "docker_volume_list_test"])
+
+        docker_output = run(["docker", "volume", "list"])
+
+        for line in docker_output.split("\n"):
+            if line.startswith("dvol") and "docker_volume_list_test" in line:
+                return
+
+        self.fail("Volume 'docker_volume_list_test' not found in Docker "
+                "output:\n\n" + docker_output)
+
 """
 log of integration tests to write:
 

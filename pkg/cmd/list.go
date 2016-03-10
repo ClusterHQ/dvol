@@ -53,10 +53,10 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 			return err
 		}
 		prefix := "  "
-		if activeVolume == volume {
+		if activeVolume == volume.Name {
 			prefix = "* "
 		}
-		branch, err := dvol.CurrentBranch(volume)
+		branch, err := dvol.CurrentBranch(volume.Name)
 		if err != nil {
 			return err
 		}
