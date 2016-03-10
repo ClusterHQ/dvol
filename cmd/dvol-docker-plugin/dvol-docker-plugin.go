@@ -156,13 +156,37 @@ func main() {
 	http.Serve(listener, nil)
 }
 
+type ResponseListVolume struct {
+	Name string
+	Mountpoint string
+}
+type ResponseList struct {
+	// A response which enumerates volumes for VolumeDriver.List
+	Volumes []ResponseListVolume
+	Err string
+}
+
 func volumeDriverList (w http.ResponseWriter, r *http.Request) {
 	log.Print("<= /VolumeDriver.Mount")
 	dvol := api.NewDvolAPI(VOL_DIR)
+
 	allVolumes, err := dvol.AllVolumes()
 	if err != nil {
-		writeResponseErr(w, err)
+		writeResponseErr(err, w)
 	}
+
+	var response = ResponseList{
+		Err: "",
+	}
+	for _, volume := range(allVolumes) {
+		response.Volumes = append(response.Volumes, ResponseListVolume{
+			Name: volume.Name,
+			Mountpoint: volume.Mountpoint,
+		})
+	}
+
+	responseJSON, _ := json.Marshal(response)
+	w.Write(responseJSON)
 }
 
 func writeResponseOK(w http.ResponseWriter) {

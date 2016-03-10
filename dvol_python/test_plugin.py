@@ -158,26 +158,26 @@ class VoluminousTests(TestCase):
         """
         def cleanup():
             try:
-                run(["docker", "volume", "rm", "docker_volume_list_test"])
+                run(["docker", "volume", "rm", "docker-volume-list-test"])
             except:
                 pass
             try:
-                run([DVOL, "rm", "docker_volume_list_test"])
+                run([DVOL, "rm", "-f", "docker-volume-list-test"])
             except:
                 pass
 
         cleanup()
         self.addCleanup(cleanup)
 
-        run([DVOL, "init", "docker_volume_list_test"])
+        run([DVOL, "init", "docker-volume-list-test"])
 
-        docker_output = run(["docker", "volume", "list"])
+        docker_output = run(["docker", "volume", "ls"])
 
         for line in docker_output.split("\n"):
-            if line.startswith("dvol") and "docker_volume_list_test" in line:
+            if line.startswith("dvol") and "docker-volume-list-test" in line:
                 return
 
-        self.fail("Volume 'docker_volume_list_test' not found in Docker "
+        self.fail("Volume 'docker-volume-list-test' not found in Docker "
                 "output:\n\n" + docker_output)
 
 """
