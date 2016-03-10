@@ -1,5 +1,5 @@
 """
-Tests for the Voluminous CLI.
+Tests for the dvol CLI.
 """
 
 from string import letters
@@ -10,20 +10,19 @@ from hypothesis.strategies import binary, characters, dictionaries, sets, text
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from twisted.python.usage import UsageError
-from unittest import skipIf
 import subprocess
 import os
 import json
 
-TEST_DVOL_BINARY = os.environ.get("TEST_DVOL_BINARY", False)
+from testtools import (
+    CalledProcessErrorWithOutput, TEST_GOLANG_VERSION, skip_if_go_version,
+    skip_if_python_version
+)
+
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")
 ARGS = ["--disable-docker-integration"]
 
-
-class CalledProcessErrorWithOutput(Exception):
-    pass
-
-if TEST_DVOL_BINARY:
+if TEST_GOLANG_VERSION:
     # Test an alternative implementation of dvol, such as one available as a
     # binary rather than an importable Python implementation.
     class FakeVoluminous(object):
@@ -92,17 +91,6 @@ def path_segments():
 
 volume_names = path_segments
 branch_names = path_segments
-
-skip_if_go_version = skipIf(
-    TEST_DVOL_BINARY,
-    "Not expected to work in go version"
-)
-
-skip_if_python_version = skipIf(
-    not TEST_DVOL_BINARY,
-    "Not expected to work in Python version"
-)
-
 
 class VoluminousTests(TestCase):
     def setUp(self):
