@@ -171,6 +171,7 @@ class VoluminousTests(TestCase):
             "http://%s:8080/get" % (docker_host(),)
         )).content
 
+    @skip_if_go_version
     def test_switch_branches_restarts_containers(self):
         """
         Docker containers are restarted when switching branches.
@@ -178,11 +179,14 @@ class VoluminousTests(TestCase):
         self.cleanup_memorydiskserver()
         self.start_memorydiskserver()
 
-        run([DVOL, "branch", "alpha"])
+        # We have to do an initial state commit before we can switch branches
+        run([DVOL, "commit", "-m", "Initial"])
+
+        run([DVOL, "checkout", "-b", "alpha"])
         self.try_set_memorydiskserver_value("alpha")
         run([DVOL, "commit", "-m", "alpha"])
 
-        run([DVOL, "branch", "beta"])
+        run([DVOL, "checkout", "-b", "beta"])
         self.try_set_memorydiskserver_value("beta")
         run([DVOL, "commit", "-m", "beta"])
 
