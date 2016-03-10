@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ClusterHQ/dvol/pkg/cmd"
+	//	"github.com/nu7hatch/gouuid"
 )
 
 func main() {
@@ -12,4 +13,12 @@ func main() {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+	/*
+		u4, err := uuid.NewV4()
+		if err != nil {
+			fmt.Println("error:", err)
+			return
+		}
+		fmt.Println(u4)
+	*/
 }

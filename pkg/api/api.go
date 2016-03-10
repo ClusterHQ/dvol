@@ -144,11 +144,11 @@ func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
 	return err == nil
 }
 
-func (dvol *DvolAPI) SwitchVolume(volumeName string) error {
+func (dvol *Dvol) SwitchVolume(volumeName string) error {
 	return dvol.setActiveVolume(volumeName)
 }
 
-func (dvol *DvolAPI) CurrentBranch(volumeName string) (string, error) {
+func (dvol *DvolAPI) ActiveBranch(volumeName string) (string, error) {
 	currentBranchJsonPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/current_branch.json")
 	file, err := os.Open(currentBranchJsonPath)
 	if err != nil {
@@ -180,12 +180,16 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 	return volumes, nil
 }
 
+func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) {
+	return dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
+}
+
 /*
-func (dvol *DvolAPI) resolveNamedCommitOnCurrentBranch(commit, volumeName string) (error, string) {
+func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (error, string) {
 	// Get the active branch on the specified volume
 	// Get the commit offset, returning an error if the commit name isn't correctly formed
 	// Return the commit ID from the database
-	currentBranch, err := dvol.CurrentBranch(volumeName)
+	currentBranch, err := dvol.ActiveBranch(volumeName)
 	if err != nil {
 		return err, ""
 	}
@@ -208,7 +212,7 @@ func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error
 	// 	Copy the metadata from the active branch to the new branch
 	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
 	branchPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/branches/" + branchName)
-	err, head := dvol.resolveNamedCommitOnCurrentBranch("HEAD", volumeName)
+	err, head := dvol.resolveNamedCommitOnActiveBranch("HEAD", volumeName)
 	return err
 }
 */

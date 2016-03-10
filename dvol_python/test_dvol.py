@@ -213,7 +213,6 @@ class VoluminousTests(TestCase):
             sorted(rest),
         )
 
-    @skip_if_go_version
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -226,7 +225,6 @@ class VoluminousTests(TestCase):
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
 
-    @skip_if_go_version
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
         # and started around commits
@@ -322,6 +320,7 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
+    @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(min_codepoint=1, max_codepoint=127),
            min_size=1), filename=path_segments(), content=binary())
