@@ -144,7 +144,7 @@ func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
 	return err == nil
 }
 
-func (dvol *Dvol) SwitchVolume(volumeName string) error {
+func (dvol *DvolAPI) SwitchVolume(volumeName string) error {
 	return dvol.setActiveVolume(volumeName)
 }
 
@@ -180,8 +180,9 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 	return volumes, nil
 }
 
-func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) {
-	return dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
+func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) error {
+	_, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
+	return err
 }
 
 /*

@@ -2,11 +2,11 @@ package datalayer
 
 import (
 	//"encoding/json"
-
-	"github.com/nu7hatch/gouuid"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/nu7hatch/gouuid"
 )
 
 // ClusterHQ data layer, naive vfs (directory-based) implementation
@@ -23,16 +23,16 @@ type Commit struct {
 	Message CommitMessage
 }
 
-func (dl *DataLayer) volumePath(volumeName string) {
+func (dl *DataLayer) volumePath(volumeName string) string {
 	return filepath.FromSlash(dl.BasePath + "/" + volumeName)
 }
 
-func (dl *DataLayer) branchPath(volumeName, branchName string) {
+func (dl *DataLayer) branchPath(volumeName, branchName string) string {
 	return filepath.FromSlash(dl.BasePath + "/" + volumeName + "/branches/" + branchName)
 }
 
-func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) {
-	return filepath.FromSlash(dl.BasePath + "/" + volumeName + "/commits/" + commitId)
+func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) string {
+	return filepath.FromSlash(dl.BasePath + "/" + volumeName + "/commits/" + string(commitId))
 }
 
 func (dl *DataLayer) CreateVolume(volumeName string) error {
@@ -52,14 +52,22 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 }
 
 func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (CommitId, error) {
-	commitId := strings.Replace("-", "", gouuid.NewV4()+gouuid.NewV4(), -1)[:40] // TODO type cast this?
-	branchPath := dl.branchPath(branchName)
-	commitPath := dl.commitPath(commitId)
+	uuid1, err := uuid.NewV4()
+	if err != nil {
+		return CommitId(""), err
+	}
+	uuid2, err := uuid.NewV4()
+	if err != nil {
+		return CommitId(""), err
+	}
+	commitId := CommitId(strings.Replace("-", "", string(uuid1[:])+string(uuid2[:]), -1)[:40])
+	//branchPath := dl.branchPath(volumeName, variantName)
+	//commitPath := dl.commitPath(volumeName, commitId)
 	// TODO acquire lock
 	// TODO check if commitPath exists, bail if not
-	dl.copyFiles(branchPath, commitPath)
+	//dl.copyFiles(branchPath, commitPath)
 	// TODO release lock
-	return nil, commitId
+	return commitId, nil
 }
 
 /*
