@@ -11,8 +11,8 @@ fi
 
 if [ $DOCKER_VERSION = "experimental" ]; then
   # 'upgrade' docker-engine to specific version
-  apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes docker-engine=${DOCKER_VERSION}-0~trusty
+  sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes docker-engine=${DOCKER_VERSION}-0~trusty
 else
   # install the 'experimental' build from Docker
-  curl -sSL https://experimental.docker.com/ | sh
+  sudo sh -c 'curl -sSL https://experimental.docker.com/'
 fi
