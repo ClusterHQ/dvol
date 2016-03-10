@@ -161,7 +161,7 @@ func volumeDriverList (w http.ResponseWriter, r *http.Request) {
 	dvol := api.NewDvolAPI(VOL_DIR)
 	allVolumes, err := dvol.AllVolumes()
 	if err != nil {
-		writeResponseErr(err)
+		writeResponseErr(w, err)
 	}
 }
 

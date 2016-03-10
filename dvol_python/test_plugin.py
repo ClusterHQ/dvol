@@ -151,6 +151,7 @@ class VoluminousTests(TestCase):
             self.assertEqual(getting_value.content, "Value: %s" % (value,))
         cleanup()
 
+    @skip_if_python_version
     def test_dvol_volumes_listed_in_docker(self):
         """
         Volumes created with dvol an be listed in `docker volume ls`.
