@@ -17,6 +17,11 @@ fi
 DOCKER_VERSION=$1
 
 if [ $DOCKER_VERSION = "experimental" ]; then
+
+  # We need to remove the existing version as we cannot add --force-confnew
+  # to the apt-get install in the following call
+  sudo apt-get --force-yes remove docker-engine
+
   # Install the 'experimental' build from Docker
   curl -sSL https://experimental.docker.com/ | sudo sh
 else
