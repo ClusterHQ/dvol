@@ -216,12 +216,16 @@ class VoluminousTests(TestCase):
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        # TODO after throwing away python version, make this test stricter
+        # about exit code != 0
         try:
-            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "commit"])
-            # TODO assert exit code != 0
-            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
-                    "You must provide a commit message"))
-        except UsageError:
+            try:
+                dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "commit"])
+            except CalledProcessErrorWithOutput, error: # go version
+                expected_output = "You must provide a commit message"
+                self.assertIn(expected_output, error.original.output)
+                self.assertTrue(error.original.returncode != 0)
+        except UsageError: # python version
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
 

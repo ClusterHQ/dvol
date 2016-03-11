@@ -29,6 +29,9 @@ func NewCmdCommit(out io.Writer) *cobra.Command {
 }
 
 func commitVolume(cmd *cobra.Command, commitMessage string, out io.Writer) error {
+	if !(len(commitMessage) > 0) {
+		return fmt.Errorf("You must provide a commit message")
+	}
 	// TODO need to add user's name and email adddress
 	dvol := api.NewDvolAPI(basePath)
 	activeVolume, err := dvol.ActiveVolume()
