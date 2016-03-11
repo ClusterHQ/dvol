@@ -3,7 +3,7 @@ Common test tools.
 """
 
 from os import environ
-from semver import max_ver
+from semver import compare
 from unittest import skipIf
 import requests
 import subprocess
@@ -24,7 +24,7 @@ skip_if_python_version = skipIf(
 
 def _skip_max_docker_ver(ver):
     try:
-        return max_ver(DOCKER_VERSION, ver) == ver
+        return compare(DOCKER_VERSION, ver) < 0
     except ValueError:
         return False
 
