@@ -39,5 +39,10 @@ func commitVolume(cmd *cobra.Command, commitMessage string, out io.Writer) error
 	if err != nil {
 		return err
 	}
-	return dvol.Commit(activeVolume, activeBranch, commitMessage)
+	commitId, err := dvol.Commit(activeVolume, activeBranch, commitMessage)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", commitId)
+	return nil
 }

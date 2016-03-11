@@ -2,12 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
-	//	"strings"
 
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
 )
@@ -180,13 +178,12 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 	return volumes, nil
 }
 
-func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) error {
+func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (string, error) {
 	commitId, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
 	if err != nil {
-		return err
+		return "", err
 	}
-	fmt.Printf("Commit ID: %s\n", string(commitId))
-	return nil
+	return string(commitId), nil
 }
 
 /*

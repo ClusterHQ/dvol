@@ -3,7 +3,6 @@ package datalayer
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -139,9 +138,8 @@ func (dl *DataLayer) recordCommit(volumeName, variantName, message string, commi
 
 func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Commit, error) {
 	branchDB := dl.variantPath(volumeName, variantName) + ".json"
-	log.Print(branchDB)
 	_, err := os.Stat(branchDB)
-	if err == nil {
+	if err != nil {
 		// File doesn't exist, so it's an empty database.
 		return []Commit{}, nil
 	}
