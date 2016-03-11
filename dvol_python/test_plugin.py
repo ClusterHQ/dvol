@@ -201,7 +201,8 @@ class VoluminousTests(TestCase):
     @skip_if_go_version
     def test_docker_volumes_removed(self):
         """
-        When a dvol volume is removed, the corresponding Docker volume is also removed.
+        When a dvol volume is removed, you can implicitly create a new volume
+        using `docker run` and it succeeds.
         """
         def cleanup():
             try:
@@ -229,15 +230,9 @@ class VoluminousTests(TestCase):
         run([DVOL, "rm", "-f", "volume_remove_test"])
 
         # Start a new container on the same volume and expect an error
-        try:
-            run(["docker", "run", "--name", "volume_remove_test_error", "-v",
-                "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
-                "busybox", "true"])
-            self.fail("No exception raised when starting a container which "
-                    "re-uses the same volume name.")
-        except CalledProcessErrorWithOutput, e:
-            if e.original.returncode != 125:
-                raise
+        run(["docker", "run", "--name", "volume_remove_test_error", "-v",
+            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "busybox", "true"])
 
 
 """
