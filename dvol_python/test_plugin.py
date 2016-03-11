@@ -112,7 +112,6 @@ class VoluminousTests(TestCase):
         try_until(dvol_list_includes_container_name)
         cleanup()
 
-    @skip_if_go_version
     def test_docker_run_dvol_multiple_containers_shows_up_in_list_output(self):
         container1 = "fancy"
         container2 = "fancier"

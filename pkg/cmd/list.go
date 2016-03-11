@@ -61,7 +61,7 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 			return err
 		}
 		containers, err := dvol.Containers.Related(volume)
-		cStr := strings.Join(containers, ", ")
+		cStr := strings.Join(containers, ",")
 		if err != nil {
 			return err
 		}
