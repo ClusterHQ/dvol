@@ -37,9 +37,9 @@ $ curl -sSL http://localhost/get
 */
 
 import (
-	"net/http"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
 
@@ -55,7 +55,7 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 	theValue = r.URL.Query()["value"][0]
 	err := writeValueToDisk()
 	if err != nil {
-		http.Error(w, fmt.Sprintln(err), 500)
+		http.Error(w, fmt.Sprintln(err), http.StatusInternalServerError)
 	}
 }
 
