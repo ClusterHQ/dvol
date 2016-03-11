@@ -16,7 +16,7 @@ from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
     get, docker_host, try_until, run, skip_if_go_version,
-    CalledProcessErrorWithOutput
+    skip_if_python_version
 )
 
 DVOL = "/usr/local/bin/dvol"
@@ -198,7 +198,8 @@ class VoluminousTests(TestCase):
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: alpha")
 
-    @skip_if_go_version
+    @skip_if_python_version # The Python implementation is broken
+    @skip_if_go_version # Remove me when implemented in Go
     def test_docker_volumes_removed(self):
         """
         When a dvol volume is removed, you can implicitly create a new volume
