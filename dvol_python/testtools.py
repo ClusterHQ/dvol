@@ -3,12 +3,14 @@ Common test tools.
 """
 
 from os import environ
+from semver import max_ver
 from unittest import skipIf
 import requests
 import subprocess
 import time
 
 TEST_GOLANG_VERSION = environ.get("TEST_GOLANG_VERSION", False)
+DOCKER_VERSION = environ.get("DOCKER_VERSION", "")
 
 skip_if_go_version = skipIf(
     TEST_GOLANG_VERSION,
@@ -19,6 +21,17 @@ skip_if_python_version = skipIf(
     not TEST_GOLANG_VERSION,
     "Not expected to work in Python version"
 )
+
+def _skip_max_docker_ver(ver):
+    try:
+        return max_ver(DOCKER_VERSION, ver) == ver
+    except ValueError:
+        return False
+
+skip_if_docker_version_less_than = lambda ver: skipIf(
+    _skip_max_docker_ver(ver),
+    "Not expected to in this Docker version")
+
 
 def get(*args, **kw):
     response = requests.get(*args, **kw)

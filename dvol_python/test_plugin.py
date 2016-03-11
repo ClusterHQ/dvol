@@ -15,7 +15,8 @@ Assumes that:
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
-    get, docker_host, try_until, run, skip_if_go_version, skip_if_python_version
+    get, docker_host, try_until, run, skip_if_go_version, skip_if_python_version,
+    skip_if_docker_version_less_than
 )
 
 DVOL = "/usr/local/bin/dvol"
@@ -198,6 +199,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(current_value, "Value: alpha")
 
     @skip_if_python_version
+    @skip_if_docker_version_less_than("1.9.0")
     def test_dvol_volumes_listed_in_docker(self):
         """
         Volumes created with dvol an be listed in `docker volume ls`.
