@@ -91,7 +91,6 @@ class VoluminousTests(TestCase):
             cleanup()
         except:
             pass
-
         run([
             "docker", "run", "--name", container, "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
