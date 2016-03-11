@@ -25,24 +25,10 @@ class VoluminousTests(TestCase):
         self.tmpdir = FilePath(self.mktemp())
         self.tmpdir.makedirs()
 
-    def test_docker_run_test_container(self):
-        def cleanup():
-            run(["docker", "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
-        run([
-            "docker", "run", "--name", "memorydiskserver", "-d",
-            "-p", "8080:80", "clusterhq/memorydiskserver"
-        ])
-        wait_for_server = try_until(
-            lambda: get("http://" + docker_host() + ":8080/get")
-        )
-        self.assertEqual(wait_for_server.content, "Value: ")
-        cleanup()
-
-    def test_docker_run_dvol_creates_volumes(self):
+    def cleanup_memorydiskserver(self):
+        """
+        Standard cleanup for memorydiskserver.
+        """
         def cleanup():
             try:
                 run(["docker", "rm", "-f", "memorydiskserver"])
@@ -59,11 +45,37 @@ class VoluminousTests(TestCase):
         cleanup()
         self.addCleanup(cleanup)
 
+    def start_memorydiskserver(self):
+        """
+        Standard start for memorydiskserver.
+        """
         run([
             "docker", "run", "--name", "memorydiskserver", "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
-            "clusterhq/memorydiskserver"
+            "-p", "8080:80", "clusterhq/memorydiskserver",
         ])
+
+    def test_docker_run_test_container(self):
+        def cleanup():
+            run(["docker", "rm", "-f", "memorydiskserver"])
+        try:
+            cleanup()
+        except:
+            pass
+        run([
+            "docker", "run", "--name", "memorydiskserver", "-d",
+            "-p", "8080:80", "clusterhq/memorydiskserver"
+        ])
+
+        wait_for_server = try_until(
+            lambda: get("http://" + docker_host() + ":8080/get")
+        )
+        self.assertEqual(wait_for_server.content, "Value: ")
+
+    def test_docker_run_dvol_creates_volumes(self):
+        self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
+
         def dvol_list_includes_memorydiskserver():
             result = run([DVOL, "list"])
             if "memorydiskserver" not in result:
@@ -126,16 +138,9 @@ class VoluminousTests(TestCase):
         cleanup()
 
     def test_docker_run_roundtrip_value(self):
-        def cleanup():
-            run(["docker", "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
-        run([
-            "docker", "run", "--name", "memorydiskserver", "-d",
-            "-p", "8080:80", "clusterhq/memorydiskserver"
-        ])
+        self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
+
         for value in ("10", "20"):
             # Running test with multiple values forces container to persist it
             # in memory (rather than hard-coding the response to make the test
@@ -149,7 +154,48 @@ class VoluminousTests(TestCase):
                 lambda: get("http://" + docker_host() + ":8080/get")
             )
             self.assertEqual(getting_value.content, "Value: %s" % (value,))
-        cleanup()
+
+    def try_set_memorydiskserver_value(self, value):
+        """
+        Set a memorydiskserver value and wait for it to complete.
+        """
+        try_until(lambda: get(
+            "http://%s:8080/set?value=%s" % (docker_host(), value,)
+        ))
+
+    def try_get_memorydiskserver_value(self):
+        """
+        Get a memorydiskserver value and wait for it to return.
+        """
+        return try_until(lambda: get(
+            "http://%s:8080/get" % (docker_host(),)
+        )).content
+
+    @skip_if_go_version
+    def test_switch_branches_restarts_containers(self):
+        """
+        Docker containers are restarted when switching branches.
+        """
+        self.cleanup_memorydiskserver()
+        self.start_memorydiskserver()
+
+        # We have to do an initial state commit before we can switch branches
+        run([DVOL, "commit", "-m", "Initial"])
+
+        run([DVOL, "checkout", "-b", "alpha"])
+        self.try_set_memorydiskserver_value("alpha")
+        run([DVOL, "commit", "-m", "alpha"])
+
+        run([DVOL, "checkout", "-b", "beta"])
+        self.try_set_memorydiskserver_value("beta")
+        run([DVOL, "commit", "-m", "beta"])
+
+        current_value = self.try_get_memorydiskserver_value()
+        self.assertEqual(current_value, "Value: beta")
+
+        run([DVOL, "checkout", "alpha"])
+        current_value = self.try_get_memorydiskserver_value()
+        self.assertEqual(current_value, "Value: alpha")
 
     @skip_if_python_version
     def test_dvol_volumes_listed_in_docker(self):
@@ -179,6 +225,7 @@ class VoluminousTests(TestCase):
 
         self.fail("Volume 'docker-volume-list-test' not found in Docker "
                 "output:\n\n" + docker_output)
+
 
 """
 log of integration tests to write:
