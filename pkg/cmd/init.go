@@ -43,7 +43,7 @@ func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	}
 	fmt.Fprintln(out, "Created volume", volumeName)
 
-	err = dvol.CreateVariant(volumeName, "master")
+	err = dvol.CreateBranch(volumeName, "master")
 	if err != nil {
 		return fmt.Errorf("Error creating branch")
 	}

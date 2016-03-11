@@ -36,6 +36,26 @@ A dvol volume is:
 
 A data layer volume is what we call a writeable working copy.
 
+current directory structure
+---------------------------
+
+What should go where?
+
+STRUCTURE                                   WHAT
+------------------------------------------------
+current_volume.json                         dvol api
+volumes/
+  foo/
+    current_branch.json                     dvol api
+	running_point -> branches/bar           dvol docker integration
+	commits/                                data layer commits
+	  deadbeefdeadbeef/
+	    <copy of data>
+	branches/
+	  bar/                                  data layer volume (one per branch), writeable working copy
+	    <writeable data>
+	  bar.json                              data layer commit metadata database (currently per branch, should be migrated into commits eventually, but not yet)
+
 */
 
 const MAX_NAME_LENGTH int = 40
@@ -52,7 +72,7 @@ type DvolAPI struct {
 }
 
 func NewDvolAPI(basePath string, disableDockerIntegration bool) *DvolAPI {
-	dl := &datalayer.DataLayer{BasePath: basePath}
+	dl := datalayer.NewDataLayer(basePath)
 	var c containers.Containers
 	if !disableDockerIntegration {
 		client, _ := docker.NewClientFromEnv()
@@ -91,8 +111,23 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 	return nil
 }
 
-func (dvol *DvolAPI) CreateVariant(volumeName, variantName string) error {
-	return dvol.dl.CreateVariant(volumeName, variantName)
+func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
+	return dvol.dl.CreateVariant(volumeName, branchName)
+}
+
+func (dvol *DvolAPI) SwitchBranch(volumeName, branchName string) error {
+	return nil
+}
+
+func (dvol *DvolAPI) CheckoutBranch(volumeName, branchName string, create bool) error {
+	// Get the path to the volume and the branch
+	// If we were asked to create it:
+	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
+	// 	Get the HEAD, return an error regarding needing to commit if the HEAD doesn't exist yet
+	// 	Copy the metadata from the active branch to the new branch
+	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
+	// Switch to it
+	return nil
 }
 
 func (dvol *DvolAPI) ActiveVolume() (string, error) {
@@ -121,7 +156,7 @@ func (dvol *DvolAPI) SwitchVolume(volumeName string) error {
 	return dvol.setActiveVolume(volumeName)
 }
 
-func (dvol *DvolAPI) CurrentBranch(volumeName string) (string, error) {
+func (dvol *DvolAPI) ActiveBranch(volumeName string) (string, error) {
 	currentBranchJsonPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/current_branch.json")
 	file, err := os.Open(currentBranchJsonPath)
 	if err != nil {
@@ -152,3 +187,45 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 	}
 	return volumes, nil
 }
+
+func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (string, error) {
+	// returns a CommitId which is a string 40 byte UUID
+	commitId, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
+	if err != nil {
+		return "", err
+	}
+	return string(commitId), nil
+}
+
+/*
+func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (error, string) {
+	// Get the active branch on the specified volume
+	// Get the commit offset, returning an error if the commit name isn't correctly formed
+	// Return the commit ID from the database
+	currentBranch, err := dvol.ActiveBranch(volumeName)
+	if err != nil {
+		return err, ""
+	}
+	remainder := commit[len("HEAD"):]
+	if remainder == strings.Repeat("^", len(remainder)) {
+		offset := len(remainder)
+	} else {
+		return fmt.Errorf("Malformed commit identifier %s", commit), ""
+	}
+	// Read the commit database
+	return nil, "" //commitId
+}
+*/
+/*
+func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error {
+	// Get the path to the volume and the branch
+	// If we were asked to create it:
+	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
+	// 	Get the HEAD, return an error regarding needing to commit if the HEAD doesn't exist yet
+	// 	Copy the metadata from the active branch to the new branch
+	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
+	branchPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/branches/" + branchName)
+	err, head := dvol.resolveNamedCommitOnActiveBranch("HEAD", volumeName)
+	return err
+}
+*/
