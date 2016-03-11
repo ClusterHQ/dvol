@@ -108,7 +108,7 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	commitId := CommitId(bigUUID[:40])
 	variantPath := dl.variantPath(volumeName, variantName)
 	commitPath := dl.commitPath(volumeName, commitId)
-	_, err := os.Stat(commitPath)
+	_, err = os.Stat(commitPath)
 	if err != nil && !os.IsNotExist(err) {
 		// Something bad happened (e.g. directory unreadable). Just return the error.
 		return CommitId(""), err
