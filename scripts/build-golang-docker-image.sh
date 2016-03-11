@@ -29,7 +29,7 @@ done
 mkdir -p ${PROJECT}-build
 # Copy them into the build directory
 for BINARY in $BINARIES; do
-    mv ${BINARY} ${PROJECT}-build/
+    cp ${BINARY} ${PROJECT}-build/
 done
 
 # Copy the dockerfile
