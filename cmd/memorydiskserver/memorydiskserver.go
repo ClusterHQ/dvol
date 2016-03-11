@@ -37,9 +37,9 @@ $ curl -sSL http://localhost/get
 */
 
 import (
-	"net/http"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
 
