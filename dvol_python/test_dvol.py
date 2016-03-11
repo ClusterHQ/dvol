@@ -213,20 +213,22 @@ class VoluminousTests(TestCase):
             sorted(rest),
         )
 
-    @skip_if_go_version
     def test_commit_no_message_raises_error(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
+        # TODO after throwing away python version, make this test stricter
+        # about exit code != 0
         try:
-            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "commit"])
-            # TODO assert exit code != 0
-            self.assertTrue(dvol.voluminous.getOutput()[-1].strip().endswith(
-                    "You must provide a commit message"))
-        except UsageError:
+            try:
+                dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "commit"])
+            except CalledProcessErrorWithOutput, error: # go version
+                expected_output = "You must provide a commit message"
+                self.assertIn(expected_output, error.original.output)
+                self.assertTrue(error.original.returncode != 0)
+        except UsageError: # python version
             # in non-out-of-process case, we'll get this exception. This is OK.
             pass
 
-    @skip_if_go_version
     def test_commit_volume(self):
         # TODO need to assert that containers using this volume get stopped
         # and started around commits
@@ -324,10 +326,14 @@ class VoluminousTests(TestCase):
 
     @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
-           commit_message=text(characters(min_codepoint=1, max_codepoint=127), min_size=1),
-           filename=path_segments(), content=binary())
-    def test_non_standard_branch(self, volume_name, branch_name, commit_message, filename,
-                                 content):
+           commit_message=text(characters(min_codepoint=1, max_codepoint=127),
+           min_size=1), filename=path_segments(), content=binary())
+    def test_non_standard_branch(self, volume_name, branch_name,
+            commit_message, filename, content):
+        """
+        Checking out a new branch results in it being the current active
+        branch.
+        """
         tmpdir = FilePath(self.mktemp())
         tmpdir.makedirs()
 
