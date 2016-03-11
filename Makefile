@@ -10,6 +10,11 @@ test: build
 	&& HYPOTHESIS_PROFILE=ci TEST_GOLANG_VERSION=1 DVOL_BINARY=$(PWD)/dvol trial dvol_python.test_dvol \
 	&& scripts/verify-tests.sh
 
+test-go: build
+	. venv/bin/activate \
+	&& HYPOTHESIS_PROFILE=dev TEST_GOLANG_VERSION=1 DVOL_BINARY=$(PWD)/dvol trial dvol_python.test_dvol \
+	&& scripts/verify-tests.sh
+
 # 'verify' ensures your golang code passes 'the basics'
 # locally before committing e.g. gofmt, go vet etc
 verify:
@@ -57,7 +62,7 @@ dvol-golang-docker-image:
 	scripts/build-golang-docker-image.sh \
 		--project "dvol" \
 		--source-files "dvol.go cmd/dvol-docker-plugin/dvol-docker-plugin.go" \
-		--binaries "dvol dvol-docker-plugin" \
+		--binaries "dvol dvol-docker-plugin bin/cp" \
 		--tag "golang"
 
 dvol-python-docker-image:
