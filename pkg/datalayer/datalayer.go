@@ -26,7 +26,7 @@ type Commit struct {
 }
 
 func NewDataLayer(basePath string) *DataLayer {
-	return &DataLayer{basePath}
+	return &DataLayer{filepath.Clean(basePath)}
 }
 
 func (dl *DataLayer) volumePath(volumeName string) string {
@@ -47,13 +47,12 @@ func (dl *DataLayer) CreateVolume(volumeName string) error {
 }
 
 func (dl *DataLayer) RemoveVolume(volumeName string) error {
-	volumePath := filepath.FromSlash(dl.basePath + "/" + volumeName)
+	volumePath := dl.volumePath(volumeName)
 	return os.RemoveAll(volumePath)
 }
 
 func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
-	// XXX Variants are meant to be tagged commits???
-	variantPath := filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + variantName)
+	variantPath := dl.variantPath(volumeName, variantName)
 	return os.MkdirAll(variantPath, 0777)
 }
 
@@ -109,7 +108,12 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	commitId := CommitId(bigUUID[:40])
 	variantPath := dl.variantPath(volumeName, variantName)
 	commitPath := dl.commitPath(volumeName, commitId)
-	if _, err := os.Stat(commitPath); err == nil {
+	_, err := os.Stat(commitPath)
+	if err != nil && !os.IsNotExist(err) {
+		// Something bad happened (e.g. directory unreadable). Just return the error.
+		return CommitId(""), err
+	}
+	if err == nil {
 		return CommitId(""), fmt.Errorf("UUID collision. Please step out of the infinite improbability drive.")
 	}
 	commitsDir, _ := filepath.Split(commitPath)

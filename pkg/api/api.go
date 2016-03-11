@@ -179,6 +179,7 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 }
 
 func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (string, error) {
+    // returns a CommitId which is a string 40 byte UUID
 	commitId, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
 	if err != nil {
 		return "", err
