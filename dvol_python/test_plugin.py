@@ -199,7 +199,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(current_value, "Value: alpha")
 
     @skip_if_python_version
-    @skip_if_docker_version_less_than("1.9.0")
+    @skip_if_docker_version_less_than("1.10.0")
     def test_dvol_volumes_listed_in_docker(self):
         """
         Volumes created with dvol an be listed in `docker volume ls`.
