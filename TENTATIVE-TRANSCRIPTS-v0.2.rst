@@ -650,6 +650,8 @@ dvol docker volume plugin interaction examples
 changing the branch used by already running containers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+"Interactive development mode"
+
 a. Global per-volume active branch state
 
 A container is run using the name of a volume.
@@ -676,3 +678,34 @@ transcript::
     bar
     1 rows
     $
+
+pinning a docker container to a specific dvol branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"Pinned CI mode"
+
+Useful in CI environments where we want reproducibility in parallel cases, rather than interactive branch-switching feature.
+
+transcript::
+
+    % docker run -d --volume-driver dvol -v volume@branch:/var/lib/pgsql postgresql
+
+(Uses inline argument passing rather than docker volume options because 99% of Compose files still use v1 format which doesn't support passing volume options).
+
+This would pin the container to always be running against the specified branch's working copy.
+Multiple containers running against the same volume@branch combination would still get the same working copy, though, and so multiple containers could tread on eachother's toes.
+
+parallel clones
+~~~~~~~~~~~~~~~
+
+"Parallel clones CI mode"
+
+Useful where you want each container which uses a volume to get a new writeable clone of the database.
+Rather than using the current working copy, create a new working copy as a writeable clone of the latest commit on the branch.
+
+transcript::
+
+    % docker run -d --volume-driver dvol -v volume^branch:/var/lib/pgsql postgresql
+
+Maybe this should just be the default for "Pinned CI mode"?
+The ``volume^branch`` syntax looks a little awkward and cryptic.
