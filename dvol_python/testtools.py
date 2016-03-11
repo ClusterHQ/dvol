@@ -30,7 +30,7 @@ def _skip_max_docker_ver(ver):
 
 skip_if_docker_version_less_than = lambda ver: skipIf(
     _skip_max_docker_ver(ver),
-    "Not expected to in this Docker version")
+    "Not expected to work in this Docker version")
 
 
 def get(*args, **kw):
