@@ -17,9 +17,9 @@ go: 1.5
 env:
   global:
     - GO15VENDOREXPERIMENT=1
-  # Each of the following results in a separate build run
-  # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
   matrix:
+    # Each of the following results in a separate build run
+    # https://docs.travis-ci.com/user/customizing-the-build/#Build-Matrix
     # unit tests only
     - "RUN_TESTS=test"
     # acceptance tests
@@ -31,6 +31,11 @@ env:
     - "DOCKER_VERSION=1.10.2 RUN_TESTS=test-dvol-golang-acceptance"
     - "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-python-acceptance"
     - "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-golang-acceptance"
+
+matrix:
+  allow_failures:
+    - env: "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-python-acceptance"
+    - env: "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-golang-acceptance"
 
 services:
   - docker
@@ -45,10 +50,8 @@ before_install:
   # Get packaging tools that can use and cache wheels.
   - "pip install --user `whoami` --upgrade pip>=7"
   - "pip install --user `whoami` wheel"
-  # list docker-engine versions
-  - apt-cache madison docker-engine
   # 'upgrade' docker-engine to specific version
-  - scripts/build-install-docker.sh ${DOCKER_VERSION}
+  - scripts/build-travis-install-docker.sh ${DOCKER_VERSION}
 
 
 install:
