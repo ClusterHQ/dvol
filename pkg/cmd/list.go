@@ -60,7 +60,7 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t\n", prefix, volume, branch); err != nil {
+		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t\n", prefix, volume.Name, branch); err != nil {
 			return err
 		}
 	}
