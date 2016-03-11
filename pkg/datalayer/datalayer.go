@@ -95,6 +95,7 @@ func (dl *DataLayer) copyFiles(from, to string) error {
 }
 
 func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (CommitId, error) {
+	// TODO: also accept timestamp, user data
 	uuid1, err := uuid.NewV4()
 	if err != nil {
 		return CommitId(""), err
@@ -104,7 +105,6 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 		return CommitId(""), err
 	}
 	bigUUID := uuid1.String() + uuid2.String()
-	// XXX why the hell isn't this working?
 	bigUUID = strings.Replace(bigUUID, "-", "", -1)
 	commitId := CommitId(bigUUID[:40])
 	variantPath := dl.variantPath(volumeName, variantName)
@@ -116,11 +116,11 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	if err := os.MkdirAll(commitsDir, 0777); err != nil {
 		return CommitId(""), err
 	}
-	// TODO acquire lock
+	// TODO acquire lock (docker integration)
 	if err := dl.copyFiles(variantPath, commitPath); err != nil {
 		return CommitId(""), err
 	}
-	// TODO release lock
+	// TODO release lock (docker integration)
 	if err := dl.recordCommit(volumeName, variantName, commitMessage, commitId); err != nil {
 		return CommitId(""), err
 	}
