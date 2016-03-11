@@ -50,8 +50,8 @@ type DvolAPI struct {
 
 type DvolVolume struct {
 	// Represents a dvol volume
-	Name       string
-	Mountpoint string
+	Name string
+	Path string
 }
 
 func NewDvolAPI(basePath string) *DvolAPI {
@@ -59,8 +59,8 @@ func NewDvolAPI(basePath string) *DvolAPI {
 	return &DvolAPI{basePath, dl}
 }
 
-func (dvol *DvolAPI) volumeMountpoint(volumeName string) string {
-	return filepath.FromSlash(dvol.basePath + "/" + volumeName)
+func (dvol *DvolAPI) volumePath(volumeName string) string {
+	return dvol.dl.volumePath(volumeName string)
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
@@ -112,7 +112,7 @@ func (dvol *DvolAPI) ActiveVolume() (string, error) {
 }
 
 func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
-	volumePath := dvol.volumeMountpoint(volumeName)
+	volumePath := dvol.volumePath(volumeName)
 	_, err := os.Stat(volumePath)
 	return err == nil
 }
@@ -148,8 +148,8 @@ func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 	for _, file := range files {
 		if file.IsDir() {
 			volumes = append(volumes, DvolVolume{
-				Name:       file.Name(),
-				Mountpoint: dvol.volumeMountpoint(file.Name()),
+				Name: file.Name(),
+				Path: dvol.volumePath(file.Name()),
 			})
 		}
 	}

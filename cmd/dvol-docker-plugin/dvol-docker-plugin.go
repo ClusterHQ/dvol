@@ -182,7 +182,7 @@ func volumeDriverList (w http.ResponseWriter, r *http.Request) {
 	for _, volume := range(allVolumes) {
 		response.Volumes = append(response.Volumes, ResponseListVolume{
 			Name: volume.Name,
-			Mountpoint: volume.Mountpoint,
+			Mountpoint: volume.Path,
 		})
 	}
 
