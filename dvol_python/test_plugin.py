@@ -86,7 +86,7 @@ class VoluminousTests(TestCase):
         container = "fancy"
         def cleanup():
             try:
-                run(["docker", "rm", "-f", "memorydiskserver"])
+                run(["docker", "rm", "-f", container])
             except:
                 pass
             try:
