@@ -73,13 +73,21 @@ class VoluminousTests(TestCase):
     def test_docker_run_dvol_container_show_up_in_list_output(self):
         container = "fancy"
         def cleanup():
-            run(["docker", "rm", "-f", container])
-            run(["docker", "volume", "rm", "memorydiskserver"])
-            run([DVOL, "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+            try:
+                run(["docker", "rm", "-f", "memorydiskserver"])
+            except:
+                pass
+            try:
+                run(["docker", "volume", "rm", "memorydiskserver"])
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "-f", "memorydiskserver"])
+            except:
+                pass
+        cleanup()
+        self.addCleanup(cleanup)
+
         run([
             "docker", "run", "--name", container, "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
