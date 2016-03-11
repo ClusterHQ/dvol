@@ -25,12 +25,24 @@ type Commit struct {
 	Message CommitMessage `json:"message"`
 }
 
+type Volume struct {
+	Name	string
+	Path	string
+}
+
 func NewDataLayer(basePath string) *DataLayer {
 	return &DataLayer{filepath.Clean(basePath)}
 }
 
 func (dl *DataLayer) volumePath(volumeName string) string {
 	return filepath.FromSlash(dl.basePath + "/" + volumeName)
+}
+
+func (dl *DataLayer) VolumeFromName(volumeName string) Volume {
+	return Volume{
+		Name: volumeName,
+		Path: dl.volumePath(volumeName),
+	}
 }
 
 func (dl *DataLayer) variantPath(volumeName, variantName string) string {
