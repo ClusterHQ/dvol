@@ -11,7 +11,7 @@ language: go
 # where docker doesn't send valid host headers. Building our web server (volume
 # plugin) against go 1.6 causes it to be strict about accepting Host headers,
 # causing incompatibility with older versions of docker that we care about.
-go: 1.5
+go: 1.6
 sudo: required
 
 services:
