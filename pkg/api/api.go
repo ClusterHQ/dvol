@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	//	"fmt"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -181,8 +181,12 @@ func (dvol *DvolAPI) AllVolumes() ([]string, error) {
 }
 
 func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) error {
-	_, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
-	return err
+	commitId, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Commit ID: %s\n", string(commitId))
+	return nil
 }
 
 /*

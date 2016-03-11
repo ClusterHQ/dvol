@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/nu7hatch/gouuid"
 )
@@ -68,7 +67,6 @@ func (dl *DataLayer) sanitizePath(path string) error {
 }
 
 func (dl *DataLayer) copyFiles(from, to string) error {
-	log.Print("copying", from, " to", to)
 	if err := dl.sanitizePath(from); err != nil {
 		return err
 	}
@@ -89,12 +87,12 @@ func (dl *DataLayer) copyFiles(from, to string) error {
 	if err == nil {
 		return fmt.Errorf("%s already exists", to)
 	}
-	cp, lookErr := exec.LookPath("cp")
-	if lookErr != nil {
-		panic(lookErr)
+	cmd := exec.Command("cp", "-a", from, to)
+	err = cmd.Run()
+	if err != nil {
+		return err
 	}
-	log.Print("running", "cp", "-a", from, " ", to)
-	return syscall.Exec(cp, []string{"cp", "-a", from, to}, []string{})
+	return err
 }
 
 func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (CommitId, error) {
@@ -108,9 +106,8 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	}
 	bigUUID := uuid1.String() + uuid2.String()
 	// XXX why the hell isn't this working?
-	bigUUID = strings.Replace("-", "", bigUUID, -1)
+	bigUUID = strings.Replace(bigUUID, "-", "", -1)
 	commitId := CommitId(bigUUID[:40])
-	log.Print("commit id is...", commitId)
 	variantPath := dl.variantPath(volumeName, variantName)
 	commitPath := dl.commitPath(volumeName, commitId)
 	if _, err := os.Stat(commitPath); err == nil {
@@ -121,7 +118,9 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 		return CommitId(""), err
 	}
 	// TODO acquire lock
-	dl.copyFiles(variantPath, commitPath)
+	if err := dl.copyFiles(variantPath, commitPath); err != nil {
+		return CommitId(""), err
+	}
 	// TODO release lock
 	if err := dl.recordCommit(volumeName, variantName, commitMessage, commitId); err != nil {
 		return CommitId(""), err
@@ -140,13 +139,12 @@ func (dl *DataLayer) recordCommit(volumeName, variantName, message string, commi
 
 func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Commit, error) {
 	branchDB := dl.variantPath(volumeName, variantName) + ".json"
-	log.Print("Going to stat", branchDB)
+	log.Print(branchDB)
 	_, err := os.Stat(branchDB)
 	if err == nil {
 		// File doesn't exist, so it's an empty database.
 		return []Commit{}, nil
 	}
-	log.Print("err was nil")
 	// TODO factor this out
 	file, err := os.Open(branchDB)
 	if err != nil {
