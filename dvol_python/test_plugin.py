@@ -15,7 +15,8 @@ Assumes that:
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
-    get, docker_host, try_until, run, skip_if_go_version
+    get, docker_host, try_until, run, skip_if_go_version, skip_if_python_version,
+    skip_if_docker_version_less_than
 )
 
 DVOL = "/usr/local/bin/dvol"
@@ -194,6 +195,36 @@ class VoluminousTests(TestCase):
         run([DVOL, "checkout", "alpha"])
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: alpha")
+
+    @skip_if_python_version
+    @skip_if_docker_version_less_than("1.10.0")
+    def test_dvol_volumes_listed_in_docker(self):
+        """
+        Volumes created with dvol an be listed in `docker volume ls`.
+        """
+        def cleanup():
+            try:
+                run(["docker", "volume", "rm", "docker-volume-list-test"])
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "-f", "docker-volume-list-test"])
+            except:
+                pass
+
+        cleanup()
+        self.addCleanup(cleanup)
+
+        run([DVOL, "init", "docker-volume-list-test"])
+
+        docker_output = run(["docker", "volume", "ls"])
+
+        for line in docker_output.split("\n"):
+            if line.startswith("dvol") and "docker-volume-list-test" in line:
+                return
+
+        self.fail("Volume 'docker-volume-list-test' not found in Docker "
+                "output:\n\n" + docker_output)
 
 
 """

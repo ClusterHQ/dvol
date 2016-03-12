@@ -71,6 +71,12 @@ type DvolAPI struct {
 	Containers containers.Containers
 }
 
+type DvolVolume struct {
+	// Represents a dvol volume
+	Name string
+	Path string
+}
+
 func NewDvolAPI(basePath string, disableDockerIntegration bool) *DvolAPI {
 	dl := datalayer.NewDataLayer(basePath)
 	var c containers.Containers
@@ -81,6 +87,10 @@ func NewDvolAPI(basePath string, disableDockerIntegration bool) *DvolAPI {
 		c = containers.NoneRuntime{}
 	}
 	return &DvolAPI{basePath, dl, c}
+}
+
+func (dvol *DvolAPI) volumePath(volumeName string) string {
+	return dvol.dl.VolumeFromName(volumeName).Path
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
@@ -147,7 +157,7 @@ func (dvol *DvolAPI) ActiveVolume() (string, error) {
 }
 
 func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
-	volumePath := filepath.FromSlash(dvol.basePath + "/" + volumeName)
+	volumePath := dvol.volumePath(volumeName)
 	_, err := os.Stat(volumePath)
 	return err == nil
 }
@@ -174,15 +184,18 @@ func (dvol *DvolAPI) ActiveBranch(volumeName string) (string, error) {
 	return store["current_branch"].(string), nil
 }
 
-func (dvol *DvolAPI) AllVolumes() ([]string, error) {
+func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 	files, err := ioutil.ReadDir(dvol.basePath)
 	if err != nil {
-		return []string{}, err
+		return []DvolVolume{}, err
 	}
-	volumes := make([]string, 0)
+	volumes := make([]DvolVolume, 0)
 	for _, file := range files {
 		if file.IsDir() {
-			volumes = append(volumes, file.Name())
+			volumes = append(volumes, DvolVolume{
+				Name: file.Name(),
+				Path: dvol.volumePath(file.Name()),
+			})
 		}
 	}
 	return volumes, nil
