@@ -22,7 +22,7 @@ func (runtime DockerRuntime) Related(volume string) ([]string, error) {
 	relatedContainers := make([]string, 0)
 	for _, container := range containers {
 		cont, _ := runtime.Client.InspectContainer(container.ID)
-		if runtime.isRelated(volume, cont) {
+		if runtime.isRelated(volume, cont) && cont.State.Running {
 			relatedContainers = append(relatedContainers, cont.Name)
 		}
 	}
