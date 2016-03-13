@@ -2,10 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
 )
@@ -186,26 +188,26 @@ func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (s
 	return string(commitId), nil
 }
 
-/*
-func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (error, string) {
+func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (string, error) { // could be datalater.CommitId instead of string?
 	// Get the active branch on the specified volume
 	// Get the commit offset, returning an error if the commit name isn't correctly formed
 	// Return the commit ID from the database
 	currentBranch, err := dvol.ActiveBranch(volumeName)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 	remainder := commit[len("HEAD"):]
+	var offset int
 	if remainder == strings.Repeat("^", len(remainder)) {
-		offset := len(remainder)
+		offset = len(remainder)
 	} else {
-		return fmt.Errorf("Malformed commit identifier %s", commit), ""
+		return "", fmt.Errorf("Malformed commit identifier %s", commit)
 	}
 	// Read the commit database
-	return nil, "" //commitId
+	commits, err := dvol.dl.ReadCommitsForBranch(volumeName, currentBranch)
+	return string(commits[-offset].Id), err //commitId
 }
-*/
-/*
+
 func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error {
 	// Get the path to the volume and the branch
 	// If we were asked to create it:
@@ -213,8 +215,7 @@ func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error
 	// 	Get the HEAD, return an error regarding needing to commit if the HEAD doesn't exist yet
 	// 	Copy the metadata from the active branch to the new branch
 	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
-	branchPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/branches/" + branchName)
-	err, head := dvol.resolveNamedCommitOnActiveBranch("HEAD", volumeName)
+	//branchPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/branches/" + branchName)
+	_, err := dvol.resolveNamedCommitOnActiveBranch("HEAD", volumeName)
 	return err
 }
-*/

@@ -38,7 +38,7 @@ func (dl *DataLayer) variantPath(volumeName, variantName string) string {
 }
 
 func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) string {
-	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/commits/" + string(commitId))
+	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/commits/" + commitId)
 }
 
 func (dl *DataLayer) CreateVolume(volumeName string) error {
