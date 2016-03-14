@@ -60,12 +60,12 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		containers, err := dvol.ContainerRuntime.Related(volume.Name)
-		cStr := strings.Join(containers, ",")
+		c, err := dvol.ContainerRuntime.Related(volume.Name)
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t%s\t\n", prefix, volume.Name, branch, cStr); err != nil {
+		containers := strings.Join(c, ",")
+		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t%s\t\n", prefix, volume.Name, branch, containers); err != nil {
 			return err
 		}
 	}
