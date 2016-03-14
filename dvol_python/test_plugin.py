@@ -234,7 +234,7 @@ class VoluminousTests(TestCase):
         # Remove the volume
         run([DVOL, "rm", "-f", "volume-remove-test"])
 
-        # Start a new container on the same volume and expect an error
+        # Start a new container on the same volume and there are no errors
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
             "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
