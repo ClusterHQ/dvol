@@ -299,8 +299,10 @@ class VoluminousTests(TestCase):
                 "cat", "/data/data"])
             data[volume] = result
 
-        self.assertEqual(data['test-uniaue-volume-alpha'], "test-uniaue-volume-alpha")
-        self.assertEqual(data['test-uniaue-volume-beta'], "test-uniaue-volume-beta")
+        # These could be moved into the loop above, but leave them here so it
+        # is clearer which is failing.
+        self.assertEqual(data[alpha], alpha)
+        self.assertEqual(data[beta], beta)
 
 """
 log of integration tests to write:
