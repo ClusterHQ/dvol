@@ -284,7 +284,7 @@ class VoluminousTests(TestCase):
                 try: run([DVOL, "rm", "-f", volume])
                 except: pass
         cleanup()
-        #self.addCleanup(cleanup)
+        self.addCleanup(cleanup)
 
         for volume in [alpha, beta]:
             run(["docker", "run", "-v", "%s:/data" % (volume,),
