@@ -206,11 +206,11 @@ class VoluminousTests(TestCase):
         """
         def cleanup():
             try:
-                run(["docker", "rm", "_fv", "volume_remove_test"])
+                run(["docker", "rm", "-fv", "volume_remove_test"])
             except:
                 pass
             try:
-                run(["docker", "rm", "_fv", "volume_remove_test_error"])
+                run(["docker", "rm", "-fv", "volume_remove_test_error"])
             except:
                 pass
             try:
