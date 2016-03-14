@@ -269,6 +269,37 @@ class VoluminousTests(TestCase):
         self.fail("Volume 'docker-volume-list-test' not found in Docker "
                 "output:\n\n" + docker_output)
 
+    def test_unique_volumes(self):
+        """
+        Two separate volumes do not share the same filesystem namespace.
+        """
+        alpha = "test-uniaue-volume-alpha"
+        beta = "test-uniaue-volume-beta"
+        def cleanup():
+            for volume in [alpha, beta]:
+                try: run(["docker", "rm", "-fv", volume])
+                except: pass
+                try: run(["docker", "volume", "rm", volume])
+                except: pass
+                try: run([DVOL, "rm", "-f", volume])
+                except: pass
+        cleanup()
+        #self.addCleanup(cleanup)
+
+        for volume in [alpha, beta]:
+            run(["docker", "run", "-v", "%s:/data" % (volume,),
+                "--volume-driver", "dvol", "--name", volume, "ubuntu", "bash",
+                "-c", "echo -n %s > /data/data" % (volume,)])
+            run(["docker", "rm", volume]) # using volume as the container name
+
+        data = dict()
+        for volume in [alpha, beta]:
+            result = run(["docker", "run", "-v", "%s:/data" % (volume,), "--name",
+                volume, "ubuntu", "cat", "/data/data"])
+            data[volume] = result
+
+        self.assertEqual(data['test-uniaue-volume-alpha'], "test-uniaue-volume-alpha")
+        self.assertEqual(data['test-uniaue-volume-beta'], "test-uniaue-volume-beta")
 
 """
 log of integration tests to write:
