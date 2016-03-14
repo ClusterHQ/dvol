@@ -15,6 +15,7 @@ import (
 const PLUGINS_DIR = "/run/docker/plugins"
 const DVOL_SOCKET = PLUGINS_DIR + "/dvol.sock"
 const VOL_DIR = "/var/lib/dvol/volumes"
+const DISABLE_DOCKER_INTEGRATION = false
 
 type ResponseImplements struct {
 	// A response to the Plugin.Activate request
@@ -95,7 +96,7 @@ func main() {
 		request := new(RequestCreate)
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
-		dvol := api.NewDvolAPI(VOL_DIR, false)
+		dvol := api.NewDvolAPI(VOL_DIR, DISABLE_DOCKER_INTEGRATION)
 		if dvol.VolumeExists(name) {
 			log.Print("Volume already exists ", name)
 		} else {
@@ -130,7 +131,7 @@ func main() {
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
 
-		dvol := api.NewDvolAPI(VOL_DIR, false)
+		dvol := api.NewDvolAPI(VOL_DIR, DISABLE_DOCKER_INTEGRATION)
 
 		if dvol.VolumeExists(name) {
 			err := dvol.SwitchVolume(name)
@@ -169,7 +170,7 @@ func main() {
 
 func volumeDriverList(w http.ResponseWriter, r *http.Request) {
 	log.Print("<= /VolumeDriver.List")
-	dvol := api.NewDvolAPI(VOL_DIR, false)
+	dvol := api.NewDvolAPI(VOL_DIR, DISABLE_DOCKER_INTEGRATION)
 
 	allVolumes, err := dvol.AllVolumes()
 	if err != nil {
