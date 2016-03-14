@@ -15,8 +15,8 @@ Assumes that:
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
-    get, docker_host, try_until, run, skip_if_go_version, skip_if_python_version,
-    skip_if_docker_version_less_than
+    get, docker_host, try_until, run, skip_if_go_version,
+    skip_if_python_version, skip_if_docker_version_less_than
 )
 
 DVOL = "/usr/local/bin/dvol"
@@ -195,6 +195,43 @@ class VoluminousTests(TestCase):
         run([DVOL, "checkout", "alpha"])
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: alpha")
+
+    @skip_if_python_version # The Python implementation is broken
+    @skip_if_go_version # Remove me when implemented in Go
+    def test_docker_volumes_removed(self):
+        """
+        When a dvol volume is removed, you can implicitly create a new volume
+        using `docker run` and it succeeds.
+        """
+        def cleanup():
+            try:
+                run(["docker", "rm", "-fv", "volume_remove_test"])
+            except:
+                pass
+            try:
+                run(["docker", "rm", "-fv", "volume_remove_test_error"])
+            except:
+                pass
+            try:
+                run(["docker", "volume", "rm", "volume_remove_test"])
+                pass
+            except:
+                pass
+        cleanup()
+        self.addCleanup(cleanup)
+
+        # Start a new container
+        run(["docker", "run", "--name", "volume_remove_test", "-v",
+            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "busybox", "true"])
+
+        # Remove the volume
+        run([DVOL, "rm", "-f", "volume_remove_test"])
+
+        # Start a new container on the same volume and expect an error
+        run(["docker", "run", "--name", "volume_remove_test_error", "-v",
+            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "busybox", "true"])
 
     @skip_if_python_version
     @skip_if_docker_version_less_than("1.10.0")
