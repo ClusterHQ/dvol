@@ -68,9 +68,15 @@ func (dl *DataLayer) ResetVolume(commit, volumeName, variantName string) error {
 	variantPath := dl.variantPath(volumeName, variantName)
 
 	// TODO: If commit starts with 'HEAD', might be do-able in api
-	commitId, err := dl.resolveNamedCommitOnBranch(commit, volumeName, variantName)
-	if err != nil {
-		return err
+	var commitId CommitId
+	var err error
+	if strings.HasPrefix(commit, "HEAD") {
+		commitId, err = dl.resolveNamedCommitOnBranch(commit, volumeName, variantName)
+		if err != nil {
+			return err
+		}
+	} else {
+		commitId = CommitId(commit)
 	}
 	commitPath := dl.commitPath(volumeName, commitId)
 	if _, err := os.Stat(commitPath); err != nil {
@@ -90,7 +96,7 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 }
 
 func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
-	variants := make([]string, 5, 5)
+	var variants []string
 	branchesPath := filepath.FromSlash(dl.volumePath(volumeName) + "/branches")
 	contents, err := ioutil.ReadDir(branchesPath)
 	if err != nil {
@@ -248,7 +254,10 @@ func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantN
 			commitIdx = idx
 		}
 	}
-	remainingCommits := commits[:commitIdx+1] // Maybe not +1 as Go slices seem to be inclusive?
+	if commitIdx < 0 {
+		return fmt.Errorf("Could not find commit with ID %s\n", string(commitId))
+	}
+	remainingCommits := commits[:commitIdx]
 	destroyCommits := commits[commitIdx:]
 	allVariants, err := dl.AllVariants(volumeName)
 	allCommits := make(map[CommitId]Commit)
