@@ -46,6 +46,6 @@ func TestIsRelated(t *testing.T) {
 	}
 	c.Mounts = append(c.Mounts, mount)
 	if !isRelated("volume_name", &c) {
-		t.Error("Expected isRelated to be false for different driver")
+		t.Error("Expected isRelated to be true for matching volume name and driver")
 	}
 }
