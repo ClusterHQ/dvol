@@ -199,7 +199,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(current_value, "Value: alpha")
 
     @skip_if_python_version # The Python implementation is broken
-    @skip_if_go_version # Remove me when implemented in Go
     def test_docker_volumes_removed(self):
         """
         When a dvol volume is removed, you can implicitly create a new volume
@@ -215,7 +214,12 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run(["docker", "volume", "rm", "volume_remove_test"])
+                run(["docker", "volume", "rm", "volume-remove-test"])
+                pass
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "-f", "volume-remove-test"])
                 pass
             except:
                 pass
@@ -224,15 +228,15 @@ class VoluminousTests(TestCase):
 
         # Start a new container
         run(["docker", "run", "--name", "volume_remove_test", "-v",
-            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
         # Remove the volume
-        run([DVOL, "rm", "-f", "volume_remove_test"])
+        run([DVOL, "rm", "-f", "volume-remove-test"])
 
         # Start a new container on the same volume and expect an error
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
-            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
     @skip_if_python_version

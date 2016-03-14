@@ -132,25 +132,30 @@ func main() {
 
 		dvol := api.NewDvolAPI(VOL_DIR)
 
-		if dvol.VolumeExists(name) {
-			err := dvol.SwitchVolume(name)
+		if !dvol.VolumeExists(name) {
+			// Volume does not exist. We will implicitly create it.
+			err := dvol.CreateVolume(name)
 			if err != nil {
-				writeResponseErr(err, w)
+				writeResponseErr(fmt.Errorf("Could not create volume %s: %v", name, err), w)
+				return
 			}
-			_, err = dvol.ActiveVolume()
-			if err != nil {
-				writeResponseErr(err, w)
-			}
-			// mountpoint should be:
-			// /var/lib/docker/volumes/<volumename>/running_point
-			responseJSON, _ := json.Marshal(&ResponseMount{
-				Mountpoint: "/tmp", // TODO: Get the real path
-				Err:        "",
-			})
-			w.Write(responseJSON)
-		} else {
-			writeResponseErr(fmt.Errorf("Requested to mount unknown volume %s", name), w)
 		}
+
+		err = dvol.SwitchVolume(name)
+		if err != nil {
+			writeResponseErr(err, w)
+		}
+		_, err = dvol.ActiveVolume()
+		if err != nil {
+			writeResponseErr(err, w)
+		}
+		// mountpoint should be:
+		// /var/lib/docker/volumes/<volumename>/running_point
+		responseJSON, _ := json.Marshal(&ResponseMount{
+			Mountpoint: "/tmp", // TODO: Get the real path
+			Err:        "",
+		})
+		w.Write(responseJSON)
 	})
 
 	http.HandleFunc("/VolumeDriver.Unmount", func(w http.ResponseWriter, r *http.Request) {
