@@ -294,8 +294,9 @@ class VoluminousTests(TestCase):
 
         data = dict()
         for volume in [alpha, beta]:
-            result = run(["docker", "run", "-v", "%s:/data" % (volume,), "--name",
-                volume, "ubuntu", "cat", "/data/data"])
+            result = run(["docker", "run", "-v", "%s:/data" % (volume,),
+                "--volume-driver", "dvol", "--name", volume, "ubuntu",
+                "cat", "/data/data"])
             data[volume] = result
 
         self.assertEqual(data['test-uniaue-volume-alpha'], "test-uniaue-volume-alpha")
