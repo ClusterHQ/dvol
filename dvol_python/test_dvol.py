@@ -381,7 +381,6 @@ class VoluminousTests(TestCase):
                 expectedLines, actualLines):
             self.assertTrue(actual.startswith(expected))
 
-    @skip_if_go_version
     def test_reset(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -402,7 +401,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @skip_if_go_version
     def test_reset_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -419,7 +417,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @skip_if_go_version
     def test_reset_HEAD_multiple_commits(self):
         # assert that the correct (latest) commit is rolled back to
         dvol = VoluminousOptions()
@@ -444,7 +441,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @skip_if_go_version
     def test_reset_HEAD_hat_multiple_commits(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])

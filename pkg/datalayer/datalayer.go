@@ -3,6 +3,7 @@ package datalayer
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,8 +27,8 @@ type Commit struct {
 }
 
 type Volume struct {
-	Name	string
-	Path	string
+	Name string
+	Path string
 }
 
 func NewDataLayer(basePath string) *DataLayer {
@@ -63,9 +64,44 @@ func (dl *DataLayer) RemoveVolume(volumeName string) error {
 	return os.RemoveAll(volumePath)
 }
 
+func (dl *DataLayer) ResetVolume(commit, volumeName, variantName string) error {
+	variantPath := dl.variantPath(volumeName, variantName)
+
+	// TODO: If commit starts with 'HEAD', might be do-able in api
+	commitId, err := dl.resolveNamedCommitOnBranch(commit, volumeName, variantName)
+	if err != nil {
+		return err
+	}
+	commitPath := dl.commitPath(volumeName, commitId)
+	if _, err := os.Stat(commitPath); err != nil {
+		return err
+	}
+	// TODO: Acquire lock
+	dl.copyFiles(commitPath, variantPath)
+	dl.destroyNewerCommits(commitId, volumeName, variantName)
+	// TODO: Release lock
+
+	return err
+}
+
 func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	variantPath := dl.variantPath(volumeName, variantName)
 	return os.MkdirAll(variantPath, 0777)
+}
+
+func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
+	variants := make([]string, 5, 5)
+	branchesPath := filepath.FromSlash(dl.volumePath(volumeName) + "/branches")
+	contents, err := ioutil.ReadDir(branchesPath)
+	if err != nil {
+		return variants, err
+	}
+	for _, file := range contents {
+		if file.IsDir() {
+			variants = append(variants, file.Name())
+		}
+	}
+	return variants, nil
 }
 
 func (dl *DataLayer) sanitizePath(path string) error {
@@ -184,5 +220,59 @@ func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commi
 	defer file.Close()
 	encoder := json.NewEncoder(file)
 	encoder.Encode(commits)
+	return nil
+}
+
+func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName string) (CommitId, error) {
+	remainder := commit[len("HEAD"):]
+	var offset int
+	if remainder == strings.Repeat("^", len(remainder)) {
+		offset = len(remainder)
+	} else {
+		return "", fmt.Errorf("Malformed commit identifier %s", commit)
+	}
+	// Read the commit database
+	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
+	return commits[-offset].Id, err
+}
+
+func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantName string) error {
+	// TODO: This should really be atomic but it's okay for now
+	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
+	if err != nil {
+		return err
+	}
+	commitIdx := -1
+	for idx, commit := range commits {
+		if commit.Id == commitId {
+			commitIdx = idx
+		}
+	}
+	remainingCommits := commits[:commitIdx+1] // Maybe not +1 as Go slices seem to be inclusive?
+	destroyCommits := commits[commitIdx:]
+	allVariants, err := dl.AllVariants(volumeName)
+	allCommits := make(map[CommitId]Commit)
+	for _, variant := range allVariants {
+		if variant != variantName {
+			variantCommits, err := dl.ReadCommitsForBranch(volumeName, variant)
+			if err != nil {
+				return err
+			}
+			for _, commit := range variantCommits {
+				allCommits[commit.Id] = commit
+			}
+		}
+	}
+	for _, commit := range destroyCommits {
+		if _, ok := allCommits[commit.Id]; ok {
+			commitPath := dl.commitPath(volumeName, commit.Id)
+			if err := os.RemoveAll(commitPath); err != nil {
+				return err
+			}
+		}
+	}
+	if err := dl.WriteCommitsForBranch(volumeName, variantName, remainingCommits); err != nil {
+		return err
+	}
 	return nil
 }
