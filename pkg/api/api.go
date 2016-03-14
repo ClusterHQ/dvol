@@ -79,7 +79,7 @@ func NewDvolAPI(basePath string) *DvolAPI {
 	return &DvolAPI{basePath, dl}
 }
 
-func (dvol *DvolAPI) volumePath(volumeName string) string {
+func (dvol *DvolAPI) VolumePath(volumeName string) string {
 	return dvol.dl.VolumeFromName(volumeName).Path
 }
 
@@ -147,7 +147,7 @@ func (dvol *DvolAPI) ActiveVolume() (string, error) {
 }
 
 func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
-	volumePath := dvol.volumePath(volumeName)
+	volumePath := dvol.VolumePath(volumeName)
 	_, err := os.Stat(volumePath)
 	return err == nil
 }
@@ -184,7 +184,7 @@ func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 		if file.IsDir() {
 			volumes = append(volumes, DvolVolume{
 				Name: file.Name(),
-				Path: dvol.volumePath(file.Name()),
+				Path: dvol.VolumePath(file.Name()),
 			})
 		}
 	}
