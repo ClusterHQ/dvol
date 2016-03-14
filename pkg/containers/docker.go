@@ -8,7 +8,7 @@ type DockerRuntime struct {
 	Client *docker.Client
 }
 
-func (r DockerRuntime) isRelated(volume string, container *docker.Container) bool {
+func isRelated(volume string, container *docker.Container) bool {
 	for _, mount := range container.Mounts {
 		if mount.Name == volume && mount.Driver == "dvol" {
 			return true
@@ -25,7 +25,7 @@ func (runtime DockerRuntime) Related(volume string) ([]string, error) {
 		if err != nil {
 			return relatedContainers, err
 		}
-		if runtime.isRelated(volume, container) && container.State.Running {
+		if isRelated(volume, container) && container.State.Running {
 			relatedContainers = append(relatedContainers, container.Name)
 		}
 	}
