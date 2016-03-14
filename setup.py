@@ -23,6 +23,7 @@ setup(
         "pyasn1>=0.1",
         "hypothesis>=2.0",
         "docker-py>=1.5.0",
-        "requests"
+        "requests",
+        "semver==2.4.1",
     ],
 )

@@ -48,6 +48,17 @@ type ResponseMount struct {
 	Err        string
 }
 
+type ResponseListVolume struct {
+	// Used in the JSON representation of ResponseList
+	Name string
+	Mountpoint string
+}
+type ResponseList struct {
+	// A response which enumerates volumes for VolumeDriver.List
+	Volumes []ResponseListVolume
+	Err string
+}
+
 func main() {
 	log.Print("Starting dvol plugin")
 
@@ -86,7 +97,7 @@ func main() {
 		name := request.Name
 		dvol := api.NewDvolAPI(VOL_DIR)
 		if dvol.VolumeExists(name) {
-			log.Print("Volume already exists", name)
+			log.Print("Volume already exists ", name)
 		} else {
 			err := dvol.CreateVolume(name)
 			if err != nil {
@@ -146,8 +157,7 @@ func main() {
 		writeResponseOK(w)
 	})
 
-	http.HandleFunc("/VolumeDriver.List", func(w http.ResponseWriter, r *http.Request) {
-	})
+	http.HandleFunc("/VolumeDriver.List", volumeDriverList)
 
 	listener, err := net.Listen("unix", DVOL_SOCKET)
 	if err != nil {
@@ -155,6 +165,29 @@ func main() {
 	}
 
 	http.Serve(listener, nil)
+}
+
+func volumeDriverList (w http.ResponseWriter, r *http.Request) {
+	log.Print("<= /VolumeDriver.List")
+	dvol := api.NewDvolAPI(VOL_DIR)
+
+	allVolumes, err := dvol.AllVolumes()
+	if err != nil {
+		writeResponseErr(err, w)
+	}
+
+	var response = ResponseList{
+		Err: "",
+	}
+	for _, volume := range(allVolumes) {
+		response.Volumes = append(response.Volumes, ResponseListVolume{
+			Name: volume.Name,
+			Mountpoint: volume.Path,
+		})
+	}
+
+	responseJSON, _ := json.Marshal(response)
+	w.Write(responseJSON)
 }
 
 func writeResponseOK(w http.ResponseWriter) {
