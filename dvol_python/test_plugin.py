@@ -273,8 +273,8 @@ class VoluminousTests(TestCase):
         """
         Two separate volumes do not share the same filesystem namespace.
         """
-        alpha = "test-uniaue-volume-alpha"
-        beta = "test-uniaue-volume-beta"
+        alpha = "test-unique-volume-alpha"
+        beta = "test-unique-volume-beta"
         def cleanup():
             for volume in [alpha, beta]:
                 try: run(["docker", "rm", "-fv", volume])
