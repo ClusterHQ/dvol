@@ -79,14 +79,14 @@ type DvolVolume struct {
 
 func NewDvolAPI(basePath string, disableDockerIntegration bool) *DvolAPI {
 	dl := datalayer.NewDataLayer(basePath)
-	var cr containers.Runtime
+	var containerRuntime containers.Runtime
 	if !disableDockerIntegration {
 		client, _ := docker.NewClientFromEnv()
-		cr = containers.DockerRuntime{client}
+		containerRuntime = containers.DockerRuntime{client}
 	} else {
-		cr = containers.NoneRuntime{}
+		containerRuntime = containers.NoneRuntime{}
 	}
-	return &DvolAPI{basePath, dl, cr}
+	return &DvolAPI{basePath, dl, containerRuntime}
 }
 
 func (dvol *DvolAPI) volumePath(volumeName string) string {
