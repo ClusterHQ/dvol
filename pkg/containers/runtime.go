@@ -1,6 +1,6 @@
 package containers
 
-type Containers interface {
+type Runtime interface {
 	Related(string) ([]string, error)
 	Start(string) error
 	Stop(string) error
