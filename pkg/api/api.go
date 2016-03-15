@@ -68,7 +68,7 @@ func ValidName(name string) bool {
 type DvolAPI struct {
 	basePath         string
 	dl               *datalayer.DataLayer
-	ContainerRuntime containers.Runtime
+	containerRuntime containers.Runtime
 }
 
 type DvolVolume struct {
@@ -208,6 +208,10 @@ func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (s
 		return "", err
 	}
 	return string(commitId), nil
+}
+
+func (dvol *DvolAPI) RelatedContainers(volumeName string) ([]string, error) {
+	return dvol.containerRuntime.Related(volumeName)
 }
 
 /*
