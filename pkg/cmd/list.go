@@ -28,10 +28,7 @@ func NewCmdList(out io.Writer) *cobra.Command {
 }
 
 func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
-	dvol := api.NewDvolAPI(api.DvolAPIOptions{
-		BasePath:                 basePath,
-		DisableDockerIntegration: disableDockerIntegration,
-	})
+	dvol := api.NewDvolAPI(dvolAPIOptions)
 	if len(args) > 0 {
 		return fmt.Errorf("Wrong number of arguments.")
 	}

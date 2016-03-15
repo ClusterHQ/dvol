@@ -8,9 +8,9 @@ import (
 
 func TestListNoArgs(t *testing.T) {
 	// Setup
-	originalBasePath := basePath
+	originalBasePath := dvolAPIOptions.BasePath
 	dir, _ := ioutil.TempDir("", "test")
-	basePath = dir
+	dvolAPIOptions.BasePath = dir
 
 	// Test
 	buf := bytes.NewBuffer([]byte{})
@@ -21,7 +21,7 @@ func TestListNoArgs(t *testing.T) {
 	}
 
 	// Teardown
-	basePath = originalBasePath
+	dvolAPIOptions.BasePath = originalBasePath
 }
 
 func TestListWrongNumberArgs(t *testing.T) {
@@ -29,7 +29,7 @@ func TestListWrongNumberArgs(t *testing.T) {
 	cmd := NewCmdList(buf)
 	err := listVolumes(cmd, []string{"invalid_arg"}, buf)
 	if err == nil {
-		t.Error("Expected error result with no arguments")
+		t.Error("Expected error result with invalid arguments")
 	}
 	expected := "Wrong number of arguments."
 	if err.Error() != expected {
