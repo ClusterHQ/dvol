@@ -30,6 +30,9 @@ func NewCmdReset(out io.Writer) *cobra.Command {
 
 func resetVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 	dvol := api.NewDvolAPI(basePath)
+	if len(args) != 1 {
+		return fmt.Errorf("Must specify one and only one commit identifier.")
+	}
 	commit := args[0]
 	if err := dvol.ResetActiveVolume(commit); err != nil {
 		return err
