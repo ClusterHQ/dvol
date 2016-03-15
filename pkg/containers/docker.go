@@ -18,8 +18,11 @@ func isRelated(volume string, container *docker.Container) bool {
 }
 
 func (runtime DockerRuntime) Related(volume string) ([]string, error) {
-	containers, _ := runtime.Client.ListContainers(docker.ListContainersOptions{})
 	relatedContainers := make([]string, 0)
+	containers, err := runtime.Client.ListContainers(docker.ListContainersOptions{})
+	if err != nil {
+		return relatedContainers, err
+	}
 	for _, c := range containers {
 		container, err := runtime.Client.InspectContainer(c.ID)
 		if err != nil {
