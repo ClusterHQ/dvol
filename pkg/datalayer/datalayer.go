@@ -83,10 +83,12 @@ func (dl *DataLayer) ResetVolume(commit, volumeName, variantName string) error {
 		return err
 	}
 	// TODO: Acquire lock
+	if err := os.RemoveAll(variantPath); err != nil {
+		return err
+	}
 	dl.copyFiles(commitPath, variantPath)
 	dl.destroyNewerCommits(commitId, volumeName, variantName)
 	// TODO: Release lock
-
 	return err
 }
 
@@ -239,7 +241,7 @@ func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName 
 	}
 	// Read the commit database
 	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
-	return commits[-offset].Id, err
+	return commits[len(commits)-1-offset].Id, err
 }
 
 func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantName string) error {
@@ -257,8 +259,8 @@ func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantN
 	if commitIdx < 0 {
 		return fmt.Errorf("Could not find commit with ID %s\n", string(commitId))
 	}
-	remainingCommits := commits[:commitIdx]
-	destroyCommits := commits[commitIdx:]
+	remainingCommits := commits[:commitIdx+1]
+	destroyCommits := commits[commitIdx+1:]
 	allVariants, err := dl.AllVariants(volumeName)
 	allCommits := make(map[CommitId]Commit)
 	for _, variant := range allVariants {
