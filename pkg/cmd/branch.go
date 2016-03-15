@@ -15,7 +15,7 @@ func NewCmdBranch(out io.Writer) *cobra.Command {
 		Use:   "branch",
 		Short: "List branches on the active volume.",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := listBranches(cmd, args, out)
+			err := listBranches(out)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)
@@ -25,7 +25,7 @@ func NewCmdBranch(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func listBranches(cmd *cobra.Command, args []string, out io.Writer) error {
+func listBranches(out io.Writer) error {
 	dvol := api.NewDvolAPI(basePath)
 	activeVolume, avErr := dvol.ActiveVolume()
 	if avErr != nil {
@@ -43,7 +43,7 @@ func listBranches(cmd *cobra.Command, args []string, out io.Writer) error {
 		if branch == activeBranch {
 			branch = "* " + branch
 		}
-		fmt.Printf("%s\n", branch)
+		fmt.Fprintln(out, branch)
 	}
 	return nil
 }
