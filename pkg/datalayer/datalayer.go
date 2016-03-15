@@ -2,6 +2,7 @@ package datalayer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -86,9 +87,13 @@ func (dl *DataLayer) ResetVolume(commit, volumeName, variantName string) error {
 	if err := os.RemoveAll(variantPath); err != nil {
 		return err
 	}
-	dl.copyFiles(commitPath, variantPath)
-	dl.destroyNewerCommits(commitId, volumeName, variantName)
-	// TODO: Release lock
+	if err := dl.copyFiles(commitPath, variantPath); err != nil {
+		return err
+	}
+	if err := dl.destroyNewerCommits(commitId, volumeName, variantName); err != nil {
+		return err
+	}
+	// TODO: Release lock (should be deferred actually)
 	return err
 }
 
@@ -244,43 +249,67 @@ func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName 
 	return commits[len(commits)-1-offset].Id, err
 }
 
-func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantName string) error {
-	// TODO: This should really be atomic but it's okay for now
-	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
-	if err != nil {
-		return err
-	}
-	commitIdx := -1
+var NotFound = errors.New("Item not found")
+
+func indexOfCommit(commitId CommitId, commits []Commit) (int, error) {
 	for idx, commit := range commits {
 		if commit.Id == commitId {
-			commitIdx = idx
+			return idx, nil
 		}
 	}
-	if commitIdx < 0 {
-		return fmt.Errorf("Could not find commit with ID %s\n", string(commitId))
-	}
-	remainingCommits := commits[:commitIdx+1]
-	destroyCommits := commits[commitIdx+1:]
-	allVariants, err := dl.AllVariants(volumeName)
+	return -1, NotFound
+}
+
+func (dl *DataLayer) allCommitsNotInVariant(volumeName, variantName string) (map[CommitId]Commit, error) {
 	allCommits := make(map[CommitId]Commit)
+	allVariants, err := dl.AllVariants(volumeName)
+	if err != nil {
+		return allCommits, err
+	}
 	for _, variant := range allVariants {
 		if variant != variantName {
 			variantCommits, err := dl.ReadCommitsForBranch(volumeName, variant)
 			if err != nil {
-				return err
+				return allCommits, err
 			}
 			for _, commit := range variantCommits {
 				allCommits[commit.Id] = commit
 			}
 		}
 	}
-	for _, commit := range destroyCommits {
-		if _, ok := allCommits[commit.Id]; ok {
+	return allCommits, nil
+}
+
+func (dl *DataLayer) destroyCommits(volumeName string, destroy []Commit, all map[CommitId]Commit) error {
+	for _, commit := range destroy {
+		if _, ok := all[commit.Id]; ok {
 			commitPath := dl.commitPath(volumeName, commit.Id)
 			if err := os.RemoveAll(commitPath); err != nil {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantName string) error {
+	// TODO: This should really be atomic but it's okay for now
+	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
+	if err != nil {
+		return err
+	}
+	commitIdx, err := indexOfCommit(commitId, commits)
+	if err == NotFound {
+		return fmt.Errorf("Could not find commit with ID %s\n", string(commitId))
+	}
+	remainingCommits := commits[:commitIdx+1]
+	destroyCommits := commits[commitIdx+1:]
+	allCommits, err := dl.allCommitsNotInVariant(volumeName, variantName)
+	if err != nil {
+		return err
+	}
+	if err := dl.destroyCommits(volumeName, destroyCommits, allCommits); err != nil {
+		return err
 	}
 	if err := dl.WriteCommitsForBranch(volumeName, variantName, remainingCommits); err != nil {
 		return err
