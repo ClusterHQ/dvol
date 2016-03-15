@@ -17,6 +17,10 @@ func isRelated(volume string, container *docker.Container) bool {
 	return false
 }
 
+// Related determines which containers are related to a particular volume.
+// A container is deemed to be related if a dvol volume with the same name appears
+// in the Mounts information for a container which is also currently running.
+// Related returns an array of related container names and any error encountered.
 func (runtime DockerRuntime) Related(volume string) ([]string, error) {
 	relatedContainers := make([]string, 0)
 	containers, err := runtime.Client.ListContainers(docker.ListContainersOptions{})
