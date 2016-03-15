@@ -2,6 +2,7 @@ package datalayer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -248,14 +249,15 @@ func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName 
 	return commits[len(commits)-1-offset].Id, err
 }
 
-func indexOfCommit(commitId CommitId, commits []Commit) int {
-	commitIdx := -1
+var NotFound = errors.New("Item not found")
+
+func indexOfCommit(commitId CommitId, commits []Commit) (int, error) {
 	for idx, commit := range commits {
 		if commit.Id == commitId {
-			commitIdx = idx
+			return idx, nil
 		}
 	}
-	return commitIdx
+	return -1, NotFound
 }
 
 func (dl *DataLayer) allCommitsNotInVariant(volumeName, variantName string) (map[CommitId]Commit, error) {
@@ -296,8 +298,8 @@ func (dl *DataLayer) destroyNewerCommits(commitId CommitId, volumeName, variantN
 	if err != nil {
 		return err
 	}
-	commitIdx := indexOfCommit(commitId, commits)
-	if commitIdx < 0 {
+	commitIdx, err := indexOfCommit(commitId, commits)
+	if err == NotFound {
 		return fmt.Errorf("Could not find commit with ID %s\n", string(commitId))
 	}
 	remainingCommits := commits[:commitIdx+1]
