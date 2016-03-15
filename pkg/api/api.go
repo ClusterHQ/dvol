@@ -192,12 +192,24 @@ func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 }
 
 func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (string, error) {
-    // returns a CommitId which is a string 40 byte UUID
+	// returns a CommitId which is a string 40 byte UUID
 	commitId, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
 	if err != nil {
 		return "", err
 	}
 	return string(commitId), nil
+}
+
+func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
+	activeVolume, err := dvol.ActiveVolume()
+	if err != nil {
+		return err
+	}
+	activeBranch, err := dvol.ActiveBranch(activeVolume)
+	if err := dvol.dl.ResetVolume(commit, activeVolume, activeBranch); err != nil {
+		return err
+	}
+	return nil
 }
 
 /*
