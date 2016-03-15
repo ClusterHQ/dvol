@@ -29,7 +29,10 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 }
 
 func removeVolume(cmd *cobra.Command, args []string, out io.Writer) error {
-	dvol := api.NewDvolAPI(basePath, disableDockerIntegration)
+	dvol := api.NewDvolAPI(api.DvolAPIOptions{
+		BasePath:                 basePath,
+		DisableDockerIntegration: disableDockerIntegration,
+	})
 	err := checkVolumeArgs(args)
 	if err != nil {
 		return err

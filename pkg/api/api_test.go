@@ -28,8 +28,10 @@ func TestSwitchVolume(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create TempDir: %s\n", err)
 	}
-	disableDockerIntegration := true
-	dvol := NewDvolAPI(basePath, disableDockerIntegration)
+	dvol := NewDvolAPI(DvolAPIOptions{
+		BasePath:                 basePath,
+		DisableDockerIntegration: true,
+	})
 	err = dvol.SwitchVolume(currentVolume)
 	if err != nil {
 		t.Errorf("SwitchVolume failed: %s\n", err)
