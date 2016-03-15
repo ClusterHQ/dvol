@@ -86,12 +86,18 @@ class VoluminousTests(TestCase):
     def test_docker_run_dvol_container_show_up_in_list_output(self):
         container = "fancy"
         def cleanup():
-            run(["docker", "rm", "-f", container])
-            run([DVOL, "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+            cmds = [
+                ["docker", "rm", "-f", container],
+                ["docker", "volume", "rm", "memorydiskserver"],
+                [DVOL, "rm", "-f", "memorydiskserver"],
+            ]
+            for cmd in cmds:
+                try:
+                    run(cmd)
+                except:
+                    pass
+        cleanup()
+        self.addCleanup(cleanup)
         run([
             "docker", "run", "--name", container, "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
@@ -108,13 +114,19 @@ class VoluminousTests(TestCase):
         container1 = "fancy"
         container2 = "fancier"
         def cleanup():
-            run(["docker", "rm", "-f", container1])
-            run(["docker", "rm", "-f", container2])
-            run([DVOL, "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+            cmds = [
+                ["docker", "rm", "-f", container1],
+                ["docker", "rm", "-f", container2],
+                ["docker", "volume", "rm", "memorydiskserver"],
+                [DVOL, "rm", "-f", "memorydiskserver"],
+            ]
+            for cmd in cmds:
+                try:
+                    run(cmd)
+                except:
+                    pass
+        cleanup()
+        self.addCleanup(cleanup)
         run([
             "docker", "run", "--name", container1, "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
