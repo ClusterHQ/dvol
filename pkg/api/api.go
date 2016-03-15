@@ -215,6 +215,18 @@ func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (s
 	return string(commitId), nil
 }
 
+func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
+	activeVolume, err := dvol.ActiveVolume()
+	if err != nil {
+		return err
+	}
+	activeBranch, err := dvol.ActiveBranch(activeVolume)
+	if err := dvol.dl.ResetVolume(commit, activeVolume, activeBranch); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (dvol *DvolAPI) RelatedContainers(volumeName string) ([]string, error) {
 	return dvol.containerRuntime.Related(volumeName)
 }
