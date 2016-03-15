@@ -108,7 +108,6 @@ class VoluminousTests(TestCase):
             if "/" + container not in result:
                 raise Exception("container never showed up in result %s" % (result,))
         try_until(dvol_list_includes_container_name)
-        cleanup()
 
     def test_docker_run_dvol_multiple_containers_shows_up_in_list_output(self):
         container1 = "fancy"
@@ -146,7 +145,6 @@ class VoluminousTests(TestCase):
                         "containers never showed up in result %s" % (result,)
                 )
         try_until(dvol_list_includes_container_names)
-        cleanup()
 
     def test_docker_run_roundtrip_value(self):
         self.cleanup_memorydiskserver()
