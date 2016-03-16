@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -122,7 +123,27 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	encoder.Encode(currentVolumeContent)
+	if err := encoder.Encode(currentVolumeContent); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
+	volume := dvol.dl.VolumeFromName(volumeName)
+	currentBranchJsonPath := filepath.FromSlash(volume.Path + "/current_branch.json")
+	currentBranchContent := map[string]string{
+		"current_branch": branchName,
+	}
+	file, err := os.Create(currentBranchJsonPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	if err := encoder.Encode(currentBranchContent); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -134,7 +155,7 @@ func (dvol *DvolAPI) SwitchBranch(volumeName, branchName string) error {
 	return nil
 }
 
-func (dvol *DvolAPI) CheckoutBranch(volumeName, branchName string, create bool) error {
+func (dvol *DvolAPI) CheckoutBranch(volumeName, firstBranch, secondBranch string, create bool) error {
 	// Get the path to the volume and the branch
 	// If we were asked to create it:
 	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
@@ -142,6 +163,18 @@ func (dvol *DvolAPI) CheckoutBranch(volumeName, branchName string, create bool) 
 	// 	Copy the metadata from the active branch to the new branch
 	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
 	// Switch to it
+	if create {
+		if err := dvol.dl.CreateVariantFromVariant(volumeName, firstBranch, secondBranch); err != nil {
+			return err
+		}
+	} else {
+		branchPath := dvol.dl.VariantPath(volumeName, secondBranch)
+		if _, err := os.Stat(branchPath); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("Cannot switch to a non-existing branch %s\n", secondBranch)
+			}
+		}
+	}
 	return nil
 }
 
