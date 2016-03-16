@@ -311,7 +311,8 @@ func (dl *DataLayer) allCommitsNotInVariant(volumeName, variantName string) (map
 
 func (dl *DataLayer) destroyCommits(volumeName string, destroy []Commit, all map[CommitId]Commit) error {
 	for _, commit := range destroy {
-		if _, ok := all[commit.Id]; ok {
+		// If commit not referenced in another branch, destroy it
+		if _, ok := all[commit.Id]; !ok {
 			commitPath := dl.commitPath(volumeName, commit.Id)
 			if err := os.RemoveAll(commitPath); err != nil {
 				return err
