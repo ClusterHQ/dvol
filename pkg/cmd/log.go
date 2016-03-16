@@ -14,7 +14,7 @@ func NewCmdLog(out io.Writer) *cobra.Command {
 		Use:   "log",
 		Short: "Show log",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := outputLog(cmd, args, out); err != nil {
+			if err := outputLog(out); err != nil {
 				fmt.Fprintln(os.Stderr, err.Error())
 				os.Exit(1)
 			}
@@ -23,7 +23,7 @@ func NewCmdLog(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func outputLog(cmd *cobra.Command, args []string, out io.Writer) error {
+func outputLog(out io.Writer) error {
 	dvol := api.NewDvolAPI(dvolAPIOptions)
 	activeVolume, err := dvol.ActiveVolume()
 	if err != nil {
