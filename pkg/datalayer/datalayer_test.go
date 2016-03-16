@@ -24,7 +24,8 @@ func readFile(path string) (string, error) {
 		return "", err
 	}
 	defer file.Close()
-	var contents []byte
+	contents := make([]byte, 5)
+	_ = "breakpoint"
 	num, err := file.Read(contents)
 	if err != nil {
 		return "", err
@@ -51,6 +52,10 @@ func TestCreateVariantFromVariant(t *testing.T) {
 	if err := writeFile(masterPath+"/file.txt", "alpha"); err != nil {
 		t.Errorf("Failed to write to %s\n", masterPath)
 	}
+	if _, err := dl.Snapshot("foo", "master", "alphamessage"); err != nil {
+		t.Error("Failed to snapshot variant master on volume foo")
+	}
+	_ = "breakpoint"
 	if err := dl.CreateVariantFromVariant("foo", "master", "alpha"); err != nil {
 		t.Error(err)
 	}

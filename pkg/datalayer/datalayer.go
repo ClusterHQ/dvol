@@ -102,6 +102,27 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	return os.MkdirAll(variantPath, 0777)
 }
 
+func (dl *DataLayer) CreateVariantFromVariant(volumeName, fromVariant, toVariant string) error {
+	// TODO: Make sure toVariant doesn't already exist
+	variantPath := dl.VariantPath(volumeName, toVariant)
+	head, err := dl.resolveNamedCommitOnBranch("HEAD", volumeName, fromVariant)
+	if err != nil {
+		return err
+	}
+	commits, err := dl.ReadCommitsForBranch(volumeName, fromVariant)
+	if err != nil {
+		return err
+	}
+	if err != dl.WriteCommitsForBranch(volumeName, toVariant, commits) {
+		return err
+	}
+	headCommitPath := dl.commitPath(volumeName, head)
+	if err := dl.copyFiles(headCommitPath, variantPath); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
 	var variants []string
 	branchesPath := filepath.FromSlash(dl.volumePath(volumeName) + "/branches")
@@ -192,10 +213,6 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	return commitId, nil
 }
 
-func (dl *DataLayer) CreateVariantFromVariant(volumeName, fromVariant, toVariant string) error {
-	return nil
-}
-
 func (dl *DataLayer) recordCommit(volumeName, variantName, message string, commitId CommitId) error {
 	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
 	if err != nil {
@@ -240,6 +257,8 @@ func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commi
 	return nil
 }
 
+var NoCommits = errors.New("No commits made on this variant yet")
+
 func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName string) (CommitId, error) {
 	remainder := commit[len("HEAD"):]
 	var offset int
@@ -250,7 +269,13 @@ func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName 
 	}
 	// Read the commit database
 	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
-	return commits[len(commits)-1-offset].Id, err
+	if err != nil {
+		return CommitId(""), err
+	}
+	if len(commits) == 0 {
+		return CommitId(""), NoCommits
+	}
+	return commits[len(commits)-1-offset].Id, nil
 }
 
 var NotFound = errors.New("Item not found")
