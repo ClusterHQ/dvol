@@ -480,7 +480,6 @@ class VoluminousTests(TestCase):
         self.assertTrue(volume.child("commits").child(oldCommit).exists())
         self.assertFalse(volume.child("commits").child(newCommit).exists())
 
-    @skip_if_go_version
     def test_branch_default_master(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])

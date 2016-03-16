@@ -189,6 +189,10 @@ func (dvol *DvolAPI) ActiveBranch(volumeName string) (string, error) {
 	return store["current_branch"].(string), nil
 }
 
+func (dvol *DvolAPI) AllBranches(volumeName string) ([]string, error) {
+	return dvol.dl.AllVariants(volumeName)
+}
+
 func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 	files, err := ioutil.ReadDir(dvol.basePath)
 	if err != nil {
