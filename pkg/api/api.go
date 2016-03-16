@@ -9,7 +9,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ClusterHQ/dvol/pkg/containers"
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
+	"github.com/fsouza/go-dockerclient"
 )
 
 /*
@@ -66,8 +68,9 @@ func ValidName(name string) bool {
 }
 
 type DvolAPI struct {
-	basePath string
-	dl       *datalayer.DataLayer
+	basePath         string
+	dl               *datalayer.DataLayer
+	containerRuntime containers.Runtime
 }
 
 type DvolVolume struct {
@@ -76,9 +79,21 @@ type DvolVolume struct {
 	Path string
 }
 
-func NewDvolAPI(basePath string) *DvolAPI {
-	dl := datalayer.NewDataLayer(basePath)
-	return &DvolAPI{basePath, dl}
+type DvolAPIOptions struct {
+	BasePath                 string
+	DisableDockerIntegration bool
+}
+
+func NewDvolAPI(options DvolAPIOptions) *DvolAPI {
+	dl := datalayer.NewDataLayer(options.BasePath)
+	var containerRuntime containers.Runtime
+	if !options.DisableDockerIntegration {
+		client, _ := docker.NewClientFromEnv()
+		containerRuntime = containers.DockerRuntime{client}
+	} else {
+		containerRuntime = containers.NoneRuntime{}
+	}
+	return &DvolAPI{options.BasePath, dl, containerRuntime}
 }
 
 func (dvol *DvolAPI) volumePath(volumeName string) string {
@@ -176,6 +191,10 @@ func (dvol *DvolAPI) ActiveBranch(volumeName string) (string, error) {
 	return store["current_branch"].(string), nil
 }
 
+func (dvol *DvolAPI) AllBranches(volumeName string) ([]string, error) {
+	return dvol.dl.AllVariants(volumeName)
+}
+
 func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 	files, err := ioutil.ReadDir(dvol.basePath)
 	if err != nil {
@@ -194,7 +213,7 @@ func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 }
 
 func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (string, error) {
-    // returns a CommitId which is a string 40 byte UUID
+	// returns a CommitId which is a string 40 byte UUID
 	commitId, err := dvol.dl.Snapshot(activeVolume, activeBranch, commitMessage)
 	if err != nil {
 		return "", err
@@ -202,7 +221,24 @@ func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (s
 	return string(commitId), nil
 }
 
-func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (string, error) { // could be datalater.CommitId instead of string?
+func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
+	activeVolume, err := dvol.ActiveVolume()
+	if err != nil {
+		return err
+	}
+	activeBranch, err := dvol.ActiveBranch(activeVolume)
+	if err := dvol.dl.ResetVolume(commit, activeVolume, activeBranch); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dvol *DvolAPI) RelatedContainers(volumeName string) ([]string, error) {
+	return dvol.containerRuntime.Related(volumeName)
+}
+
+/*
+func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (error, string) {
 	// Get the active branch on the specified volume
 	// Get the commit offset, returning an error if the commit name isn't correctly formed
 	// Return the commit ID from the database
@@ -233,3 +269,4 @@ func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error
 	_, err := dvol.resolveNamedCommitOnActiveBranch("HEAD", volumeName)
 	return err
 }
+*/

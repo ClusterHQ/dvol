@@ -8,4 +8,4 @@ echo "running gofmt..."
 test -z "$(gofmt -l -w .     | tee /dev/stderr)"
 
 echo "running go vet..."
-godep go vet ./...
+godep go vet $(go list ./... | grep -v /vendor/)

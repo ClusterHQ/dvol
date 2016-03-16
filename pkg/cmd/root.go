@@ -3,11 +3,14 @@ package cmd
 import (
 	"os"
 
+	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
 )
 
 var basePath string
 var disableDockerIntegration bool
+
+var dvolAPIOptions api.DvolAPIOptions
 
 const DEFAULT_BRANCH string = "master"
 
@@ -19,6 +22,12 @@ var RootCmd = &cobra.Command{
 dvol lets you commit, reset and branch the containerized databases
 running on your laptop so you can easily save a particular state
 and come back to it later.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		dvolAPIOptions = api.DvolAPIOptions{
+			BasePath:                 basePath,
+			DisableDockerIntegration: disableDockerIntegration,
+		}
+	},
 }
 
 func init() {
@@ -30,6 +39,8 @@ func init() {
 	RootCmd.AddCommand(NewCmdList(os.Stdout))
 	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
 	RootCmd.AddCommand(NewCmdCommit(os.Stdout))
+	RootCmd.AddCommand(NewCmdReset(os.Stdout))
+	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")

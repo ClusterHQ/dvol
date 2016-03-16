@@ -7,7 +7,7 @@ For local development, firstly ensure Go is fully installed, and that you have s
 You will also need to add `$GOPATH/bin` to your `$PATH`.
 
 Next, clone this repository using [Git](https://git-scm.com/), into `$GOPATH/src/github.com/ClusterHQ/dvol`.
-All the necessary Golang dependencies are vendored, but you will need to install the following Python dependancies and Golang tools:
+All the necessary Golang dependencies are vendored, but you will need to install the following Python dependencies and Golang tools:
 
 ```sh
 $ make bootstrap

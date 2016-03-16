@@ -83,16 +83,21 @@ class VoluminousTests(TestCase):
                 raise Exception("volume never showed up in result %s" % (result,))
         try_until(dvol_list_includes_memorydiskserver)
 
-    @skip_if_go_version
     def test_docker_run_dvol_container_show_up_in_list_output(self):
         container = "fancy"
         def cleanup():
-            run(["docker", "rm", "-f", container])
-            run([DVOL, "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+            cmds = [
+                ["docker", "rm", "-f", container],
+                ["docker", "volume", "rm", "memorydiskserver"],
+                [DVOL, "rm", "-f", "memorydiskserver"],
+            ]
+            for cmd in cmds:
+                try:
+                    run(cmd)
+                except:
+                    pass
+        cleanup()
+        self.addCleanup(cleanup)
         run([
             "docker", "run", "--name", container, "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
@@ -103,20 +108,24 @@ class VoluminousTests(TestCase):
             if "/" + container not in result:
                 raise Exception("container never showed up in result %s" % (result,))
         try_until(dvol_list_includes_container_name)
-        cleanup()
 
-    @skip_if_go_version
     def test_docker_run_dvol_multiple_containers_shows_up_in_list_output(self):
         container1 = "fancy"
         container2 = "fancier"
         def cleanup():
-            run(["docker", "rm", "-f", container1])
-            run(["docker", "rm", "-f", container2])
-            run([DVOL, "rm", "-f", "memorydiskserver"])
-        try:
-            cleanup()
-        except:
-            pass
+            cmds = [
+                ["docker", "rm", "-f", container1],
+                ["docker", "rm", "-f", container2],
+                ["docker", "volume", "rm", "memorydiskserver"],
+                [DVOL, "rm", "-f", "memorydiskserver"],
+            ]
+            for cmd in cmds:
+                try:
+                    run(cmd)
+                except:
+                    pass
+        cleanup()
+        self.addCleanup(cleanup)
         run([
             "docker", "run", "--name", container1, "-d",
             "-v", "memorydiskserver:/data", "--volume-driver", "dvol",
@@ -136,7 +145,6 @@ class VoluminousTests(TestCase):
                         "containers never showed up in result %s" % (result,)
                 )
         try_until(dvol_list_includes_container_names)
-        cleanup()
 
     def test_docker_run_roundtrip_value(self):
         self.cleanup_memorydiskserver()
@@ -199,7 +207,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(current_value, "Value: alpha")
 
     @skip_if_python_version # The Python implementation is broken
-    @skip_if_go_version # Remove me when implemented in Go
     def test_docker_volumes_removed(self):
         """
         When a dvol volume is removed, you can implicitly create a new volume
@@ -215,7 +222,12 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run(["docker", "volume", "rm", "volume_remove_test"])
+                run(["docker", "volume", "rm", "volume-remove-test"])
+                pass
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "-f", "volume-remove-test"])
                 pass
             except:
                 pass
@@ -224,15 +236,15 @@ class VoluminousTests(TestCase):
 
         # Start a new container
         run(["docker", "run", "--name", "volume_remove_test", "-v",
-            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
         # Remove the volume
-        run([DVOL, "rm", "-f", "volume_remove_test"])
+        run([DVOL, "rm", "-f", "volume-remove-test"])
 
         # Start a new container on the same volume and expect an error
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
-            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
+            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
     @skip_if_python_version
