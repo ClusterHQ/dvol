@@ -151,10 +151,6 @@ func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
 	return dvol.dl.CreateVariant(volumeName, branchName)
 }
 
-func (dvol *DvolAPI) SwitchBranch(volumeName, branchName string) error {
-	return nil
-}
-
 func (dvol *DvolAPI) CheckoutBranch(volumeName, firstBranch, secondBranch string, create bool) error {
 	// Get the path to the volume and the branch
 	// If we were asked to create it:
@@ -174,6 +170,9 @@ func (dvol *DvolAPI) CheckoutBranch(volumeName, firstBranch, secondBranch string
 				return fmt.Errorf("Cannot switch to a non-existing branch %s\n", secondBranch)
 			}
 		}
+	}
+	if err := dvol.setActiveBranch(volumeName, secondBranch); err != nil {
+		return err
 	}
 	return nil
 }
