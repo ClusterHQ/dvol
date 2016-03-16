@@ -153,10 +153,10 @@ func main() {
 		if err != nil {
 			writeResponseErr(err, w)
 		}
-		// mountpoint should be:
-		// /var/lib/docker/volumes/<volumename>/running_point
+		path := dvol.VolumePath(name)
+
 		responseJSON, _ := json.Marshal(&ResponseMount{
-			Mountpoint: "/tmp", // TODO: Get the real path
+			Mountpoint: path,
 			Err:        "",
 		})
 		w.Write(responseJSON)
