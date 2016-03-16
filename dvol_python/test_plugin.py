@@ -242,7 +242,7 @@ class VoluminousTests(TestCase):
         # Remove the volume
         run([DVOL, "rm", "-f", "volume-remove-test"])
 
-        # Start a new container on the same volume and expect an error
+        # Start a new container on the same volume and there are no errors
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
             "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
@@ -277,6 +277,40 @@ class VoluminousTests(TestCase):
         self.fail("Volume 'docker-volume-list-test' not found in Docker "
                 "output:\n\n" + docker_output)
 
+    def test_unique_volumes(self):
+        """
+        Two separate volumes do not share the same filesystem namespace.
+        """
+        alpha = "test-unique-volume-alpha"
+        beta = "test-unique-volume-beta"
+        def cleanup():
+            for volume in [alpha, beta]:
+                try: run(["docker", "rm", "-fv", volume])
+                except: pass
+                try: run(["docker", "volume", "rm", volume])
+                except: pass
+                try: run([DVOL, "rm", "-f", volume])
+                except: pass
+        cleanup()
+        self.addCleanup(cleanup)
+
+        for volume in [alpha, beta]:
+            run(["docker", "run", "-v", "%s:/data" % (volume,),
+                "--volume-driver", "dvol", "--name", volume, "ubuntu", "bash",
+                "-c", "echo -n %s > /data/data" % (volume,)])
+            run(["docker", "rm", volume]) # using volume as the container name
+
+        data = dict()
+        for volume in [alpha, beta]:
+            result = run(["docker", "run", "-v", "%s:/data" % (volume,),
+                "--volume-driver", "dvol", "--name", volume, "ubuntu",
+                "cat", "/data/data"])
+            data[volume] = result
+
+        # These could be moved into the loop above, but leave them here so it
+        # is clearer which is failing.
+        self.assertEqual(data[alpha], alpha)
+        self.assertEqual(data[beta], beta)
 
 """
 log of integration tests to write:
