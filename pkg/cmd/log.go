@@ -42,7 +42,7 @@ func outputLog(out io.Writer) error {
 	for i := len(commits) - 1; i >= 0; i-- {
 		commit := commits[i]
 		fmt.Fprintf(out, "commit %s\n", commit.Id)
-		fmt.Fprintln(out, "Author: Who knows <mystery@person>")
+		fmt.Fprint(out, "Author: Who knows <mystery@person>\n")
 		fmt.Fprint(out, "Date: Whenever\n\n")
 		fmt.Fprintf(out, "    %s\n\n", commit.Message)
 	}
