@@ -41,6 +41,7 @@ func init() {
 	RootCmd.AddCommand(NewCmdCommit(os.Stdout))
 	RootCmd.AddCommand(NewCmdReset(os.Stdout))
 	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
+	RootCmd.AddCommand(NewCmdLog(os.Stdout))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")

@@ -350,7 +350,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
 
-    @skip_if_go_version
     def test_log(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
