@@ -219,6 +219,10 @@ func (dvol *DvolAPI) Commit(activeVolume, activeBranch, commitMessage string) (s
 	return string(commitId), nil
 }
 
+func (dvol *DvolAPI) ListCommits(activeVolume, activeBranch string) ([]datalayer.Commit, error) {
+	return dvol.dl.ReadCommitsForBranch(activeVolume, activeBranch)
+}
+
 func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
 	activeVolume, err := dvol.ActiveVolume()
 	if err != nil {

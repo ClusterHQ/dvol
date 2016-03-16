@@ -350,30 +350,34 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
 
-    @skip_if_go_version
     def test_log(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "init", "foo"])
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "oi"])
+        first_commit = dvol.voluminous.getOutput()[-1]
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "commit", "-m", "you"])
+        second_commit = dvol.voluminous.getOutput()[-1]
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
             "log"])
         actual = dvol.voluminous.getOutput()[-1]
         expected = (
-            "commit\n"
-            "Author:\n"
-            "Date:\n"
+            "commit {second_commit}\n"
+            "Author: Who knows <mystery@person>\n"
+            "Date: Whenever\n"
             "\n"
             "    you\n"
             "\n"
-            "commit\n"
-            "Author:\n"
-            "Date:\n"
+            "commit {first_commit}\n"
+            "Author: Who knows <mystery@person>\n"
+            "Date: Whenever\n"
             "\n"
-            "    oi\n")
+            "    oi\n").format(
+                first_commit=first_commit,
+                second_commit=second_commit
+            )
         expectedLines = expected.split("\n")
         actualLines = actual.split("\n")
         self.assertEqual(len(expectedLines), len(actualLines))
