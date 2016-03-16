@@ -26,7 +26,7 @@ func NewCmdBranch(out io.Writer) *cobra.Command {
 }
 
 func listBranches(out io.Writer) error {
-	dvol := api.NewDvolAPI(basePath)
+	dvol := api.NewDvolAPI(dvolAPIOptions)
 	activeVolume, avErr := dvol.ActiveVolume()
 	if avErr != nil {
 		return avErr
