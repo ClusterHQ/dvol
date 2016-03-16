@@ -293,7 +293,6 @@ class VoluminousTests(TestCase):
             sorted(rest),
         )
 
-    @skip_if_go_version
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
     def test_branch_multi_volumes(self, volumes):
@@ -324,7 +323,6 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(min_codepoint=1, max_codepoint=127),
            min_size=1), filename=path_segments(), content=binary())
