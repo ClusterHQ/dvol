@@ -50,13 +50,13 @@ type ResponseMount struct {
 
 type ResponseListVolume struct {
 	// Used in the JSON representation of ResponseList
-	Name string
+	Name       string
 	Mountpoint string
 }
 type ResponseList struct {
 	// A response which enumerates volumes for VolumeDriver.List
 	Volumes []ResponseListVolume
-	Err string
+	Err     string
 }
 
 func main() {
@@ -95,7 +95,9 @@ func main() {
 		request := new(RequestCreate)
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
-		dvol := api.NewDvolAPI(VOL_DIR)
+		dvol := api.NewDvolAPI(api.DvolAPIOptions{
+			BasePath: VOL_DIR,
+		})
 		if dvol.VolumeExists(name) {
 			log.Print("Volume already exists ", name)
 		} else {
@@ -110,9 +112,9 @@ func main() {
 
 	http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {
 		/*
-		We do not actually want to remove the dvol volume when Docker references to them are removed.
+			We do not actually want to remove the dvol volume when Docker references to them are removed.
 
-		This is a no-op.
+			This is a no-op.
 		*/
 		writeResponseOK(w)
 	})
@@ -130,7 +132,9 @@ func main() {
 		json.Unmarshal(requestJSON, request)
 		name := request.Name
 
-		dvol := api.NewDvolAPI(VOL_DIR)
+		dvol := api.NewDvolAPI(api.DvolAPIOptions{
+			BasePath: VOL_DIR,
+		})
 
 		if !dvol.VolumeExists(name) {
 			// Volume does not exist. We will implicitly create it.
@@ -172,9 +176,11 @@ func main() {
 	http.Serve(listener, nil)
 }
 
-func volumeDriverList (w http.ResponseWriter, r *http.Request) {
+func volumeDriverList(w http.ResponseWriter, r *http.Request) {
 	log.Print("<= /VolumeDriver.List")
-	dvol := api.NewDvolAPI(VOL_DIR)
+	dvol := api.NewDvolAPI(api.DvolAPIOptions{
+		BasePath: VOL_DIR,
+	})
 
 	allVolumes, err := dvol.AllVolumes()
 	if err != nil {
@@ -184,9 +190,9 @@ func volumeDriverList (w http.ResponseWriter, r *http.Request) {
 	var response = ResponseList{
 		Err: "",
 	}
-	for _, volume := range(allVolumes) {
+	for _, volume := range allVolumes {
 		response.Volumes = append(response.Volumes, ResponseListVolume{
-			Name: volume.Name,
+			Name:       volume.Name,
 			Mountpoint: volume.Path,
 		})
 	}

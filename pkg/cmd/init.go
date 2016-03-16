@@ -25,7 +25,7 @@ func NewCmdInit(out io.Writer) *cobra.Command {
 }
 
 func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
-	dvol := api.NewDvolAPI(basePath)
+	dvol := api.NewDvolAPI(dvolAPIOptions)
 	err := checkVolumeArgs(args)
 	if err != nil {
 		return err

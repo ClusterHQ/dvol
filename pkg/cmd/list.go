@@ -28,7 +28,7 @@ func NewCmdList(out io.Writer) *cobra.Command {
 }
 
 func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
-	dvol := api.NewDvolAPI(basePath)
+	dvol := api.NewDvolAPI(dvolAPIOptions)
 	if len(args) > 0 {
 		return fmt.Errorf("Wrong number of arguments.")
 	}
@@ -60,7 +60,12 @@ func listVolumes(cmd *cobra.Command, args []string, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t\n", prefix, volume.Name, branch); err != nil {
+		containers, err := dvol.RelatedContainers(volume.Name)
+		if err != nil {
+			return err
+		}
+		joinedContainers := strings.Join(containers, ",")
+		if _, err := fmt.Fprintf(writer, "%s%s\t%s\t%s\t\n", prefix, volume.Name, branch, joinedContainers); err != nil {
 			return err
 		}
 	}
