@@ -41,9 +41,9 @@ func outputLog(cmd *cobra.Command, args []string, out io.Writer) error {
 	}
 	for i := len(commits) - 1; i >= 0; i-- {
 		commit := commits[i]
-		fmt.Fprintln(out, "commit %s", commit.Id)
+		fmt.Fprintf(out, "commit %s\n", commit.Id)
 		fmt.Fprintln(out, "Author: Who knows <mystery@person>")
-		fmt.Fprintln(out, "Date: Whenever\n")
+		fmt.Fprint(out, "Date: Whenever\n\n")
 		fmt.Fprintf(out, "    %s\n\n", commit.Message)
 	}
 	return nil
