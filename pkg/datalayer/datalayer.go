@@ -137,6 +137,12 @@ func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
 	return variants, nil
 }
 
+func (dl *DataLayer) VariantExists(volumeName, variantName string) bool {
+	variantPath := dl.VariantPath(volumeName, variantName)
+	_, err := os.Stat(variantPath)
+	return err == nil
+}
+
 func (dl *DataLayer) sanitizePath(path string) error {
 	// Calculate that dl.basePath is a strict prefix of filepath.Clean(path)
 	if !strings.HasPrefix(filepath.Clean(path), dl.basePath) {

@@ -39,7 +39,6 @@ func TestCreateVariantFromVariant(t *testing.T) {
 		t.Error("Could not create temp directory")
 	}
 	dl := NewDataLayer(tempdir)
-	// TODO: Create a volume foo
 	if err := dl.CreateVolume("foo"); err != nil {
 		t.Error("Could not create volume foo")
 	}
@@ -65,5 +64,4 @@ func TestCreateVariantFromVariant(t *testing.T) {
 	if alphaContents != "alpha" {
 		t.Errorf("%s != 'alpha'", alphaContents)
 	}
-	// TODO: Assert that variant 'beta' has the same content as variant 'alpha'
 }

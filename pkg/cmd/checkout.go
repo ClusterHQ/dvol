@@ -13,7 +13,6 @@ var createBranch bool
 
 func NewCmdCheckout(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		// TODO: Improve the usage string to include a volume name to remove
 		Use:   "checkout",
 		Short: "Check out or create branches on the active volume",
 		Run: func(cmd *cobra.Command, args []string) {

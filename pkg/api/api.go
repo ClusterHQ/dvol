@@ -145,43 +145,20 @@ func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
 	return dvol.dl.CreateVariant(volumeName, branchName)
 }
 
-func (dvol *DvolAPI) branchExists(volumeName, variantName string) (bool, error) {
-	allVariants, err := dvol.dl.AllVariants(volumeName)
-	if err != nil {
-		return false, err
-	}
-	for _, variant := range allVariants {
-		if variant == variantName {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func (dvol *DvolAPI) CheckoutBranch(volumeName, firstBranch, secondBranch string, create bool) error {
+func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, create bool) error {
 	if create {
-		exists, err := dvol.branchExists(volumeName, secondBranch)
-		if err != nil {
-			return err
+		if dvol.dl.VariantExists(volumeName, newBranch) {
+			return fmt.Errorf("Cannot create existing branch %s", newBranch)
 		}
-		if exists {
-			return fmt.Errorf("Cannot create existing branch %s", secondBranch)
-		}
-		if err := dvol.dl.CreateVariantFromVariant(volumeName, firstBranch, secondBranch); err != nil {
+		if err := dvol.dl.CreateVariantFromVariant(volumeName, sourceBranch, newBranch); err != nil {
 			return err
 		}
 	} else {
-		branchPath := dvol.dl.VariantPath(volumeName, secondBranch)
-		if _, err := os.Stat(branchPath); err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("Cannot switch to a non-existing branch %s\n", secondBranch)
-			}
+		if !dvol.dl.VariantExists(volumeName, newBranch) {
+			return fmt.Errorf("Cannot switch to a non-existing branch %s", newBranch)
 		}
 	}
-	if err := dvol.setActiveBranch(volumeName, secondBranch); err != nil {
-		return err
-	}
-	return nil
+	return dvol.setActiveBranch(volumeName, newBranch)
 }
 
 func (dvol *DvolAPI) ActiveVolume() (string, error) {
@@ -277,36 +254,3 @@ func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
 func (dvol *DvolAPI) RelatedContainers(volumeName string) ([]string, error) {
 	return dvol.containerRuntime.Related(volumeName)
 }
-
-/*
-func (dvol *DvolAPI) resolveNamedCommitOnActiveBranch(commit, volumeName string) (error, string) {
-	// Get the active branch on the specified volume
-	// Get the commit offset, returning an error if the commit name isn't correctly formed
-	// Return the commit ID from the database
-	currentBranch, err := dvol.ActiveBranch(volumeName)
-	if err != nil {
-		return err, ""
-	}
-	remainder := commit[len("HEAD"):]
-	if remainder == strings.Repeat("^", len(remainder)) {
-		offset := len(remainder)
-	} else {
-		return fmt.Errorf("Malformed commit identifier %s", commit), ""
-	}
-	// Read the commit database
-	return nil, "" //commitId
-}
-*/
-/*
-func (dvol *DvolAPI) CreateBranchFromBranch(volumeName, branchName string) error {
-	// Get the path to the volume and the branch
-	// If we were asked to create it:
-	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
-	// 	Get the HEAD, return an error regarding needing to commit if the HEAD doesn't exist yet
-	// 	Copy the metadata from the active branch to the new branch
-	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
-	branchPath := filepath.FromSlash(dvol.basePath + "/" + volumeName + "/branches/" + branchName)
-	err, head := dvol.resolveNamedCommitOnActiveBranch("HEAD", volumeName)
-	return err
-}
-*/
