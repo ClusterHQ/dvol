@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -151,15 +152,26 @@ func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
 	return dvol.dl.CreateVariant(volumeName, branchName)
 }
 
+var NotFound = errors.New("Item not found")
+
+func indexOfVariant(variantName string, variants []string) (int, error) {
+	for idx, variant := range variants {
+		if variant == variantName {
+			return idx, nil
+		}
+	}
+	return -1, NotFound
+}
+
 func (dvol *DvolAPI) CheckoutBranch(volumeName, firstBranch, secondBranch string, create bool) error {
-	// Get the path to the volume and the branch
-	// If we were asked to create it:
-	// NEEDS TO BE DONE BY DATALAYER CREATEVARIANT
-	// 	Get the HEAD, return an error regarding needing to commit if the HEAD doesn't exist yet
-	// 	Copy the metadata from the active branch to the new branch
-	// 	Copy the head commit (commits/deadbeef1234etc) into the new branch path
-	// Switch to it
 	if create {
+		allVariants, err := dvol.dl.AllVariants(volumeName)
+		if err != nil {
+			return err
+		}
+		if _, err := indexOfVariant(secondBranch, allVariants); err == nil {
+			return fmt.Errorf("Cannot create existing branch %s", secondBranch)
+		}
 		if err := dvol.dl.CreateVariantFromVariant(volumeName, firstBranch, secondBranch); err != nil {
 			return err
 		}

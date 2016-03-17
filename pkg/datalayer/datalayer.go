@@ -103,7 +103,6 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 }
 
 func (dl *DataLayer) CreateVariantFromVariant(volumeName, fromVariant, toVariant string) error {
-	// TODO: Make sure toVariant doesn't already exist
 	variantPath := dl.VariantPath(volumeName, toVariant)
 	head, err := dl.resolveNamedCommitOnBranch("HEAD", volumeName, fromVariant)
 	if err != nil {

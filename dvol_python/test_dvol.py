@@ -348,6 +348,29 @@ class VoluminousTests(TestCase):
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
 
+    def test_branch_already_exists(self):
+        """
+        Creating a branch with the same name as an existing branch
+        gives an appropriate meaningful erro message.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "checkout", "-b", "alpha"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "commit", "-m", "commit 2"])
+        expected_output = "Cannot create existing branch alpha"
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+                "checkout", "-b", "alpha"])
+            self.assertEqual(dvol.voluminous.getOutput()[-1], expected_output)
+        except CalledProcessErrorWithOutput, error:
+            self.assertIn(expected_output, error.original.output)
+            self.assertTrue(error.original.returncode != 0)
+
     def test_log(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
