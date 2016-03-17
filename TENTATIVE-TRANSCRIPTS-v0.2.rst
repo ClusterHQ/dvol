@@ -137,6 +137,33 @@ transcript::
 configuration
 -------------
 
+get a key
+~~~~~~~~~
+
+transcript::
+
+    $ dvol config user.name
+    Rob Haswell
+    $
+
+set a key
+~~~~~~~~~
+
+transcript::
+
+    $ dvol config user.name "Rob Haswell"
+    $
+
+list all config
+~~~~~~~~~~~~~~~
+
+transcript::
+
+    $ dvol config --list
+    user.name=Rob Haswell
+    user.email=rob@clusterhq.com
+    $
+
 unknown configuration key
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
