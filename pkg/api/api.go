@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -124,10 +123,7 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	if err := encoder.Encode(currentVolumeContent); err != nil {
-		return err
-	}
-	return nil
+	return encoder.Encode(currentVolumeContent)
 }
 
 func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
@@ -142,34 +138,33 @@ func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	if err := encoder.Encode(currentBranchContent); err != nil {
-		return err
-	}
-	return nil
+	return encoder.Encode(currentBranchContent)
 }
 
 func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
 	return dvol.dl.CreateVariant(volumeName, branchName)
 }
 
-var NotFound = errors.New("Item not found")
-
-func indexOfVariant(variantName string, variants []string) (int, error) {
-	for idx, variant := range variants {
+func (dvol *DvolAPI) branchExists(volumeName, variantName string) (bool, error) {
+	allVariants, err := dvol.dl.AllVariants(volumeName)
+	if err != nil {
+		return false, err
+	}
+	for _, variant := range allVariants {
 		if variant == variantName {
-			return idx, nil
+			return true, nil
 		}
 	}
-	return -1, NotFound
+	return false, nil
 }
 
 func (dvol *DvolAPI) CheckoutBranch(volumeName, firstBranch, secondBranch string, create bool) error {
 	if create {
-		allVariants, err := dvol.dl.AllVariants(volumeName)
+		exists, err := dvol.branchExists(volumeName, secondBranch)
 		if err != nil {
 			return err
 		}
-		if _, err := indexOfVariant(secondBranch, allVariants); err == nil {
+		if exists {
 			return fmt.Errorf("Cannot create existing branch %s", secondBranch)
 		}
 		if err := dvol.dl.CreateVariantFromVariant(volumeName, firstBranch, secondBranch); err != nil {

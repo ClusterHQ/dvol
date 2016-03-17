@@ -351,7 +351,7 @@ class VoluminousTests(TestCase):
     def test_branch_already_exists(self):
         """
         Creating a branch with the same name as an existing branch
-        gives an appropriate meaningful erro message.
+        gives an appropriate meaningful error message.
         """
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
