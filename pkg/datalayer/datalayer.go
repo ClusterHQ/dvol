@@ -47,7 +47,7 @@ func (dl *DataLayer) VolumeFromName(volumeName string) Volume {
 	}
 }
 
-func (dl *DataLayer) VariantPath(volumeName, variantName string) string {
+func (dl *DataLayer) variantPath(volumeName, variantName string) string {
 	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + variantName)
 }
 
@@ -66,7 +66,7 @@ func (dl *DataLayer) RemoveVolume(volumeName string) error {
 }
 
 func (dl *DataLayer) ResetVolume(commit, volumeName, variantName string) error {
-	variantPath := dl.VariantPath(volumeName, variantName)
+	variantPath := dl.variantPath(volumeName, variantName)
 
 	// TODO: If commit starts with 'HEAD', might be do-able in api
 	var commitId CommitId
@@ -98,12 +98,12 @@ func (dl *DataLayer) ResetVolume(commit, volumeName, variantName string) error {
 }
 
 func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
-	variantPath := dl.VariantPath(volumeName, variantName)
+	variantPath := dl.variantPath(volumeName, variantName)
 	return os.MkdirAll(variantPath, 0777)
 }
 
 func (dl *DataLayer) CreateVariantFromVariant(volumeName, fromVariant, toVariant string) error {
-	variantPath := dl.VariantPath(volumeName, toVariant)
+	variantPath := dl.variantPath(volumeName, toVariant)
 	head, err := dl.resolveNamedCommitOnBranch("HEAD", volumeName, fromVariant)
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
 }
 
 func (dl *DataLayer) VariantExists(volumeName, variantName string) bool {
-	variantPath := dl.VariantPath(volumeName, variantName)
+	variantPath := dl.variantPath(volumeName, variantName)
 	_, err := os.Stat(variantPath)
 	return err == nil
 }
@@ -193,7 +193,7 @@ func (dl *DataLayer) Snapshot(volumeName, variantName, commitMessage string) (Co
 	bigUUID := uuid1.String() + uuid2.String()
 	bigUUID = strings.Replace(bigUUID, "-", "", -1)
 	commitId := CommitId(bigUUID[:40])
-	variantPath := dl.VariantPath(volumeName, variantName)
+	variantPath := dl.variantPath(volumeName, variantName)
 	commitPath := dl.commitPath(volumeName, commitId)
 	_, err = os.Stat(commitPath)
 	if err != nil && !os.IsNotExist(err) {
@@ -228,7 +228,7 @@ func (dl *DataLayer) recordCommit(volumeName, variantName, message string, commi
 }
 
 func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Commit, error) {
-	branchDB := dl.VariantPath(volumeName, variantName) + ".json"
+	branchDB := dl.variantPath(volumeName, variantName) + ".json"
 	_, err := os.Stat(branchDB)
 	if err != nil {
 		// File doesn't exist, so it's an empty database.
@@ -251,7 +251,7 @@ func (dl *DataLayer) ReadCommitsForBranch(volumeName, variantName string) ([]Com
 }
 
 func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commits []Commit) error {
-	branchDB := dl.VariantPath(volumeName, variantName) + ".json"
+	branchDB := dl.variantPath(volumeName, variantName) + ".json"
 	file, err := os.Create(branchDB)
 	if err != nil {
 		return err

@@ -46,7 +46,7 @@ func TestCreateVariantFromVariant(t *testing.T) {
 		t.Error("Could not create master variant")
 	}
 	// Put something in the master variant
-	masterPath := dl.VariantPath("foo", "master")
+	masterPath := dl.variantPath("foo", "master")
 	if err := writeFile(masterPath+"/file.txt", "alpha"); err != nil {
 		t.Errorf("Failed to write to %s\n", masterPath)
 	}
@@ -56,7 +56,7 @@ func TestCreateVariantFromVariant(t *testing.T) {
 	if err := dl.CreateVariantFromVariant("foo", "master", "alpha"); err != nil {
 		t.Error(err)
 	}
-	alphaFile := dl.VariantPath("foo", "alpha") + "/file.txt"
+	alphaFile := dl.variantPath("foo", "alpha") + "/file.txt"
 	alphaContents, err := readFile(alphaFile)
 	if err != nil {
 		t.Errorf("Could not read contents of %s\n", alphaFile)
