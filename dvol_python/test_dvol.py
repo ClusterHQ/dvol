@@ -293,7 +293,6 @@ class VoluminousTests(TestCase):
             sorted(rest),
         )
 
-    @skip_if_go_version
     @given(volumes=dictionaries(
         volume_names(), branch_names(), min_size=1).map(items))
     def test_branch_multi_volumes(self, volumes):
@@ -324,7 +323,6 @@ class VoluminousTests(TestCase):
             sorted([line.split() for line in rest]),
         )
 
-    @skip_if_go_version
     @given(volume_name=volume_names(), branch_name=branch_names(),
            commit_message=text(characters(min_codepoint=1, max_codepoint=127),
            min_size=1), filename=path_segments(), content=binary())
@@ -349,6 +347,29 @@ class VoluminousTests(TestCase):
         self.assertEqual(['VOLUME', 'BRANCH', 'CONTAINERS'], header.split())
         self.assertEqual(
             [['*', volume_name, branch_name]], [line.split() for line in rest])
+
+    def test_branch_already_exists(self):
+        """
+        Creating a branch with the same name as an existing branch
+        gives an appropriate meaningful error message.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "init", "foo"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "commit", "-m", "commit 1"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "checkout", "-b", "alpha"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+            "commit", "-m", "commit 2"])
+        expected_output = "Cannot create existing branch alpha"
+        try:
+            dvol.parseOptions(ARGS + ["-p", self.tmpdir.path,
+                "checkout", "-b", "alpha"])
+            self.assertEqual(dvol.voluminous.getOutput()[-1], expected_output)
+        except CalledProcessErrorWithOutput, error:
+            self.assertIn(expected_output, error.original.output)
+            self.assertTrue(error.original.returncode != 0)
 
     def test_log(self):
         dvol = VoluminousOptions()
@@ -445,7 +466,6 @@ class VoluminousTests(TestCase):
         self.assertEqual(volume.child("branches").child("master")
                 .child("file.txt").getContent(), "alpha")
 
-    @skip_if_go_version
     def test_reset_HEAD_hat_multiple_commits(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -491,7 +511,6 @@ class VoluminousTests(TestCase):
         actual = dvol.voluminous.getOutput()[-1]
         self.assertEqual(actual.strip(), "* master")
 
-    @skip_if_go_version
     def test_create_branch_from_current_HEAD(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])
@@ -514,7 +533,6 @@ class VoluminousTests(TestCase):
         # the commit should have been "copied" to the new branch
         self.assertEqual(len(actual.split("\n")), 6) # 6 lines = 1 commit
 
-    @skip_if_go_version
     def test_rollback_branch_doesnt_delete_referenced_data_in_other_branches(self):
         dvol = VoluminousOptions()
         dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "init", "foo"])

@@ -42,6 +42,8 @@ func listBranches(out io.Writer) error {
 	for _, branch := range allBranches {
 		if branch == activeBranch {
 			branch = "* " + branch
+		} else {
+			branch = "  " + branch
 		}
 		fmt.Fprintln(out, branch)
 	}

@@ -102,6 +102,26 @@ func (dl *DataLayer) CreateVariant(volumeName, variantName string) error {
 	return os.MkdirAll(variantPath, 0777)
 }
 
+func (dl *DataLayer) CreateVariantFromVariant(volumeName, fromVariant, toVariant string) error {
+	variantPath := dl.variantPath(volumeName, toVariant)
+	head, err := dl.resolveNamedCommitOnBranch("HEAD", volumeName, fromVariant)
+	if err != nil {
+		return err
+	}
+	commits, err := dl.ReadCommitsForBranch(volumeName, fromVariant)
+	if err != nil {
+		return err
+	}
+	if err != dl.WriteCommitsForBranch(volumeName, toVariant, commits) {
+		return err
+	}
+	headCommitPath := dl.commitPath(volumeName, head)
+	if err := dl.copyFiles(headCommitPath, variantPath); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
 	var variants []string
 	branchesPath := filepath.FromSlash(dl.volumePath(volumeName) + "/branches")
@@ -115,6 +135,12 @@ func (dl *DataLayer) AllVariants(volumeName string) ([]string, error) {
 		}
 	}
 	return variants, nil
+}
+
+func (dl *DataLayer) VariantExists(volumeName, variantName string) bool {
+	variantPath := dl.variantPath(volumeName, variantName)
+	_, err := os.Stat(variantPath)
+	return err == nil
 }
 
 func (dl *DataLayer) sanitizePath(path string) error {
@@ -236,6 +262,8 @@ func (dl *DataLayer) WriteCommitsForBranch(volumeName, variantName string, commi
 	return nil
 }
 
+var NoCommits = errors.New("No commits made on this variant yet")
+
 func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName string) (CommitId, error) {
 	remainder := commit[len("HEAD"):]
 	var offset int
@@ -246,7 +274,13 @@ func (dl *DataLayer) resolveNamedCommitOnBranch(commit, volumeName, variantName 
 	}
 	// Read the commit database
 	commits, err := dl.ReadCommitsForBranch(volumeName, variantName)
-	return commits[len(commits)-1-offset].Id, err
+	if err != nil {
+		return CommitId(""), err
+	}
+	if len(commits) == 0 {
+		return CommitId(""), NoCommits
+	}
+	return commits[len(commits)-1-offset].Id, nil
 }
 
 var NotFound = errors.New("Item not found")
@@ -282,7 +316,8 @@ func (dl *DataLayer) allCommitsNotInVariant(volumeName, variantName string) (map
 
 func (dl *DataLayer) destroyCommits(volumeName string, destroy []Commit, all map[CommitId]Commit) error {
 	for _, commit := range destroy {
-		if _, ok := all[commit.Id]; ok {
+		// If commit not referenced in another branch, destroy it
+		if _, ok := all[commit.Id]; !ok {
 			commitPath := dl.commitPath(volumeName, commit.Id)
 			if err := os.RemoveAll(commitPath); err != nil {
 				return err
