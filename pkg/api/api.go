@@ -95,8 +95,8 @@ func NewDvolAPI(options DvolAPIOptions) *DvolAPI {
 	return &DvolAPI{options.BasePath, dl, containerRuntime}
 }
 
-func (dvol *DvolAPI) VolumePath(volumeName string) string {
-	return dvol.dl.VolumeFromName(volumeName).Path
+func (dvol *DvolAPI) VolumePath(volumeName, branchName string) string {
+	return dvol.dl.VariantPath(volumeName, branchName)
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
@@ -178,9 +178,16 @@ func (dvol *DvolAPI) ActiveVolume() (string, error) {
 }
 
 func (dvol *DvolAPI) VolumeExists(volumeName string) bool {
-	volumePath := dvol.VolumePath(volumeName)
-	_, err := os.Stat(volumePath)
-	return err == nil
+	branchName, err := dvol.ActiveBranch(volumeName)
+	if err != nil {
+		// XXX: Is this really what we want to do? Shouldn't we bubble up the
+		// error instead?
+		return false
+	} else {
+		volumePath := dvol.VolumePath(volumeName, branchName)
+		_, err := os.Stat(volumePath)
+		return err == nil
+	}
 }
 
 func (dvol *DvolAPI) SwitchVolume(volumeName string) error {
@@ -217,9 +224,14 @@ func (dvol *DvolAPI) AllVolumes() ([]DvolVolume, error) {
 	volumes := make([]DvolVolume, 0)
 	for _, file := range files {
 		if file.IsDir() {
+			name := file.Name()
+			activeBranch, err := dvol.ActiveBranch(name)
+			if err != nil {
+				return []DvolVolume{}, err
+			}
 			volumes = append(volumes, DvolVolume{
 				Name: file.Name(),
-				Path: dvol.VolumePath(file.Name()),
+				Path: dvol.VolumePath(file.Name(), activeBranch),
 			})
 		}
 	}

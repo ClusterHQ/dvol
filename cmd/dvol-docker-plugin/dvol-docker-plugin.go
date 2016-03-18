@@ -163,7 +163,14 @@ func main() {
 			writeResponseErr(err, w)
 			return
 		}
-		path := dvol.VolumePath(name)
+
+		activeBranch, err := dvol.ActiveBranch(name)
+		if err != nil {
+			writeResponseErr(err, w)
+			return
+		}
+
+		path := dvol.VolumePath(name, activeBranch)
 
 		responseJSON, _ := json.Marshal(&ResponseMount{
 			Mountpoint: path,
