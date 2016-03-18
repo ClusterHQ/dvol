@@ -341,6 +341,29 @@ class VoluminousTests(TestCase):
         self.assertEqual(data[alpha], alpha)
         self.assertEqual(data[beta], beta)
 
+    def _get_me_a_server(self):
+        return run(["dvol", "--get-me-a-server"])
+
+    @skip_if_python_version  # Not implemented for Python.
+    def test_roundtrip_dvol_to_itself(self):
+        """
+        * Assume unauthenticated pushes
+        """
+        volume_name = 'foo'
+        container_path = 'bar'
+        docker_volume_arg = '%(volume_name)s:/%(container_path)s' % dict(
+            volume_name=volume_name, container_path=container_path)
+        server = self._get_me_a_server()
+        run(['docker', 'run', '--rm', '-v', docker_volume_arg, '--volume-driver=dvol', 'busybox', 'sh', '-c', 'echo word > /%s/file' % (container_path,)])
+        run([DVOL, 'commit', '-m', '"Here is a commit message"'])
+        # Implicitly uses volume_name volume because it was created most
+        # recently.
+        run([DVOL, 'push', server])
+        run([DVOL, 'rm', '-f', volume_name])
+        run([DVOL, 'clone', server, volume_name])
+        output = run(["docker", "run", "--rm", "-v", docker_volume_arg, "--volume-driver=dvol", "busybox", "cat", "/%s/file" % (container_path,)])
+        self.assertEqual(output, "word")
+
 """
 log of integration tests to write:
 
