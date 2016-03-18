@@ -120,6 +120,59 @@ transcript::
     collaborator on the thing. <link to docs on collaborators>
     $
 
+identification
+--------------
+
+unidentified commit operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+transcript::
+
+    $ dvol commit -m'A message'
+    You have not identified yourself. Log into a volume hub with dvol login or identify yourself with dvol config:
+
+        dvol config user.name "My Name"
+        dvol config user.email user@domain.com
+
+configuration
+-------------
+
+get a key
+~~~~~~~~~
+
+transcript::
+
+    $ dvol config user.name
+    Rob Haswell
+    $
+
+set a key
+~~~~~~~~~
+
+transcript::
+
+    $ dvol config user.name "Rob Haswell"
+    $
+
+list all config
+~~~~~~~~~~~~~~~
+
+transcript::
+
+    $ dvol config --list
+    user.name=Rob Haswell
+    user.email=rob@clusterhq.com
+    $
+
+unknown configuration key
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+transcript::
+
+    $ dvol config unknown.key value
+    'unknown.key' is not a valid configuration key
+    $
+
 local volume interactions
 -------------------------
 
