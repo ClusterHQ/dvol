@@ -106,6 +106,14 @@ func main() {
 				writeResponseErr(fmt.Errorf("Could not create volume %s: %v", name, err), w)
 				return
 			}
+
+			// XXX: This is copied from the code for `dvol init`. Reuse that code.
+			// XXX: There's already a constant for default branch. Use that.
+			err = dvol.CreateBranch(name, "master")
+			if err != nil {
+				writeResponseErr(fmt.Errorf("Error creating branch"), w)
+				return
+			}
 		}
 		writeResponseOK(w)
 	})

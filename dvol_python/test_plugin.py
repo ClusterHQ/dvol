@@ -277,6 +277,34 @@ class VoluminousTests(TestCase):
         self.fail("Volume 'docker-volume-list-test' not found in Docker "
                 "output:\n\n" + docker_output)
 
+    def test_implicit_creation(self):
+        """
+        ``docker run`` with the dvol volume driver creates a master branch.
+        """
+        # XXX: This is a) duplicated, b) dangerous, as it masks real errors.
+        volume_name = 'docker-volume-implicit-creation-test'
+        volume_directory = "/data"
+        docker_volume_arg = '%s:/%s' % (volume_name, volume_directory)
+
+        def cleanup():
+            try:
+                run(["docker", "volume", "rm", volume_name])
+            except:
+                pass
+            try:
+                run([DVOL, "rm", "-f", volume_name])
+            except:
+                pass
+        cleanup()
+        self.addCleanup(cleanup)
+
+        run(['docker', 'run', '--rm', '-v', docker_volume_arg,
+             '--volume-driver=dvol', 'busybox',
+             'sh', '-c', 'echo word > /%s/file' % (volume_directory,)])
+
+        branch_output = run([DVOL, "branch"])
+        self.assertIn('* master', branch_output)
+
     def test_unique_volumes(self):
         """
         Two separate volumes do not share the same filesystem namespace.
