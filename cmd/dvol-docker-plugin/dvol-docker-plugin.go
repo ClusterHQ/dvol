@@ -148,10 +148,12 @@ func main() {
 		err = dvol.SwitchVolume(name)
 		if err != nil {
 			writeResponseErr(err, w)
+			return
 		}
 		_, err = dvol.ActiveVolume()
 		if err != nil {
 			writeResponseErr(err, w)
+			return
 		}
 		path := dvol.VolumePath(name)
 
