@@ -19,7 +19,7 @@ To compile dvol:
 $ make build
 ```
 
-To run the tests:
+To run the unit tests:
 
 ```sh
 $ make test

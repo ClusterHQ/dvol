@@ -5,3 +5,8 @@ venv/
 *.egg-info
 
 .DS_Store
+cover.out
+dvol
+dvol-docker-plugin
+memorydiskserver
+dvol.sh

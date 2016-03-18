@@ -49,7 +49,7 @@ cache:
 
 before_install:
   # Get packaging tools that can use and cache wheels.
-  - "pip install --user `whoami` --upgrade pip>=7"
+  - "pip install --user `whoami` --upgrade pip>=7 setuptools>=11.3"
   - "pip install --user `whoami` wheel"
   # 'upgrade' docker-engine to specific version
   - scripts/build-travis-install-docker.sh ${DOCKER_VERSION}
