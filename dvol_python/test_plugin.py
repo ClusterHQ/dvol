@@ -281,11 +281,12 @@ class VoluminousTests(TestCase):
         """
         ``docker run`` with the dvol volume driver creates a master branch.
         """
-        # XXX: This is a) duplicated, b) dangerous, as it masks real errors.
         volume_name = 'docker-volume-implicit-creation-test'
         volume_directory = "/data"
         docker_volume_arg = '%s:/%s' % (volume_name, volume_directory)
 
+        # XXX: This is a) duplicated, b) dangerous, as the bare `except` masks
+        # real errors.
         def cleanup():
             try:
                 run(["docker", "volume", "rm", volume_name])
