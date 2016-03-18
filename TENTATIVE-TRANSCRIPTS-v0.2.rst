@@ -129,10 +129,10 @@ unidentified commit operation
 transcript::
 
     $ dvol commit -m'A message'
-    You have not identified yourself. Log into a volume hub or using dvol config:
+    You have not identified yourself. Log into a volume hub with dvol login or identify yourself with dvol config:
 
         dvol config user.name "My Name"
-        dvol config user.email
+        dvol config user.email user@domain.com
 
 configuration
 -------------
