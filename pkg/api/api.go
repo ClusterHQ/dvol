@@ -104,6 +104,13 @@ func (dvol *DvolAPI) CreateVolume(volumeName string) error {
 	if err != nil {
 		return err
 	}
+
+	// XXX: 'master' hard-coded
+	err = dvol.CreateBranch(volumeName, "master")
+	if err != nil {
+		return err
+	}
+
 	return dvol.setActiveVolume(volumeName)
 }
 
