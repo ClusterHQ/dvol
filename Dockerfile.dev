@@ -1,0 +1,22 @@
+FROM ubuntu:16.04
+
+ENV LAST_UPDATED "Mon Mar 21 16:55:51 UTC 2016"
+
+RUN apt-get update && \
+    apt-get install -y git golang make
+
+RUN apt-get install -y python-virtualenv
+RUN apt-get install -y python-dev libffi-dev libssl-dev
+RUN apt-get install -y python-pip
+RUN apt-get install -y python-setuptools
+RUN apt-get install -y libgit2-dev=0.23.1
+RUN apt-get install -y curl
+
+RUN curl -sSL https://get.docker.com/ | sh
+
+ENV GOROOT /usr/lib/go
+ENV GOPATH /golang
+ENV GOBIN /golang/bin
+ENV PATH ${PATH}:${GOROOT}/bin:${GOPATH}/bin
+
+CMD ["/bin/bash"]

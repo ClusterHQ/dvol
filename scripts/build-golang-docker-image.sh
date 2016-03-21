@@ -25,7 +25,7 @@ TAG=$8
 for SOURCE_FILE in $SOURCE_FILES; do
     # XXX Need to make sure this is go 1.5 to avoid bug in
     # older versions of docker.
-    CGO_ENABLED=0 GOOS=linux godep go build -a -ldflags '-s' ${SOURCE_FILE}
+    CGO_ENABLED=1 GOOS=linux godep go build -a -ldflags '-s' ${SOURCE_FILE}
 done
 
 mkdir -p ${PROJECT}-build
