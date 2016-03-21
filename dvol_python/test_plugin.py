@@ -12,6 +12,14 @@ Assumes that:
 * there are no dvol volumes on the machine
 """
 
+import json
+import random
+import sys
+import os
+
+import socket
+import subprocess
+
 from twisted.trial.unittest import TestCase
 from twisted.python.filepath import FilePath
 from testtools import (
@@ -20,6 +28,17 @@ from testtools import (
 )
 
 DVOL = "/usr/local/bin/dvol"
+
+
+def dvol(args):
+    return run([DVOL] + args)
+
+def async_docker(args, stdout, stderr):
+    return subprocess.Popen(
+        ["docker"] + args,
+        stdout=stdout, stderr=stderr,
+    )
+
 
 class VoluminousTests(TestCase):
     def setUp(self):
@@ -40,7 +59,7 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", "memorydiskserver"])
+                dvol(["rm", "-f", "memorydiskserver"])
             except:
                 pass
         cleanup()
@@ -78,7 +97,7 @@ class VoluminousTests(TestCase):
         self.start_memorydiskserver()
 
         def dvol_list_includes_memorydiskserver():
-            result = run([DVOL, "list"])
+            result = dvol(["list"])
             if "memorydiskserver" not in result:
                 raise Exception("volume never showed up in result %s" % (result,))
         try_until(dvol_list_includes_memorydiskserver)
@@ -104,7 +123,7 @@ class VoluminousTests(TestCase):
             "clusterhq/memorydiskserver"
         ])
         def dvol_list_includes_container_name():
-            result = run([DVOL, "list"])
+            result = dvol(["list"])
             if "/" + container not in result:
                 raise Exception("container never showed up in result %s" % (result,))
         try_until(dvol_list_includes_container_name)
@@ -137,7 +156,7 @@ class VoluminousTests(TestCase):
             "clusterhq/memorydiskserver"
         ])
         def dvol_list_includes_container_names():
-            result = run([DVOL, "list"])
+            result = dvol(["list"])
             # Either way round is OK
             if (("/" + container1 + ",/" + container2 not in result) and
                 ("/" + container2 + ",/" + container1 not in result)):
@@ -189,20 +208,20 @@ class VoluminousTests(TestCase):
         self.start_memorydiskserver()
 
         # We have to do an initial state commit before we can switch branches
-        run([DVOL, "commit", "-m", "Initial"])
+        dvol(["commit", "-m", "Initial"])
 
-        run([DVOL, "checkout", "-b", "alpha"])
+        dvol(["checkout", "-b", "alpha"])
         self.try_set_memorydiskserver_value("alpha")
-        run([DVOL, "commit", "-m", "alpha"])
+        dvol(["commit", "-m", "alpha"])
 
-        run([DVOL, "checkout", "-b", "beta"])
+        dvol(["checkout", "-b", "beta"])
         self.try_set_memorydiskserver_value("beta")
-        run([DVOL, "commit", "-m", "beta"])
+        dvol(["commit", "-m", "beta"])
 
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: beta")
 
-        run([DVOL, "checkout", "alpha"])
+        dvol(["checkout", "alpha"])
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: alpha")
 
@@ -227,7 +246,7 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", "volume-remove-test"])
+                dvol(["rm", "-f", "volume-remove-test"])
                 pass
             except:
                 pass
@@ -240,7 +259,7 @@ class VoluminousTests(TestCase):
             "busybox", "true"])
 
         # Remove the volume
-        run([DVOL, "rm", "-f", "volume-remove-test"])
+        dvol(["rm", "-f", "volume-remove-test"])
 
         # Start a new container on the same volume and there are no errors
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
@@ -259,14 +278,14 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", "docker-volume-list-test"])
+                dvol(["rm", "-f", "docker-volume-list-test"])
             except:
                 pass
 
         cleanup()
         self.addCleanup(cleanup)
 
-        run([DVOL, "init", "docker-volume-list-test"])
+        dvol(["init", "docker-volume-list-test"])
 
         docker_output = run(["docker", "volume", "ls"])
 
@@ -293,7 +312,7 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", volume_name])
+                dvol(["rm", "-f", volume_name])
             except:
                 pass
         cleanup()
@@ -303,7 +322,7 @@ class VoluminousTests(TestCase):
              '--volume-driver=dvol', 'busybox',
              'sh', '-c', 'echo word > /%s/file' % (volume_directory,)])
 
-        branch_output = run([DVOL, "branch"])
+        branch_output = dvol(["branch"])
         self.assertIn('* master', branch_output)
 
     def test_unique_volumes(self):
@@ -318,7 +337,7 @@ class VoluminousTests(TestCase):
                 except: pass
                 try: run(["docker", "volume", "rm", volume])
                 except: pass
-                try: run([DVOL, "rm", "-f", volume])
+                try: dvol(["rm", "-f", volume])
                 except: pass
         cleanup()
         self.addCleanup(cleanup)
@@ -341,32 +360,109 @@ class VoluminousTests(TestCase):
         self.assertEqual(data[alpha], alpha)
         self.assertEqual(data[beta], beta)
 
-    def _get_me_a_server(self):
-        return run(["dvol", "serve"])
+    def _get_me_a_server(self, volume):
+        # XXX: This will block forever, which means we can't use the tests.
+        s = socket.socket()
+        s.bind(('', 0))
+        port = 8080 # s.getsockname()[1]
+        s.close()
+        stdout = open("test_plugin.stdout.txt", "w+t")
+        stderr = open("test_plugin.stderr.txt", "w+t")
+        process = async_docker([
+            "run", "--rm", "-i",
+            "-v", "/var/lib/dvol:/var/lib/dvol",
+            "-v", "/run/docker/plugins:/run/docker/plugins",
+            "-v", "/var/run/docker.sock:/var/run/docker.sock",
+            "-v", "{}:/pwd".format(os.getcwd()),
+            "-p", "8080:{}".format(port),
+            "clusterhq/dvol:golang", "dvol",
+            "serve", volume,
+            ], stdout, stderr)
+        self.addCleanup(process.terminate)
+
+        # XXX: Get this from the output of `dvol serve`
+        base_href = b'http://{}:{}/'.format(docker_host(), port)
+        try:
+            try_until(lambda: get(base_href))
+        except:
+            stdout.seek(0)
+            stderr.seek(0)
+            print("Some problem, we had a thing: {}, {}".format(
+                stdout.read(),
+                stderr.read(),
+            ))
+            raise
+        return base_href
+
+    def _push_and_pull(self, volume_name, container_path, message):
+        docker_volume_arg = '%(volume_name)s:/%(container_path)s' % dict(
+            volume_name=volume_name, container_path=container_path)
+
+        def cleanup():
+            try:
+                run(["docker", "volume", "rm", volume_name])
+            except:
+                pass
+            try:
+                dvol(["rm", "-f", volume_name])
+            except:
+                pass
+        cleanup()
+        self.addCleanup(cleanup)
+
+        dvol(['init', volume_name])
+
+        # XXX: we don't want to use `volume_name` here, we instead want the
+        # path to the volume.
+        server = self._get_me_a_server(volume_name)
+
+        run(['docker', 'run', '--rm', '-v', docker_volume_arg,
+            '--volume-driver=dvol',
+            'busybox', 'sh', '-c', 'echo word > /%s/file' % (container_path,)])
+        dvol(['commit', '-m', message])
+        # Implicitly uses volume_name volume because it was created most
+        # recently.
+        dvol(['push', server])
+        dvol(['rm', '-f', volume_name])
+        dvol(['clone', server, volume_name])
 
     @skip_if_python_version  # Not implemented for Python.
     def test_roundtrip_dvol_to_itself(self):
         """
         * Assume unauthenticated pushes
         """
-        volume_name = 'foo'
+        volume_name = 'foo' # _{}_{}'.format(os.getpid(), os.randrange(10000))
         container_path = 'bar'
+        self._push_and_pull(volume_name, container_path, "Hello world.")
+        # XXX Duplication with _push_and_pull
         docker_volume_arg = '%(volume_name)s:/%(container_path)s' % dict(
             volume_name=volume_name, container_path=container_path)
-        server = self._get_me_a_server()
-        run(['docker', 'run', '--rm', '-v', docker_volume_arg,
-            '--volume-driver=dvol',
-            'busybox', 'sh', '-c', 'echo word > /%s/file' % (container_path,)])
-        run([DVOL, 'commit', '-m', '"Here is a commit message"'])
-        # Implicitly uses volume_name volume because it was created most
-        # recently.
-        run([DVOL, 'push', server])
-        run([DVOL, 'rm', '-f', volume_name])
-        run([DVOL, 'clone', server, volume_name])
         output = run(["docker", "run", "--rm", "-v", docker_volume_arg,
             "--volume-driver=dvol", "busybox",
             "cat", "/%s/file" % (container_path,)])
         self.assertEqual(output, "word")
+
+    @skip_if_python_version
+    def test_roundtrip_dvol_metadata_to_itself(self):
+        """
+        ``dvol clone`` produces a repository containing the same metadata as
+        the repository being cloned.
+        """
+        volume_name = 'foo'
+        container_path = 'bar'
+        commit_message = 'Here is a commit message'
+        self._push_and_pull(volume_name, container_path, commit_message)
+        result = dvol(["--output-format=json", "log"])
+        self.assertEqual(
+            [{"message": commit_message}],
+            parse_json(result),
+        )
+
+def parse_json(s):
+    try:
+        return json.loads(s)
+    except (TypeError, ValueError) as e:
+        raise ValueError('Could not decode JSON: {} ({})'.format(s, e))
 
 """
 log of integration tests to write:
