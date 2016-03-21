@@ -15,7 +15,7 @@ import os
 import json
 
 from testtools import (
-    CalledProcessErrorWithOutput, TEST_GOLANG_VERSION, skip_if_go_version,
+    CalledProcessErrorWithOutput, TEST_GOLANG_VERSION,
     skip_if_python_version
 )
 

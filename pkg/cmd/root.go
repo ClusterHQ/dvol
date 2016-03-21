@@ -31,8 +31,7 @@ and come back to it later.`,
 }
 
 func init() {
-	// cobra.OnInitialize(initConfig)
-	// TODO support: dvol -p <custom_path> init <volume_name>
+	// Local commands
 	RootCmd.AddCommand(NewCmdInit(os.Stdout))
 	RootCmd.AddCommand(NewCmdRm(os.Stdout))
 	RootCmd.AddCommand(NewCmdSwitch(os.Stdout))
@@ -42,8 +41,13 @@ func init() {
 	RootCmd.AddCommand(NewCmdReset(os.Stdout))
 	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
 	RootCmd.AddCommand(NewCmdLog(os.Stdout))
+
+	// Remote client commands
 	RootCmd.AddCommand(NewCmdPush(os.Stdout))
 	RootCmd.AddCommand(NewCmdClone(os.Stdout))
+
+	// Remote server command
+	RootCmd.AddCommand(NewCmdServer(os.Stdout))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
