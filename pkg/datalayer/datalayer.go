@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/nu7hatch/gouuid"
-	"github.com/libgit2/git2go"
+	git2go "gopkg.in/libgit2/git2go.v23"
 )
 
 // ClusterHQ data layer, naive vfs (directory-based) implementation
@@ -76,19 +76,19 @@ func (dl *DataLayer) CreateVolume(volumeName string) error {
 		// TODO: Undo the MkdirAll and the bare repo creation
 		return err
 	}
-	err := config.SetBool("http.receivepack", true)
+	err = config.SetBool("http.receivepack", true)
 	if err != nil {
 		// TODO: Undo the mkdir, the bare repo creation
 		return err
 	}
-	// TODO: Figure out way to touch
-	// TODO: Figure out way get child of path
-	err := touch(child(repo_path, "git-daemon-export-ok"))
+	fp, err := os.Create(filepath.Join(repo_path, "git-daemon-export-ok"))
 	if err != nil {
 		// TODO: Undo the mkdir, delete the repo
 		return err
+	} else {
+		// XXX: What should we do when the fp fails to close?
+		return fp.Close()
 	}
-	return nil
 }
 
 func (dl *DataLayer) RemoveVolume(volumeName string) error {
