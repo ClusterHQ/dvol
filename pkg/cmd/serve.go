@@ -63,6 +63,9 @@ func serveMetadata(gitBinaryPath, gitRepoPath string, w http.ResponseWriter, req
 // XXX: git repo path as arg
 // XXX: git binary path as arg
 func runServer(gitBinaryPath, gitRepoPath string) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
 	http.HandleFunc("/data", serveData)
 	http.HandleFunc("/metadata/", func(w http.ResponseWriter, r *http.Request) {
 		serveMetadata(gitBinaryPath, gitRepoPath, w, r)
