@@ -60,6 +60,7 @@ volumes/
 */
 
 const MAX_NAME_LENGTH int = 40
+const DEFAULT_BRANCH string = "master"
 
 func ValidName(name string) bool {
 	var validNameRegex = regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9-]*$`)
@@ -105,8 +106,7 @@ func (dvol *DvolAPI) CreateVolume(volumeName string) error {
 		return err
 	}
 
-	// XXX: 'master' hard-coded
-	err = dvol.CreateBranch(volumeName, "master")
+	err = dvol.CreateBranch(volumeName, DEFAULT_BRANCH)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (dvol *DvolAPI) ActiveBranch(volumeName string) (string, error) {
 	if err != nil {
 		// The error type should be checked here.
 		// Only return master if no volume information is found.
-		return "master", nil
+		return DEFAULT_BRANCH, nil
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)

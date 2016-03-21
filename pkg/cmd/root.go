@@ -12,8 +12,6 @@ var disableDockerIntegration bool
 
 var dvolAPIOptions api.DvolAPIOptions
 
-const DEFAULT_BRANCH string = "master"
-
 var RootCmd = &cobra.Command{
 	Use:   "dvol",
 	Short: "dvol is a version control system for your development data in Docker",
