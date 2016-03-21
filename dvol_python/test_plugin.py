@@ -342,7 +342,7 @@ class VoluminousTests(TestCase):
         self.assertEqual(data[beta], beta)
 
     def _get_me_a_server(self):
-        return run(["dvol", "server"])
+        return run(["dvol", "serve"])
 
     @skip_if_python_version  # Not implemented for Python.
     def test_roundtrip_dvol_to_itself(self):

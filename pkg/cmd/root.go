@@ -47,7 +47,7 @@ func init() {
 	RootCmd.AddCommand(NewCmdClone(os.Stdout))
 
 	// Remote server command
-	RootCmd.AddCommand(NewCmdServer(os.Stdout))
+	RootCmd.AddCommand(NewCmdServe(os.Stdout))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")

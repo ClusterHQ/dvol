@@ -12,12 +12,11 @@ import (
 )
 
 // TODO: use dvol terminology
-// TODO: 'dvol serve' not 'dvol server'
 
-func NewCmdServer(out io.Writer) *cobra.Command {
+func NewCmdServe(out io.Writer) *cobra.Command {
 	var gitBinaryPath string
 	cmd := &cobra.Command{
-		Use:   "server",
+		Use:   "serve",
 		Short: "Serve a single data set",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 1 {
