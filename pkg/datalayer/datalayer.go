@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/nu7hatch/gouuid"
+	"github.com/libgit2/git2go"
 )
 
 // ClusterHQ data layer, naive vfs (directory-based) implementation
@@ -57,9 +58,37 @@ func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) string {
 	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/commits/" + string(commitId))
 }
 
+// TODO: Rename to CreateDataset
 func (dl *DataLayer) CreateVolume(volumeName string) error {
 	volumePath := dl.volumePath(volumeName)
-	return os.MkdirAll(volumePath, 0777)
+	err := os.MkdirAll(volumePath, 0777)
+	if err != nil {
+		return err
+	}
+	repo_path := "aoustnahoeustnaoehusnatheus"
+	repo, err := git2go.InitRepository(repo_path, true)
+	if err != nil {
+		// TODO: Undo the MkdirAll
+		return err
+	}
+	config, err := repo.Config()
+	if err != nil {
+		// TODO: Undo the MkdirAll and the bare repo creation
+		return err
+	}
+	err := config.SetBool("http.receivepack", true)
+	if err != nil {
+		// TODO: Undo the mkdir, the bare repo creation
+		return err
+	}
+	// TODO: Figure out way to touch
+	// TODO: Figure out way get child of path
+	err := touch(child(repo_path, "git-daemon-export-ok"))
+	if err != nil {
+		// TODO: Undo the mkdir, delete the repo
+		return err
+	}
+	return nil
 }
 
 func (dl *DataLayer) RemoveVolume(volumeName string) error {
