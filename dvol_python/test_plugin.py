@@ -21,6 +21,11 @@ from testtools import (
 
 DVOL = "/usr/local/bin/dvol"
 
+
+def dvol(args):
+    return run([DVOL] + args)
+
+
 class VoluminousTests(TestCase):
     def setUp(self):
         self.tmpdir = FilePath(self.mktemp())
@@ -40,7 +45,7 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", "memorydiskserver"])
+                dvol(["rm", "-f", "memorydiskserver"])
             except:
                 pass
         cleanup()
@@ -78,7 +83,7 @@ class VoluminousTests(TestCase):
         self.start_memorydiskserver()
 
         def dvol_list_includes_memorydiskserver():
-            result = run([DVOL, "list"])
+            result = dvol(["list"])
             if "memorydiskserver" not in result:
                 raise Exception("volume never showed up in result %s" % (result,))
         try_until(dvol_list_includes_memorydiskserver)
@@ -104,7 +109,7 @@ class VoluminousTests(TestCase):
             "clusterhq/memorydiskserver"
         ])
         def dvol_list_includes_container_name():
-            result = run([DVOL, "list"])
+            result = dvol(["list"])
             if "/" + container not in result:
                 raise Exception("container never showed up in result %s" % (result,))
         try_until(dvol_list_includes_container_name)
@@ -137,7 +142,7 @@ class VoluminousTests(TestCase):
             "clusterhq/memorydiskserver"
         ])
         def dvol_list_includes_container_names():
-            result = run([DVOL, "list"])
+            result = dvol(["list"])
             # Either way round is OK
             if (("/" + container1 + ",/" + container2 not in result) and
                 ("/" + container2 + ",/" + container1 not in result)):
@@ -189,20 +194,20 @@ class VoluminousTests(TestCase):
         self.start_memorydiskserver()
 
         # We have to do an initial state commit before we can switch branches
-        run([DVOL, "commit", "-m", "Initial"])
+        dvol(["commit", "-m", "Initial"])
 
-        run([DVOL, "checkout", "-b", "alpha"])
+        dvol(["checkout", "-b", "alpha"])
         self.try_set_memorydiskserver_value("alpha")
-        run([DVOL, "commit", "-m", "alpha"])
+        dvol(["commit", "-m", "alpha"])
 
-        run([DVOL, "checkout", "-b", "beta"])
+        dvol(["checkout", "-b", "beta"])
         self.try_set_memorydiskserver_value("beta")
-        run([DVOL, "commit", "-m", "beta"])
+        dvol(["commit", "-m", "beta"])
 
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: beta")
 
-        run([DVOL, "checkout", "alpha"])
+        dvol(["checkout", "alpha"])
         current_value = self.try_get_memorydiskserver_value()
         self.assertEqual(current_value, "Value: alpha")
 
@@ -227,7 +232,7 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", "volume-remove-test"])
+                dvol(["rm", "-f", "volume-remove-test"])
                 pass
             except:
                 pass
@@ -240,7 +245,7 @@ class VoluminousTests(TestCase):
             "busybox", "true"])
 
         # Remove the volume
-        run([DVOL, "rm", "-f", "volume-remove-test"])
+        dvol(["rm", "-f", "volume-remove-test"])
 
         # Start a new container on the same volume and there are no errors
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
@@ -259,14 +264,14 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", "docker-volume-list-test"])
+                dvol(["rm", "-f", "docker-volume-list-test"])
             except:
                 pass
 
         cleanup()
         self.addCleanup(cleanup)
 
-        run([DVOL, "init", "docker-volume-list-test"])
+        dvol(["init", "docker-volume-list-test"])
 
         docker_output = run(["docker", "volume", "ls"])
 
@@ -293,7 +298,7 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run([DVOL, "rm", "-f", volume_name])
+                dvol(["rm", "-f", volume_name])
             except:
                 pass
         cleanup()
@@ -303,7 +308,7 @@ class VoluminousTests(TestCase):
              '--volume-driver=dvol', 'busybox',
              'sh', '-c', 'echo word > /%s/file' % (volume_directory,)])
 
-        branch_output = run([DVOL, "branch"])
+        branch_output = dvol(["branch"])
         self.assertIn('* master', branch_output)
 
     def test_unique_volumes(self):
@@ -318,7 +323,7 @@ class VoluminousTests(TestCase):
                 except: pass
                 try: run(["docker", "volume", "rm", volume])
                 except: pass
-                try: run([DVOL, "rm", "-f", volume])
+                try: dvol(["rm", "-f", volume])
                 except: pass
         cleanup()
         self.addCleanup(cleanup)
@@ -340,6 +345,7 @@ class VoluminousTests(TestCase):
         # is clearer which is failing.
         self.assertEqual(data[alpha], alpha)
         self.assertEqual(data[beta], beta)
+
 
 """
 log of integration tests to write:

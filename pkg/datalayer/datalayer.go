@@ -1,5 +1,7 @@
 package datalayer
 
+// TODO: Rename this & every other reference to 'datalayer' with 'dataplane'
+
 import (
 	"encoding/json"
 	"errors"
