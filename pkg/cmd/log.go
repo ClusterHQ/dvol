@@ -23,6 +23,7 @@ func NewCmdLog(out io.Writer) *cobra.Command {
 	return cmd
 }
 
+
 func outputLog(out io.Writer) error {
 	dvol := api.NewDvolAPI(dvolAPIOptions)
 	activeVolume, err := dvol.ActiveVolume()

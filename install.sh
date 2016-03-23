@@ -15,7 +15,7 @@ docker run --rm -ti -v /var/lib/dvol:/var/lib/dvol \\
     -v /run/docker/plugins:/run/docker/plugins \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     -v \${PWD}:/pwd \\
-    clusterhq/dvol:${TAG} dvol "\$@" 2>/dev/null
+    clusterhq/dvol:${TAG} dvol "\$@"
 EOF
 # Install it
 sudo mv dvol.sh /usr/local/bin/dvol

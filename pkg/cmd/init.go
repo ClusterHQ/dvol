@@ -42,11 +42,6 @@ func initVolume(cmd *cobra.Command, args []string, out io.Writer) error {
 		return fmt.Errorf("Error creating volume")
 	}
 	fmt.Fprintln(out, "Created volume", volumeName)
-
-	err = dvol.CreateBranch(volumeName, "master")
-	if err != nil {
-		return fmt.Errorf("Error creating branch")
-	}
-	fmt.Fprintln(out, "Created branch "+volumeName+"/master")
+	fmt.Fprintf(out, "Created branch %s/%s\n", volumeName, api.DEFAULT_BRANCH)
 	return nil
 }
