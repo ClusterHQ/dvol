@@ -106,8 +106,7 @@ func (dvol *DvolAPI) CreateVolume(volumeName string) error {
 		return err
 	}
 
-	err = dvol.CreateBranch(volumeName, DEFAULT_BRANCH)
-	if err != nil {
+	if err = dvol.CreateBranch(volumeName, DEFAULT_BRANCH); err != nil {
 		return err
 	}
 

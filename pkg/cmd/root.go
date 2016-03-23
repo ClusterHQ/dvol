@@ -8,7 +8,6 @@ import (
 )
 
 var basePath string
-var outputFormat string
 var disableDockerIntegration bool
 
 var dvolAPIOptions api.DvolAPIOptions
@@ -44,8 +43,6 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
-	RootCmd.PersistentFlags().StringVar(&outputFormat, "output-format", "text",
-		"Output format: either 'text' or 'json'")
 	RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")
