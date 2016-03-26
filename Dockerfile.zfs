@@ -1,10 +1,7 @@
-# Docker file for packaging built dvol golang Linux binaries, with same version
-# of libgit2 as Dockerfile.dvol-build.
 FROM ubuntu:16.04
 
 ENV LAST_UPDATED "Sat 26 Mar 2016 09:18:20 GMT"
 
-# pkg-config needed to build git2go
 RUN apt-get update && \
     apt-get install -y zfsutils-linux
 
