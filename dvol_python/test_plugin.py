@@ -185,7 +185,6 @@ class VoluminousTests(TestCase):
             "http://%s:8080/get" % (docker_host(),)
         )).content
 
-    @skip_if_go_version
     def test_switch_branches_restarts_containers(self):
         """
         Docker containers are restarted when switching branches.
