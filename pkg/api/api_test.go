@@ -44,3 +44,18 @@ func TestSwitchVolume(t *testing.T) {
 		t.Errorf("%s is not equal to 'foo'", activeVolume)
 	}
 }
+
+func TestCheckoutBranchCreate(t *testing.T) {
+	basePath, err := ioutil.TempDir("", "checkout")
+	if err != nil {
+		t.Errorf("Could not create TempDir: %s\n", err)
+	}
+	dvol := NewDvolAPI(DvolAPIOptions{
+		BasePath:                 basePath,
+		DisableDockerIntegration: true,
+	})
+	if err := dvol.CheckoutBranch("foo", "master", "bar", true); err != nil {
+		t.Errorf("CheckoutBranch failed: %s\n", err)
+	}
+	// TODO: Get the active branch
+}

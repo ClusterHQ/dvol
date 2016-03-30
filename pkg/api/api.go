@@ -10,7 +10,6 @@ import (
 
 	"github.com/ClusterHQ/dvol/pkg/containers"
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
-	"github.com/fsouza/go-dockerclient"
 )
 
 /*
@@ -88,10 +87,9 @@ func NewDvolAPI(options DvolAPIOptions) *DvolAPI {
 	dl := datalayer.NewDataLayer(options.BasePath)
 	var containerRuntime containers.Runtime
 	if !options.DisableDockerIntegration {
-		client, _ := docker.NewClientFromEnv()
-		containerRuntime = containers.DockerRuntime{client}
+		containerRuntime = containers.NewDockerRuntime()
 	} else {
-		containerRuntime = containers.NoneRuntime{}
+		containerRuntime = containers.NewNoneRuntime()
 	}
 	return &DvolAPI{options.BasePath, dl, containerRuntime}
 }
@@ -132,6 +130,17 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 	return encoder.Encode(currentVolumeContent)
 }
 
+func (dvol *DvolAPI) updateRunningPoint(volume datalayer.Volume, branchName string) error {
+	branchPath := dvol.dl.VariantPath(volume.Name, branchName)
+	stablePath := filepath.FromSlash(volume.Path + "/running_point")
+	if _, err := os.Stat(stablePath); err == nil {
+		if err := os.Remove(stablePath); err != nil {
+			return err
+		}
+	}
+	return os.Symlink(branchPath, stablePath)
+}
+
 func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 	volume := dvol.dl.VolumeFromName(volumeName)
 	currentBranchJsonPath := filepath.FromSlash(volume.Path + "/current_branch.json")
@@ -144,7 +153,16 @@ func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	return encoder.Encode(currentBranchContent)
+	if err := encoder.Encode(currentBranchContent); err != nil {
+		return err
+	}
+	if err := dvol.containerRuntime.Stop(volumeName); err != nil {
+		return err
+	}
+	if err := dvol.updateRunningPoint(volume, branchName); err != nil {
+		return err
+	}
+	return dvol.containerRuntime.Start(volumeName)
 }
 
 func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
@@ -152,6 +170,7 @@ func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
 }
 
 func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, create bool) error {
+	_ = "breakpoint"
 	if create {
 		if dvol.dl.VariantExists(volumeName, newBranch) {
 			return fmt.Errorf("Cannot create existing branch %s", newBranch)

@@ -53,6 +53,10 @@ func (dl *DataLayer) variantPath(volumeName, variantName string) string {
 	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/branches/" + variantName)
 }
 
+func (dl *DataLayer) VariantPath(volumeName, variantName string) string {
+	return dl.variantPath(volumeName, variantName)
+}
+
 func (dl *DataLayer) commitPath(volumeName string, commitId CommitId) string {
 	return filepath.FromSlash(dl.basePath + "/" + volumeName + "/commits/" + string(commitId))
 }
