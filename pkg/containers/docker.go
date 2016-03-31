@@ -8,7 +8,7 @@ import (
 
 type DockerRuntime struct {
 	client  *docker.Client
-	stopped map[string]map[string]string
+	stopped map[string]map[ContainerID]ContainerName
 }
 
 func isRelated(volume string, container *docker.Container) bool {
@@ -22,7 +22,7 @@ func isRelated(volume string, container *docker.Container) bool {
 
 func NewDockerRuntime() *DockerRuntime {
 	client, _ := docker.NewClientFromEnv()
-	stopped := make(map[string]map[string]string)
+	stopped := make(map[string]map[ContainerID]ContainerName)
 	return &DockerRuntime{client, stopped}
 }
 
@@ -30,8 +30,8 @@ func NewDockerRuntime() *DockerRuntime {
 // A container is deemed to be related if a dvol volume with the same name appears
 // in the Mounts information for a container which is also currently running.
 // Related returns an array of related container names and any error encountered.
-func (runtime *DockerRuntime) Related(volume string) ([]string, error) {
-	relatedContainers := make([]string, 0)
+func (runtime *DockerRuntime) Related(volume string) ([]Container, error) {
+	relatedContainers := make([]Container, 0)
 	containers, err := runtime.client.ListContainers(docker.ListContainersOptions{})
 	if err != nil {
 		return relatedContainers, err
@@ -42,7 +42,7 @@ func (runtime *DockerRuntime) Related(volume string) ([]string, error) {
 			return relatedContainers, err
 		}
 		if isRelated(volume, container) && container.State.Running {
-			relatedContainers = append(relatedContainers, container.Name)
+			relatedContainers = append(relatedContainers, Container{ID: ContainerID(container.ID), Name: ContainerName(container.Name)})
 		}
 	}
 	return relatedContainers, nil
@@ -53,20 +53,20 @@ func (runtime *DockerRuntime) Start(volume string) error {
 		return fmt.Errorf("never locked %s, can't unlock it", volume)
 	}
 
-	for _, container := range runtime.stopped[volume] {
-		if err := runtime.client.StartContainer(container, nil); err != nil {
+	for cid := range runtime.stopped[volume] {
+		if err := runtime.client.StartContainer(string(cid), nil); err != nil {
 			return err
 		}
-		delete(runtime.stopped, container)
+		delete(runtime.stopped[volume], cid)
 	}
 	return nil
 }
 
-func (runtime *DockerRuntime) attemptStop(containerID string) error {
+func (runtime *DockerRuntime) attemptStop(cid ContainerID) error {
 	var err error
 	for idx := 0; idx < 10; idx++ {
 		// TODO: Need the ID here so refactoring neccesary
-		if err = runtime.client.StopContainer("d47d5f5a5f41", 10); err == nil {
+		if err = runtime.client.StopContainer(string(cid), 10); err == nil {
 			return nil
 		}
 		// Log that we're retrying
@@ -76,7 +76,6 @@ func (runtime *DockerRuntime) attemptStop(containerID string) error {
 }
 
 func (runtime *DockerRuntime) Stop(volume string) error {
-	_ = "breakpoint"
 	if value := runtime.stopped[volume]; value != nil {
 		return fmt.Errorf("%s already locked so can't lock it", volume)
 	}
@@ -84,12 +83,12 @@ func (runtime *DockerRuntime) Stop(volume string) error {
 	if err != nil {
 		return err
 	}
-	runtime.stopped[volume] = make(map[string]string)
+	runtime.stopped[volume] = make(map[ContainerID]ContainerName)
 
 	for _, container := range relatedContainers {
 		// Attempt to stop the container using the client
-		runtime.attemptStop(container)
-		runtime.stopped[volume][container] = container
+		runtime.attemptStop(container.ID)
+		runtime.stopped[volume][container.ID] = container.Name
 	}
 
 	return nil

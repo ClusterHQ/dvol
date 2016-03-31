@@ -95,7 +95,7 @@ func NewDvolAPI(options DvolAPIOptions) *DvolAPI {
 }
 
 func (dvol *DvolAPI) VolumePath(volumeName string) string {
-	return dvol.dl.VolumeFromName(volumeName).Path
+	return filepath.FromSlash(dvol.dl.VolumeFromName(volumeName).Path + "/running_point")
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
@@ -170,7 +170,6 @@ func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
 }
 
 func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, create bool) error {
-	_ = "breakpoint"
 	if create {
 		if dvol.dl.VariantExists(volumeName, newBranch) {
 			return fmt.Errorf("Cannot create existing branch %s", newBranch)
@@ -277,5 +276,13 @@ func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
 }
 
 func (dvol *DvolAPI) RelatedContainers(volumeName string) ([]string, error) {
-	return dvol.containerRuntime.Related(volumeName)
+	containerNames := make([]string, 0)
+	relatedContainers, err := dvol.containerRuntime.Related(volumeName)
+	if err != nil {
+		return containerNames, err
+	}
+	for _, container := range relatedContainers {
+		containerNames = append(containerNames, string(container.Name))
+	}
+	return containerNames, nil
 }

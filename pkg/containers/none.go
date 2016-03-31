@@ -6,8 +6,8 @@ func NewNoneRuntime() *NoneRuntime {
 	return &NoneRuntime{}
 }
 
-func (runtime *NoneRuntime) Related(string) ([]string, error) {
-	return []string{}, nil
+func (runtime *NoneRuntime) Related(string) ([]Container, error) {
+	return []Container{}, nil
 }
 
 func (runtime *NoneRuntime) Start(string) error {
