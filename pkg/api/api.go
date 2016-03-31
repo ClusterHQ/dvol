@@ -104,7 +104,7 @@ func (dvol *DvolAPI) CreateVolume(volumeName string) error {
 		return err
 	}
 
-	if err = dvol.CreateBranch(volumeName, DEFAULT_BRANCH); err != nil {
+	if err := dvol.CreateBranch(volumeName, DEFAULT_BRANCH); err != nil {
 		return err
 	}
 
@@ -166,7 +166,10 @@ func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 }
 
 func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
-	return dvol.dl.CreateVariant(volumeName, branchName)
+	if err := dvol.dl.CreateVariant(volumeName, branchName); err != nil {
+		return err
+	}
+	return dvol.setActiveBranch(volumeName, branchName)
 }
 
 func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, create bool) error {
