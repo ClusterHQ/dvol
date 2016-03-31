@@ -226,12 +226,12 @@ class VoluminousTests(TestCase):
             except:
                 pass
             try:
-                run(["docker", "volume", "rm", "volume-remove-test"])
+                run(["docker", "volume", "rm", "volume_remove_test"])
                 pass
             except:
                 pass
             try:
-                dvol(["rm", "-f", "volume-remove-test"])
+                dvol(["rm", "-f", "volume_remove_test"])
                 pass
             except:
                 pass
@@ -239,16 +239,16 @@ class VoluminousTests(TestCase):
         self.addCleanup(cleanup)
 
         # Start a new container
-        run(["docker", "run", "--name", "volume-remove-test", "-v",
-            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
+        run(["docker", "run", "--name", "volume_remove_test", "-v",
+            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
         # Remove the volume
-        dvol(["rm", "-f", "volume-remove-test"])
+        dvol(["rm", "-f", "volume_remove_test"])
 
         # Start a new container on the same volume and there are no errors
         run(["docker", "run", "--name", "volume_remove_test_error", "-v",
-            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
+            "volume_remove_test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
     @skip_if_python_version
