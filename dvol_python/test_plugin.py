@@ -239,7 +239,7 @@ class VoluminousTests(TestCase):
         self.addCleanup(cleanup)
 
         # Start a new container
-        run(["docker", "run", "--name", "volume_remove_test", "-v",
+        run(["docker", "run", "--name", "volume-remove-test", "-v",
             "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
