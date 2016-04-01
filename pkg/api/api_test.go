@@ -57,5 +57,4 @@ func TestCheckoutBranchCreate(t *testing.T) {
 	if err := dvol.CheckoutBranch("foo", "master", "bar", true); err != nil {
 		t.Errorf("CheckoutBranch failed: %s\n", err)
 	}
-	// TODO: Get the active branch
 }
