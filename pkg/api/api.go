@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -137,7 +136,6 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 }
 
 func (dvol *DvolAPI) updateRunningPoint(volume datalayer.Volume, branchName string) error {
-	log.Printf("Updating running point for %s to branch %s", volume.Name, branchName)
 	branchPath := dvol.dl.VariantPath(volume.Name, branchName)
 	stablePath := filepath.FromSlash(volume.Path + "/running_point")
 	if _, err := os.Stat(stablePath); err == nil {
