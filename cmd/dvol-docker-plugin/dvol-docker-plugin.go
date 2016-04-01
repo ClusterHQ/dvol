@@ -138,6 +138,7 @@ func main() {
 
 		if !dvol.VolumeExists(name) {
 			// Volume does not exist. We will implicitly create it.
+			log.Printf("Attempting to mount unknown volume %s, creating it", name)
 			err := dvol.CreateVolume(name)
 			if err != nil {
 				writeResponseErr(fmt.Errorf("Could not create volume %s: %v", name, err), w)

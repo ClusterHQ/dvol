@@ -349,8 +349,6 @@ class VoluminousTests(TestCase):
 """
 log of integration tests to write:
 
-write test_switch_branches_restarts_containers
-
 command:
     dvol commit ...
 expected behaviour:

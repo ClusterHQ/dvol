@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -108,6 +109,11 @@ func (dvol *DvolAPI) CreateVolume(volumeName string) error {
 		return err
 	}
 
+	if err := dvol.updateRunningPoint(dvol.dl.VolumeFromName(volumeName),
+		DEFAULT_BRANCH); err != nil {
+		return err
+	}
+
 	return dvol.setActiveVolume(volumeName)
 }
 
@@ -131,6 +137,7 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 }
 
 func (dvol *DvolAPI) updateRunningPoint(volume datalayer.Volume, branchName string) error {
+	log.Printf("Updating running point for %s to branch %s", volume.Name, branchName)
 	branchPath := dvol.dl.VariantPath(volume.Name, branchName)
 	stablePath := filepath.FromSlash(volume.Path + "/running_point")
 	if _, err := os.Stat(stablePath); err == nil {
@@ -153,16 +160,7 @@ func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	if err := encoder.Encode(currentBranchContent); err != nil {
-		return err
-	}
-	if err := dvol.containerRuntime.Stop(volumeName); err != nil {
-		return err
-	}
-	if err := dvol.updateRunningPoint(volume, branchName); err != nil {
-		return err
-	}
-	return dvol.containerRuntime.Start(volumeName)
+	return encoder.Encode(currentBranchContent)
 }
 
 func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
@@ -185,7 +183,17 @@ func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, 
 			return fmt.Errorf("Cannot switch to a non-existing branch %s", newBranch)
 		}
 	}
-	return dvol.setActiveBranch(volumeName, newBranch)
+	if err := dvol.setActiveBranch(volumeName, newBranch); err != nil {
+		return err
+	}
+	if err := dvol.containerRuntime.Stop(volumeName); err != nil {
+		return err
+	}
+	if err := dvol.updateRunningPoint(dvol.dl.VolumeFromName(volumeName),
+		newBranch); err != nil {
+		return err
+	}
+	return dvol.containerRuntime.Start(volumeName)
 }
 
 func (dvol *DvolAPI) ActiveVolume() (string, error) {
