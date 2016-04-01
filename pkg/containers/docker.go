@@ -2,6 +2,7 @@ package containers
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/fsouza/go-dockerclient"
 )
@@ -64,14 +65,14 @@ func (runtime *DockerRuntime) Start(volume string) error {
 
 func (runtime *DockerRuntime) attemptStop(cid ContainerID) error {
 	var err error
-	for idx := 0; idx < 10; idx++ {
-		// TODO: Need the ID here so refactoring neccesary
+	const attempts = 10
+	for idx := 0; idx < attempts; idx++ {
 		if err = runtime.client.StopContainer(string(cid), 10); err == nil {
 			return nil
 		}
-		// Log that we're retrying
+		log.Printf("Attempt %s of %s failed to stop container %s: %v", idx, attempts, cid, err)
 	}
-	// Log that we failed to stop the container
+	log.Printf("Failed to stop container %s", cid)
 	return err
 }
 
