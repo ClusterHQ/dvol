@@ -70,7 +70,7 @@ func (runtime *DockerRuntime) attemptStop(cid ContainerID) error {
 		if err = runtime.client.StopContainer(string(cid), 10); err == nil {
 			return nil
 		}
-		log.Printf("Attempt %s of %s failed to stop container %s: %v", idx, attempts, cid, err)
+		log.Printf("Attempt %d of %d failed to stop container %s: %v", idx, attempts, cid, err)
 	}
 	log.Printf("Failed to stop container %s", cid)
 	return err
