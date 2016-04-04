@@ -54,6 +54,12 @@ func TestCheckoutBranchCreate(t *testing.T) {
 		BasePath:                 basePath,
 		DisableDockerIntegration: true,
 	})
+	if err := dvol.CreateVolume("foo"); err != nil {
+		t.Errorf("CreateVolume failed: %s\n", err)
+	}
+	if _, err := dvol.Commit("foo", "master", "Initial commit."); err != nil {
+		t.Errorf("Commit failed: %s\n", err)
+	}
 	if err := dvol.CheckoutBranch("foo", "master", "bar", true); err != nil {
 		t.Errorf("CheckoutBranch failed: %s\n", err)
 	}
