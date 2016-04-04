@@ -185,7 +185,6 @@ class VoluminousTests(TestCase):
             "http://%s:8080/get" % (docker_host(),)
         )).content
 
-    @skip_if_go_version
     def test_switch_branches_restarts_containers(self):
         """
         Docker containers are restarted when switching branches.
@@ -219,20 +218,20 @@ class VoluminousTests(TestCase):
         """
         def cleanup():
             try:
-                run(["docker", "rm", "-fv", "volume_remove_test"])
+                run(["docker", "rm", "-fv", "volumeremove"])
             except:
                 pass
             try:
-                run(["docker", "rm", "-fv", "volume_remove_test_error"])
+                run(["docker", "rm", "-fv", "volumeremoveerror"])
             except:
                 pass
             try:
-                run(["docker", "volume", "rm", "volume-remove-test"])
+                run(["docker", "volume", "rm", "volumeremove"])
                 pass
             except:
                 pass
             try:
-                dvol(["rm", "-f", "volume-remove-test"])
+                dvol(["rm", "-f", "volumeremove"])
                 pass
             except:
                 pass
@@ -240,16 +239,16 @@ class VoluminousTests(TestCase):
         self.addCleanup(cleanup)
 
         # Start a new container
-        run(["docker", "run", "--name", "volume_remove_test", "-v",
-            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
+        run(["docker", "run", "--name", "volumeremove", "-v",
+            "volumeremove:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
         # Remove the volume
-        dvol(["rm", "-f", "volume-remove-test"])
+        dvol(["rm", "-f", "volumeremove"])
 
         # Start a new container on the same volume and there are no errors
-        run(["docker", "run", "--name", "volume_remove_test_error", "-v",
-            "volume-remove-test:/data", "--volume-driver", "dvol", "-d",
+        run(["docker", "run", "--name", "volumeremoveerror", "-v",
+            "volumeremove:/data", "--volume-driver", "dvol", "-d",
             "busybox", "true"])
 
     @skip_if_python_version
@@ -349,8 +348,6 @@ class VoluminousTests(TestCase):
 
 """
 log of integration tests to write:
-
-write test_switch_branches_restarts_containers
 
 command:
     dvol commit ...

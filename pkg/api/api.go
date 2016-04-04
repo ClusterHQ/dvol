@@ -10,7 +10,6 @@ import (
 
 	"github.com/ClusterHQ/dvol/pkg/containers"
 	"github.com/ClusterHQ/dvol/pkg/datalayer"
-	"github.com/fsouza/go-dockerclient"
 )
 
 /*
@@ -88,16 +87,15 @@ func NewDvolAPI(options DvolAPIOptions) *DvolAPI {
 	dl := datalayer.NewDataLayer(options.BasePath)
 	var containerRuntime containers.Runtime
 	if !options.DisableDockerIntegration {
-		client, _ := docker.NewClientFromEnv()
-		containerRuntime = containers.DockerRuntime{client}
+		containerRuntime = containers.NewDockerRuntime()
 	} else {
-		containerRuntime = containers.NoneRuntime{}
+		containerRuntime = containers.NewNoneRuntime()
 	}
 	return &DvolAPI{options.BasePath, dl, containerRuntime}
 }
 
 func (dvol *DvolAPI) VolumePath(volumeName string) string {
-	return dvol.dl.VolumeFromName(volumeName).Path
+	return filepath.FromSlash(dvol.dl.VolumeFromName(volumeName).Path + "/running_point")
 }
 
 func (dvol *DvolAPI) CreateVolume(volumeName string) error {
@@ -106,7 +104,12 @@ func (dvol *DvolAPI) CreateVolume(volumeName string) error {
 		return err
 	}
 
-	if err = dvol.CreateBranch(volumeName, DEFAULT_BRANCH); err != nil {
+	if err := dvol.CreateBranch(volumeName, DEFAULT_BRANCH); err != nil {
+		return err
+	}
+
+	if err := dvol.updateRunningPoint(dvol.dl.VolumeFromName(volumeName),
+		DEFAULT_BRANCH); err != nil {
 		return err
 	}
 
@@ -132,6 +135,17 @@ func (dvol *DvolAPI) setActiveVolume(volumeName string) error {
 	return encoder.Encode(currentVolumeContent)
 }
 
+func (dvol *DvolAPI) updateRunningPoint(volume datalayer.Volume, branchName string) error {
+	branchPath := dvol.dl.VariantPath(volume.Name, branchName)
+	stablePath := filepath.FromSlash(volume.Path + "/running_point")
+	if _, err := os.Stat(stablePath); err == nil {
+		if err := os.Remove(stablePath); err != nil {
+			return err
+		}
+	}
+	return os.Symlink(branchPath, stablePath)
+}
+
 func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 	volume := dvol.dl.VolumeFromName(volumeName)
 	currentBranchJsonPath := filepath.FromSlash(volume.Path + "/current_branch.json")
@@ -148,7 +162,10 @@ func (dvol *DvolAPI) setActiveBranch(volumeName, branchName string) error {
 }
 
 func (dvol *DvolAPI) CreateBranch(volumeName, branchName string) error {
-	return dvol.dl.CreateVariant(volumeName, branchName)
+	if err := dvol.dl.CreateVariant(volumeName, branchName); err != nil {
+		return err
+	}
+	return dvol.setActiveBranch(volumeName, branchName)
 }
 
 func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, create bool) error {
@@ -164,7 +181,17 @@ func (dvol *DvolAPI) CheckoutBranch(volumeName, sourceBranch, newBranch string, 
 			return fmt.Errorf("Cannot switch to a non-existing branch %s", newBranch)
 		}
 	}
-	return dvol.setActiveBranch(volumeName, newBranch)
+	if err := dvol.setActiveBranch(volumeName, newBranch); err != nil {
+		return err
+	}
+	if err := dvol.containerRuntime.Stop(volumeName); err != nil {
+		return err
+	}
+	if err := dvol.updateRunningPoint(dvol.dl.VolumeFromName(volumeName),
+		newBranch); err != nil {
+		return err
+	}
+	return dvol.containerRuntime.Start(volumeName)
 }
 
 func (dvol *DvolAPI) ActiveVolume() (string, error) {
@@ -258,5 +285,13 @@ func (dvol *DvolAPI) ResetActiveVolume(commit string) error {
 }
 
 func (dvol *DvolAPI) RelatedContainers(volumeName string) ([]string, error) {
-	return dvol.containerRuntime.Related(volumeName)
+	containerNames := make([]string, 0)
+	relatedContainers, err := dvol.containerRuntime.Related(volumeName)
+	if err != nil {
+		return containerNames, err
+	}
+	for _, container := range relatedContainers {
+		containerNames = append(containerNames, string(container.Name))
+	}
+	return containerNames, nil
 }

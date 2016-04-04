@@ -2,18 +2,22 @@ package containers
 
 type NoneRuntime struct{}
 
-func (NoneRuntime) Related(string) ([]string, error) {
-	return []string{}, nil
+func NewNoneRuntime() *NoneRuntime {
+	return &NoneRuntime{}
 }
 
-func (NoneRuntime) Start(string) error {
+func (runtime *NoneRuntime) Related(string) ([]Container, error) {
+	return []Container{}, nil
+}
+
+func (runtime *NoneRuntime) Start(string) error {
 	return nil
 }
 
-func (NoneRuntime) Stop(string) error {
+func (runtime *NoneRuntime) Stop(string) error {
 	return nil
 }
 
-func (NoneRuntime) Remove(string) error {
+func (runtime *NoneRuntime) Remove(string) error {
 	return nil
 }
