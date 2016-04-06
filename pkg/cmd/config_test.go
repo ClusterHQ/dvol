@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 	"testing"
+
+	"github.com/spf13/viper"
 )
 
 func TestCannotGetYet(t *testing.T) { // TODO: Implement get and then remove this
@@ -28,6 +30,7 @@ func TestNotEnoughArguments(t *testing.T) {
 		t.Error("No error")
 	}
 }
+
 func TestTooManyArguments(t *testing.T) {
 	args := []string{"first", "second", "third"}
 
@@ -37,5 +40,21 @@ func TestTooManyArguments(t *testing.T) {
 		}
 	} else {
 		t.Error("No error")
+	}
+}
+
+func TestSetConfigValue(t *testing.T) {
+	// Providing two arguments will store a value that can be read from the
+	// config store
+	viper.Reset()
+
+	args := []string{"user.name", "alice"}
+	if err := dispatchConfig(args, os.Stdout); err != nil {
+		t.Error(err)
+	}
+
+	value := viper.GetString("user.name")
+	if value != "user.name" {
+		t.Error("Incorrect value retrieved, got:", value)
 	}
 }
