@@ -33,5 +33,6 @@ func dispatchConfig(args []string, out io.Writer) error {
 }
 
 func setConfigValue(key, value string, out io.Writer) error {
-	return viper.SetString(key, value)
+	viper.Set(key, value)
+	return nil
 }

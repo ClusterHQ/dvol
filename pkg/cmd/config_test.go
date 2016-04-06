@@ -54,7 +54,7 @@ func TestSetConfigValue(t *testing.T) {
 	}
 
 	value := viper.GetString("user.name")
-	if value != "user.name" {
+	if value != "alice" {
 		t.Error("Incorrect value retrieved, got:", value)
 	}
 }
