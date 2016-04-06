@@ -15,8 +15,7 @@ import os
 import json
 
 from testtools import (
-    CalledProcessErrorWithOutput, TEST_GOLANG_VERSION, skip_if_go_version,
-    skip_if_python_version
+    CalledProcessErrorWithOutput, TEST_GOLANG_VERSION, skip_if_python_version
 )
 
 DVOL_BINARY = os.environ.get("DVOL_BINARY", "./dvol")

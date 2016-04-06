@@ -5,6 +5,7 @@ import (
 
 	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var basePath string
@@ -30,20 +31,24 @@ and come back to it later.`,
 
 func init() {
 	// cobra.OnInitialize(initConfig)
-	// TODO support: dvol -p <custom_path> init <volume_name>
+	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
+	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
+	RootCmd.AddCommand(NewCmdConfig(os.Stdout))
+	RootCmd.AddCommand(NewCmdCommit(os.Stdout))
 	RootCmd.AddCommand(NewCmdInit(os.Stdout))
+	RootCmd.AddCommand(NewCmdList(os.Stdout))
+	RootCmd.AddCommand(NewCmdLog(os.Stdout))
+	RootCmd.AddCommand(NewCmdReset(os.Stdout))
 	RootCmd.AddCommand(NewCmdRm(os.Stdout))
 	RootCmd.AddCommand(NewCmdSwitch(os.Stdout))
-	RootCmd.AddCommand(NewCmdList(os.Stdout))
-	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
-	RootCmd.AddCommand(NewCmdCommit(os.Stdout))
-	RootCmd.AddCommand(NewCmdReset(os.Stdout))
-	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
-	RootCmd.AddCommand(NewCmdLog(os.Stdout))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
 	RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")
+
+	viper.SetConfigName("config")
+	viper.AddConfigPath("$HOME/.dvol")
+	viper.ReadInConfig()
 }
