@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	//"github.com/spf13/viper"
+	"github.com/spf13/viper"
 )
 
 func NewCmdConfig(out io.Writer) *cobra.Command {
@@ -33,5 +33,5 @@ func dispatchConfig(args []string, out io.Writer) error {
 }
 
 func setConfigValue(key, value string, out io.Writer) error {
-	return nil
+	return viper.SetString(key, value)
 }
