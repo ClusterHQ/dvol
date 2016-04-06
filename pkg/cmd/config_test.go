@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 func TestCannotGetYet(t *testing.T) { // TODO: Implement get and then remove this
@@ -62,5 +65,42 @@ func TestSetUnknownValue(t *testing.T) {
 		t.Error("No error")
 	} else if err.Error() != "'garbage' is not a valid configuration key" {
 		t.Error("Unexpected error:", err)
+	}
+}
+
+func TestUnmarshal(t *testing.T) {
+	// The config can be unmarshaled into a struct
+	if err := setConfigValue("user.name", "alice"); err != nil {
+		t.Error(err)
+	}
+
+	config, err := unmarshalConfig()
+	if err != nil {
+		t.Error(err)
+	}
+	expected := Config{
+		UserName: "alice",
+	}
+	if !reflect.DeepEqual(config, expected) {
+		t.Error("Not equal:", config, expected)
+	}
+}
+
+func TestMarshal(t *testing.T) {
+	// A Config struct can be marshaled into YAML bytes
+	config := Config{
+		UserName: "alice",
+		UserEmail: "alice@acme.co",
+	}
+	expected := []byte(`user.name: alice
+user.email: alice@acme.co
+`)
+
+	out, err := yaml.Marshal(config)
+	if err != nil {
+		t.Error(err)
+	}
+	if !bytes.Equal(out, expected) {
+		t.Error("\nExpected:\t", expected, "\nGot:\t\t", out)
 	}
 }

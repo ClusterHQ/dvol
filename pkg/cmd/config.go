@@ -10,6 +10,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Config struct {
+	// Used to marshal the configuration into YAML
+	UserName string `mapstructure:"user.name" yaml:"user.name"`
+	UserEmail string `mapstructure:"user.email" yaml:"user.email"`
+}
+
 func isValidKey(key string) bool {
 	switch key {
 	case
@@ -37,16 +43,23 @@ func dispatchConfig(args []string, out io.Writer) error {
 	} else if len(args) == 1 {
 		return errors.New("Any operation other than setting a value is not implemented yet")
 	} else if len(args) == 2 {
-		return setConfigValue(args[0], args[1], out)
+		return setConfigValue(args[0], args[1])
 	} else {
 		return errors.New("Too many arguments")
 	}
 }
 
-func setConfigValue(key, value string, out io.Writer) error {
+func setConfigValue(key, value string) error {
 	if !isValidKey(key) {
 		return fmt.Errorf("'%s' is not a valid configuration key", key)
 	}
+
 	viper.Set(key, value)
 	return nil
+}
+
+func unmarshalConfig() (Config, error) {
+	var C Config
+	err := viper.Unmarshal(&C)
+	return C, err
 }
