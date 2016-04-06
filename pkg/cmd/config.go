@@ -22,8 +22,8 @@ func isValidKey(key string) bool {
 
 func NewCmdConfig(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:	"config name [value]",
-		Short:	"Get or set global options",
+		Use:   "config name [value]",
+		Short: "Get or set global options",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return dispatchConfig(args, os.Stdout)
 		},
