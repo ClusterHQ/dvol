@@ -49,6 +49,6 @@ func init() {
 			" docker containers which are using dvol volumes")
 
 	viper.SetConfigName("config")
-	viper.AddConfigPath("$HOME/.appname")
+	viper.AddConfigPath("$HOME/.dvol")
 	viper.ReadInConfig()
 }
