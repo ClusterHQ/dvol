@@ -21,8 +21,10 @@ func NewCmdConfig(out io.Writer) *cobra.Command {
 }
 
 func dispatchConfig(args []string, out io.Writer) error {
-	if len(args) == 1 {
-		return errors.New("Any operation other than setting a value is not implemented yet.")
+	if len(args) == 0 {
+		return errors.New("Not enough arguments")
+	} else if len(args) == 1 {
+		return errors.New("Any operation other than setting a value is not implemented yet")
 	} else if len(args) == 2 {
 		return setConfigValue(args[0], args[1], out)
 	} else {
