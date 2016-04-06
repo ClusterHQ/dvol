@@ -2,12 +2,23 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func isValidKey(key string) bool {
+	switch key {
+	case
+		"user.name",
+		"user.email":
+		return true
+	}
+	return false
+}
 
 func NewCmdConfig(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -33,6 +44,9 @@ func dispatchConfig(args []string, out io.Writer) error {
 }
 
 func setConfigValue(key, value string, out io.Writer) error {
+	if !isValidKey(key) {
+		return fmt.Errorf("'%s' is not a valid configuration key", key)
+	}
 	viper.Set(key, value)
 	return nil
 }
