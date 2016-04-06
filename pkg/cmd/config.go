@@ -9,7 +9,7 @@ import (
 	//"github.com/spf13/viper"
 )
 
-func NewCmdConfig(out io.Writer, errout io.Writer) *cobra.Command {
+func NewCmdConfig(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:	"config name [value]",
 		Short:	"Get or set global options",
@@ -21,10 +21,13 @@ func NewCmdConfig(out io.Writer, errout io.Writer) *cobra.Command {
 }
 
 func dispatchConfig(args []string, out io.Writer) error {
-	if len(args) == 2 {
+	if len(args) == 1 {
+		return errors.New("Any operation other than setting a value is not implemented yet.")
+	} else if len(args) == 2 {
 		return setConfigValue(args[0], args[1], out)
+	} else {
+		return errors.New("Too many arguments")
 	}
-	return errors.New("Any operation other than setting a value is not implemented yet.")
 }
 
 func setConfigValue(key, value string, out io.Writer) error {

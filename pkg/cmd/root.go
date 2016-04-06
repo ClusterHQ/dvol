@@ -31,15 +31,16 @@ and come back to it later.`,
 
 func init() {
 	// cobra.OnInitialize(initConfig)
+	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
+	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
+	RootCmd.AddCommand(NewCmdConfig(os.Stdout))
+	RootCmd.AddCommand(NewCmdCommit(os.Stdout))
 	RootCmd.AddCommand(NewCmdInit(os.Stdout))
+	RootCmd.AddCommand(NewCmdList(os.Stdout))
+	RootCmd.AddCommand(NewCmdLog(os.Stdout))
+	RootCmd.AddCommand(NewCmdReset(os.Stdout))
 	RootCmd.AddCommand(NewCmdRm(os.Stdout))
 	RootCmd.AddCommand(NewCmdSwitch(os.Stdout))
-	RootCmd.AddCommand(NewCmdList(os.Stdout))
-	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
-	RootCmd.AddCommand(NewCmdCommit(os.Stdout))
-	RootCmd.AddCommand(NewCmdReset(os.Stdout))
-	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
-	RootCmd.AddCommand(NewCmdLog(os.Stdout))
 
 	RootCmd.PersistentFlags().StringVarP(&basePath, "path", "p", "/var/lib/dvol/volumes",
 		"The name of the directory to use")
