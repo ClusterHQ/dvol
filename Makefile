@@ -25,16 +25,13 @@ bootstrap: go-bootstrap python-bootstrap
 
 # 'go-bootstrap' installs all of the golang tools required by dvol
 # remember to add {GOPATH}/bin to your Path
-go-bootstrap: godep cover vet goimports gotestcover
+go-bootstrap: godep cover goimports gotestcover
 
 godep:
 	go get github.com/tools/godep
 
 cover:
 	go get golang.org/x/tools/cmd/cover
-
-vet:
-	go get golang.org/x/tools/cmd/vet
 
 gotestcover:
 	go get github.com/pierrre/gotestcover
