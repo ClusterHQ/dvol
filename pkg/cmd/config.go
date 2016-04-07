@@ -40,12 +40,6 @@ func NewCmdConfig(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func initConfig() {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(basePath)
-	viper.ReadInConfig()
-}
-
 func dispatchConfig(args []string, out io.Writer) error {
 	if len(args) == 0 {
 		return errors.New("Not enough arguments")

@@ -5,6 +5,7 @@ import (
 
 	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var basePath string
@@ -29,7 +30,7 @@ and come back to it later.`,
 }
 
 func init() {
-	// cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initConfig)
 	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
 	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
 	RootCmd.AddCommand(NewCmdConfig(os.Stdout))
@@ -46,10 +47,15 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")
+}
 
+func initConfig() {
 	if _, err := os.Stat(basePath); err != nil {
 		os.MkdirAll(basePath, 0600)
 	}
 
-	initConfig()
+	viper.SetConfigName("config")
+	viper.AddConfigPath(basePath)
+	viper.ReadInConfig()
 }
+
