@@ -5,7 +5,6 @@ import (
 
 	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var basePath string
@@ -48,7 +47,5 @@ func init() {
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")
 
-	viper.SetConfigName("config")
-	viper.AddConfigPath("$HOME/.dvol")
-	viper.ReadInConfig()
+	initConfig()
 }

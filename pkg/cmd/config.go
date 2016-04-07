@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -49,17 +52,47 @@ func dispatchConfig(args []string, out io.Writer) error {
 	}
 }
 
+func initConfig() {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(basePath)
+	viper.ReadInConfig()
+}
+
 func setConfigValue(key, value string) error {
 	if !isValidKey(key) {
 		return fmt.Errorf("'%s' is not a valid configuration key", key)
 	}
 
 	viper.Set(key, value)
-	return nil
+	return saveConfig()
 }
 
 func unmarshalConfig() (Config, error) {
 	var C Config
 	err := viper.Unmarshal(&C)
 	return C, err
+}
+
+func saveConfig() error {
+	config, err := unmarshalConfig()
+	if err != nil {
+		return err
+	}
+	yamlConfig, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	configPath := path.Join(basePath, "config.yml")
+	file, err := ioutil.TempFile(os.TempDir(), "dvol_config")
+	if err != nil {
+		return err
+	}
+	os.Chmod(file.Name(), 0600)
+	if _, err := file.Write(yamlConfig); err != nil {
+		os.Remove(file.Name())
+		return err
+	}
+	os.Rename(file.Name(), configPath)
+	return nil
 }
