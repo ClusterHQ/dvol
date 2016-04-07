@@ -345,6 +345,24 @@ class VoluminousTests(TestCase):
         self.assertEqual(data[alpha], alpha)
         self.assertEqual(data[beta], beta)
 
+    def test_docker_volume_rm_does_not_create_volume(self):
+        """
+        ``docker volume rm <volume>`` should not make a request to
+        ``/VolumeDriver.Create``.
+        """
+        volume = "shouldnotexist"
+        def cleanup():
+            try: run(["docker", "volume", "rm", volume])
+            except: pass
+            try: dvol(["rm", "-f", volume])
+            except: pass
+        cleanup()
+        self.addCleanup(cleanup)
+        before = dvol(["list"])
+        self.assertNotIn(volume, before)
+        run(["docker", "volume", "rm", volume])
+        after = dvol(["list"])
+        self.assertNotIn(volume, after)
 
 """
 log of integration tests to write:
