@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -23,16 +22,6 @@ func TestMain(m *testing.M) {
 	}
 	defer os.RemoveAll(basePath)
 	os.Exit(m.Run())
-}
-
-func TestCannotGetYet(t *testing.T) { // TODO: Implement get and then remove this
-	args := []string{"user.name"}
-
-	if err := dispatchConfig(args, os.Stdout); err == nil {
-		t.Error("No error")
-	} else if err.Error() != "Any operation other than setting a value is not implemented yet" {
-		t.Error("Unexpected error:", err)
-	}
 }
 
 func TestNotEnoughArguments(t *testing.T) {
@@ -157,19 +146,14 @@ func TestConfigGetOutput(t *testing.T) {
 	// Passing only a single argument results in the configuration key value
 	// being printed to Stdout followed by a newline.
 	args := []string{"user.name"}
-	var w io.ReadWriteSeeker
-	var out []byte
+	w := new(bytes.Buffer)
 
 	if err := dispatchConfig(args, w); err != nil {
 		t.Error(err)
 	}
-	_, err := w.Seek(0, 0)
-	if err != nil {
-		t.Error(err)
-	}
 
-	io.ReadFull(w, out)
-	if string(out) != "alice\n" {
-		t.Errorf("Unexpected output, got: %v, expected: %v", string(out), "alice\n")
+	outString := w.String()
+	if outString != "alice\n" {
+		t.Errorf("Unexpected output, got: %v, expected: %v", outString, "alice\n")
 	}
 }

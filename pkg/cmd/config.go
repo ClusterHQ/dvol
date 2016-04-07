@@ -40,11 +40,17 @@ func NewCmdConfig(out io.Writer) *cobra.Command {
 	return cmd
 }
 
+func initConfig() {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(basePath)
+	viper.ReadInConfig()
+}
+
 func dispatchConfig(args []string, out io.Writer) error {
 	if len(args) == 0 {
 		return errors.New("Not enough arguments")
 	} else if len(args) == 1 {
-		return errors.New("Any operation other than setting a value is not implemented yet")
+		return getConfigValue(args[0], out)
 	} else if len(args) == 2 {
 		return setConfigValue(args[0], args[1])
 	} else {
@@ -52,12 +58,17 @@ func dispatchConfig(args []string, out io.Writer) error {
 	}
 }
 
-func initConfig() {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(basePath)
-	viper.ReadInConfig()
-}
+func getConfigValue(key string, out io.Writer) error {
+	if !isValidKey(key) {
+		return fmt.Errorf("'%s' is not a valid configuration key", key)
+	}
 
+	value := viper.GetString(key)
+	if _, err := io.WriteString(out, value + "\n"); err != nil { 
+		return err
+	}
+	return nil
+}
 func setConfigValue(key, value string) error {
 	if !isValidKey(key) {
 		return fmt.Errorf("'%s' is not a valid configuration key", key)
