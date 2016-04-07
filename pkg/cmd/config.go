@@ -107,6 +107,5 @@ func saveConfig() error {
 		os.Remove(file.Name())
 		return err
 	}
-	os.Rename(file.Name(), configPath)
-	return nil
+	return os.Rename(file.Name(), configPath)
 }

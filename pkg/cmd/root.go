@@ -47,5 +47,9 @@ func init() {
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")
 
+	if _, err := os.Stat(basePath); err != nil {
+		os.MkdirAll(basePath, 0600)
+	}
+
 	initConfig()
 }
