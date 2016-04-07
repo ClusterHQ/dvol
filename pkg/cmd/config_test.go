@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -137,7 +138,7 @@ func TestConfigFileMode(t *testing.T) {
 	}
 }
 
-func TestConfigRead(t *testing.T) {
+func TestConfigReadFromDisk(t *testing.T) {
 	// The config is readable after being written
 	viper.Reset()
 	if err := setConfigValue("user.name", "alice"); err != nil {
@@ -149,5 +150,26 @@ func TestConfigRead(t *testing.T) {
 	value := viper.GetString("user.name")
 	if value != "alice" {
 		t.Error("Incorrect value retrieved, got:", value)
+	}
+}
+
+func TestConfigGetOutput(t *testing.T) {
+	// Passing only a single argument results in the configuration key value
+	// being printed to Stdout followed by a newline.
+	args := []string{"user.name"}
+	var w io.ReadWriteSeeker
+	var out []byte
+
+	if err := dispatchConfig(args, w); err != nil {
+		t.Error(err)
+	}
+	_, err := w.Seek(0, 0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	io.ReadFull(w, out)
+	if string(out) != "alice\n" {
+		t.Errorf("Unexpected output, got: %v, expected: %v", string(out), "alice\n")
 	}
 }
