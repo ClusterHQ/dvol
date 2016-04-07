@@ -610,3 +610,14 @@ class VoluminousTests(TestCase):
             output = error.original.output
         self.assertIn("Error", output)
         self.assertIn("foo/bar", output)
+
+    @skip_if_python_version
+    def test_get_set_config(self):
+        """
+        A configuration key can be set and then retrieved.
+        """
+        dvol = VoluminousOptions()
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "config", "user.name", "alice"])
+        dvol.parseOptions(ARGS + ["-p", self.tmpdir.path, "config", "user.name"])
+        self.assertEqual(dvol.voluminous.getOutput()[-1],
+            "alice")

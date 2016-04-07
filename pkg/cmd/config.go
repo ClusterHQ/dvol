@@ -98,7 +98,7 @@ func saveConfig() error {
 	}
 
 	configPath := path.Join(basePath, "config.yml")
-	file, err := ioutil.TempFile(os.TempDir(), "dvol_config")
+	file, err := ioutil.TempFile(basePath, "dvol_config")
 	if err != nil {
 		return err
 	}
