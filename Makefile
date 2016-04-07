@@ -16,7 +16,7 @@ test-go: build
 	&& scripts/verify-tests.sh
 
 # 'verify' ensures your golang code passes 'the basics'
-# locally before committing e.g. gofmt, go etc
+# locally before committing e.g. gofmt, go vet etc
 verify:
 	scripts/verify-preflight.sh
 
