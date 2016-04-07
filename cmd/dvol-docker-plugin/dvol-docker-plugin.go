@@ -111,6 +111,7 @@ func main() {
 	})
 
 	http.HandleFunc("/VolumeDriver.Remove", func(w http.ResponseWriter, r *http.Request) {
+		log.Print("<= /VolumeDriver.Remove (no-op)")
 		/*
 			We do not actually want to remove the dvol volume when Docker references to them are removed.
 
