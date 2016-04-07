@@ -64,7 +64,10 @@ func getConfigValue(key string, out io.Writer) error {
 	}
 
 	value := viper.GetString(key)
-	if _, err := io.WriteString(out, value + "\n"); err != nil { 
+	if len(value) > 0 {
+		value += "\n"
+	}
+	if _, err := io.WriteString(out, value); err != nil { 
 		return err
 	}
 	return nil

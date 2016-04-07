@@ -145,6 +145,11 @@ func TestConfigReadFromDisk(t *testing.T) {
 func TestConfigGetOutput(t *testing.T) {
 	// Passing only a single argument results in the configuration key value
 	// being printed to Stdout followed by a newline.
+	viper.Reset()
+	if err := setConfigValue("user.name", "alice"); err != nil {
+		t.Error(err)
+	}
+
 	args := []string{"user.name"}
 	w := new(bytes.Buffer)
 
@@ -154,6 +159,23 @@ func TestConfigGetOutput(t *testing.T) {
 
 	outString := w.String()
 	if outString != "alice\n" {
+		t.Errorf("Unexpected output, got: %v, expected: %v", outString, "alice\n")
+	}
+}
+
+func TestConfigGetOutputEmpty(t *testing.T) {
+	// Passing only a single argument results in the configuration key value
+	// being printed to Stdout followed by a newline. If the key is unset or empty, print nothing.
+	viper.Reset()
+	args := []string{"user.name"}
+	w := new(bytes.Buffer)
+
+	if err := dispatchConfig(args, w); err != nil {
+		t.Error(err)
+	}
+
+	outString := w.String()
+	if outString != "" {
 		t.Errorf("Unexpected output, got: %v, expected: %v", outString, "alice\n")
 	}
 }
