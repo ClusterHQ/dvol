@@ -15,7 +15,7 @@ import (
 
 type Config struct {
 	// Used to marshal the configuration into YAML
-	UserName string `mapstructure:"user.name" yaml:"user.name"`
+	UserName  string `mapstructure:"user.name" yaml:"user.name"`
 	UserEmail string `mapstructure:"user.email" yaml:"user.email"`
 }
 
@@ -61,7 +61,7 @@ func getConfigValue(key string, out io.Writer) error {
 	if len(value) > 0 {
 		value += "\n"
 	}
-	if _, err := io.WriteString(out, value); err != nil { 
+	if _, err := io.WriteString(out, value); err != nil {
 		return err
 	}
 	return nil

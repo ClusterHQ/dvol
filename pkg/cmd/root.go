@@ -58,4 +58,3 @@ func initConfig() {
 	viper.AddConfigPath(basePath)
 	viper.ReadInConfig()
 }
-

@@ -93,7 +93,7 @@ func TestUnmarshal(t *testing.T) {
 func TestMarshal(t *testing.T) {
 	// A Config struct can be marshaled into YAML bytes
 	config := Config{
-		UserName: "alice",
+		UserName:  "alice",
 		UserEmail: "alice@acme.co",
 	}
 	expected := []byte(`user.name: alice
