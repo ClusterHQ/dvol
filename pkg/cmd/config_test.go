@@ -23,12 +23,12 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestNotEnoughArguments(t *testing.T) {
+func TestNoOperationSpecified(t *testing.T) {
 	args := []string{}
-
+	listAll = false
 	if err := dispatchConfig(args, os.Stdout); err == nil {
 		t.Error("No error")
-	} else if err.Error() != "Not enough arguments" {
+	} else if err.Error() != "No operation specified" {
 		t.Error("Unexpected error:", err)
 	}
 }
@@ -181,8 +181,56 @@ func TestConfigGetOutputEmpty(t *testing.T) {
 		t.Error(err)
 	}
 
-	outString := w.String()
-	if outString != "" {
-		t.Errorf("Unexpected output, got: %v, expected: %v", outString, "alice\n")
+	out := w.String()
+	if out != "" {
+		t.Errorf("Unexpected output, got: %v, expected: %v", out, "alice\n")
+	}
+}
+
+func TestListConfig(t *testing.T) {
+	viper.Reset()
+	setConfigValue("user.name", "alice")
+	setConfigValue("user.email", "alice@acme.co")
+
+	args := []string{}
+	listAll = true
+	w := new(bytes.Buffer)
+
+	if err := dispatchConfig(args, w); err != nil {
+		t.Error(err)
+	}
+
+	out := w.String()
+	expected := `user.name=alice
+user.email=alice@acme.co
+`
+
+	if out != expected {
+		t.Errorf("Unexpected output, got: %v, expected: %v", out, expected)
+	}
+}
+
+func TestListConfigMissingKey(t *testing.T) {
+	// Print the keys which are missing, this will aid the user in discovering
+	// what they can set
+	viper.Reset()
+	setConfigValue("user.name", "alice")
+	setConfigValue("user.email", "")
+
+	args := []string{}
+	listAll = true
+	w := new(bytes.Buffer)
+
+	if err := dispatchConfig(args, w); err != nil {
+		t.Error(err)
+	}
+
+	out := w.String()
+	expected := `user.name=alice
+user.email=
+`
+
+	if out != expected {
+		t.Errorf("Unexpected output, got: %v, expected: %v", out, expected)
 	}
 }
