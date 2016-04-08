@@ -360,7 +360,10 @@ class VoluminousTests(TestCase):
         self.addCleanup(cleanup)
         before = dvol(["list"])
         self.assertNotIn(volume, before)
-        run(["docker", "volume", "rm", volume])
+        try:
+            run(["docker", "volume", "rm", volume])
+        except:
+            pass
         after = dvol(["list"])
         self.assertNotIn(volume, after)
 
