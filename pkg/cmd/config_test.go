@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"reflect"
 	"testing"
 
@@ -41,6 +40,14 @@ func TestTooManyArguments(t *testing.T) {
 		t.Error("No error")
 	} else if err.Error() != "Too many arguments" {
 		t.Error("Unexpected error:", err)
+	}
+}
+
+func TestMissingConfig(t *testing.T) {
+	// Initialising the configuration when it is missing is not an error
+	os.Remove(configPath())
+	if err := initialiseConfig(); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -116,7 +123,7 @@ func TestConfigFileMode(t *testing.T) {
 		t.Error(err)
 	}
 
-	configPath := path.Join(basePath, "config.yml")
+	configPath := configPath()
 	stat, err := os.Stat(configPath)
 	if err != nil {
 		t.Error(err)
@@ -134,7 +141,7 @@ func TestConfigReadFromDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	initConfig()
+	initialiseConfig()
 
 	value := viper.GetString("user.name")
 	if value != "alice" {

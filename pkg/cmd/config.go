@@ -40,6 +40,21 @@ func NewCmdConfig(out io.Writer) *cobra.Command {
 	return cmd
 }
 
+func initialiseConfig() error {
+	viper.SetConfigFile(configPath())
+	if err := viper.ReadInConfig(); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+	}
+	return nil
+}
+
+func configPath() string {
+	// Return the configuration file path
+	return path.Join(basePath, "config.yml")
+}
+
 func dispatchConfig(args []string, out io.Writer) error {
 	if len(args) == 0 {
 		return errors.New("Not enough arguments")
@@ -91,12 +106,14 @@ func saveConfig() error {
 		return err
 	}
 
-	configPath := path.Join(basePath, "config.yml")
+	configPath := configPath()
 	file, err := ioutil.TempFile(basePath, "dvol_config")
 	if err != nil {
 		return err
 	}
-	os.Chmod(file.Name(), 0600)
+	if err := os.Chmod(file.Name(), 0600); err != nil {
+		return err
+	}
 	if _, err := file.Write(yamlConfig); err != nil {
 		os.Remove(file.Name())
 		return err
