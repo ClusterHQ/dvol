@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/ClusterHQ/dvol/pkg/api"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var basePath string
@@ -21,16 +21,24 @@ var RootCmd = &cobra.Command{
 dvol lets you commit, reset and branch the containerized databases
 running on your laptop so you can easily save a particular state
 and come back to it later.`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// Make the basePath directory if it does not exist
+		if _, err := os.Stat(basePath); err != nil {
+			if err := os.MkdirAll(basePath, 0600); err != nil {
+				return fmt.Errorf("Could not create dvol directory %s: %v", basePath, err)
+			}
+		}
+
 		dvolAPIOptions = api.DvolAPIOptions{
 			BasePath:                 basePath,
 			DisableDockerIntegration: disableDockerIntegration,
 		}
+
+		return initialiseConfig()
 	},
 }
 
 func init() {
-	// cobra.OnInitialize(initConfig)
 	RootCmd.AddCommand(NewCmdBranch(os.Stdout))
 	RootCmd.AddCommand(NewCmdCheckout(os.Stdout))
 	RootCmd.AddCommand(NewCmdConfig(os.Stdout))
@@ -47,8 +55,4 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&disableDockerIntegration,
 		"disable-docker-integration", false, "Do not attempt to list/stop/start"+
 			" docker containers which are using dvol volumes")
-
-	viper.SetConfigName("config")
-	viper.AddConfigPath("$HOME/.dvol")
-	viper.ReadInConfig()
 }
