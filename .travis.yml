@@ -29,6 +29,8 @@ env:
     - "DOCKER_VERSION=1.9.1 RUN_TESTS=test-dvol-golang-acceptance"
     - "DOCKER_VERSION=1.10.2 RUN_TESTS=test-dvol-python-acceptance"
     - "DOCKER_VERSION=1.10.2 RUN_TESTS=test-dvol-golang-acceptance"
+    - "DOCKER_VERSION=1.10.3 RUN_TESTS=test-dvol-python-acceptance"
+    - "DOCKER_VERSION=1.10.3 RUN_TESTS=test-dvol-golang-acceptance"
     - "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-python-acceptance"
     - "DOCKER_VERSION=experimental RUN_TESTS=test-dvol-golang-acceptance"
 
